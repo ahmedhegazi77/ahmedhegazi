@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>AHegazi C.Board</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        :root {
+            --metal-dark: #0e111b;
+            --metal-panel: rgba(18, 24, 34, 0.94);
+            --metal-silver: #c0cbd6;
+            --metal-gold: #ffd970;
+            --metal-bronze: #cd7f32;
+            --neon-cyan: #00f2ff;
+            --metal-cyan: #2dd4bf;
+            --danger-fire: #ff5e5e;
+            --border-metal: rgba(192, 203, 214, 0.25);
+            --shadow-metal: 0 20px 35px -10px rgba(0, 0, 0, 0.6);
+        }
+
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: 'Segoe UI', 'Inter', 'Poppins', system-ui, sans-serif;
+            background: var(--metal-dark);
+            touch-action: none;
+        }
+
+        #main-grid {
+            display: grid;
+            grid-template-columns: 1fr 0;
+            width: 100vw;
+            height: 100vh;
+            transition: grid-template-columns 0.4s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+        }
+
+        #main-grid.split-active {
+            grid-template-columns: 1fr 1fr;
+        }
+
+        #canvas-wrap {
+            position: relative;
+            overflow: hidden;
+            background: #f4f7fc;
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.05), var(--shadow-metal);
+        }
+
+        .canvas-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: auto;
+        }
+
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            touch-action: none;
+            pointer-events: auto;
+        }
+
+        #gridCanvas { z-index: 1; background: transparent; }
+        #paintCanvas { z-index: 2; }
+        #tempCanvas { z-index: 3; pointer-events: none; }
+
+        .pen-locked .canvas-container {
+            pointer-events: none;
+        }
+
+        /* ======= PANEL METAL ======= */
+        #top-panel {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            z-index: 100000;
+            background: var(--metal-panel);
+            backdrop-filter: blur(20px);
+            border-radius: 32px;
+            padding: 10px 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            border: 1px solid var(--border-metal);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 215, 0, 0.15);
+            transition: transform 0.35s cubic-bezier(0.2, 0.9, 0.4, 1.2);
+        }
+
+        .panel-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .panel-row:first-child {
+            padding-bottom: 4px;
+            border-bottom: 1px solid rgba(192, 203, 214, 0.2);
+        }
+
+        #top-panel.docked {
+            transform: translateY(calc(-100% - 30px));
+        }
+
+        #dock-trigger {
+            position: absolute;
+            bottom: -36px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--metal-panel);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--metal-gold);
+            border-top: none;
+            border-radius: 0 0 32px 32px;
+            padding: 8px 32px;
+            cursor: pointer;
+            display: flex;
+            gap: 10px;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--metal-gold);
+            transition: all 0.25s;
+            white-space: nowrap;
+        }
+        #dock-trigger:hover {
+            background: rgba(255, 217, 112, 0.2);
+            gap: 16px;
+            text-shadow: 0 0 6px gold;
+        }
+
+        .back {
+            font-size: 14px;
+            font-weight: 800;
+            background: rgba(0, 0, 0, 0.55);
+            padding: 8px 20px;
+            border-radius: 60px;
+            border: 1px solid var(--metal-gold);
+            cursor: pointer;
+            color: var(--metal-silver);
+            transition: 0.2s;
+        }
+        .back:hover {
+            border-color: var(--neon-cyan);
+            color: var(--neon-cyan);
+            text-shadow: 0 0 6px cyan;
+            background: rgba(0, 242, 255, 0.08);
+        }
+        .badge {
+            font-size: 14px;
+            font-weight: 800;
+            background: rgba(0, 0, 0, 0.55);
+            padding: 8px 20px;
+            border-radius: 60px;
+            border: 1px solid var(--metal-gold);
+            cursor: pointer;
+            color: var(--metal-silver);
+            transition: 0.2s;
+        }
+        .badge:hover {
+            border-color: var(--neon-cyan);
+            color: var(--neon-cyan);
+            text-shadow: 0 0 6px cyan;
+            background: rgba(0, 242, 255, 0.08);
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 5px 16px;
+            border-radius: 28px;
+            border: 1px solid rgba(192, 203, 214, 0.2);
+        }
+        .label-row {
+            font-size: 9px;
+            font-weight: 800;
+            color: var(--metal-silver);
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 8px;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 5px 14px;
+            border-radius: 56px;
+            border: 1px solid rgba(255, 217, 112, 0.3);
+        }
+        .btn-group button {
+            background: none;
+            border: none;
+            color: var(--metal-silver);
+            padding: 6px 16px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 700;
+            border-radius: 40px;
+            transition: 0.2s;
+        }
+        .btn-group button.active {
+            background: var(--metal-gold);
+            color: #0a0c14;
+            box-shadow: 0 0 12px var(--metal-gold);
+        }
+
+        input[type="range"] {
+            width: 110px;
+            height: 4px;
+            background: #2d3748;
+            border-radius: 10px;
+            appearance: none;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            background: var(--metal-gold);
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 8px gold;
+        }
+
+        .color-circle {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: 2px solid var(--metal-silver);
+            cursor: pointer;
+            transition: 0.1s;
+        }
+        .color-circle:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 14px var(--metal-gold);
+        }
+
+        .tool-icon {
+            background: rgba(0, 0, 0, 0.55);
+            border: 1px solid #4a5568;
+            padding: 7px 18px;
+            border-radius: 44px;
+            color: var(--metal-silver);
+            cursor: pointer;
+            font-weight: 700;
+            transition: 0.2s;
+        }
+        .tool-icon.active {
+            border-color: var(--metal-gold);
+            color: var(--metal-gold);
+            box-shadow: 0 0 12px gold;
+            background: rgba(255, 217, 112, 0.12);
+        }
+
+        .refresh-btn {
+            background: rgba(0, 0, 0, 0.65);
+            border: 1px solid var(--metal-bronze);
+            color: var(--metal-bronze);
+            padding: 7px 18px;
+            border-radius: 44px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .refresh-btn:hover {
+            background: var(--metal-bronze);
+            color: #0a0c14;
+            box-shadow: 0 0 14px var(--metal-bronze);
+            border-color: var(--metal-gold);
+        }
+
+        .main-action {
+            border: none;
+            padding: 8px 24px;
+            border-radius: 48px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .toggle-wrap {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(0, 0, 0, 0.45);
+            padding: 5px 18px;
+            border-radius: 56px;
+            cursor: pointer;
+            color: var(--metal-silver);
+        }
+        .toggle-box {
+            width: 46px;
+            height: 24px;
+            background: #1e293b;
+            border-radius: 60px;
+            position: relative;
+            border: 1px solid #5b6e8c;
+        }
+        .toggle-box::after {
+            content: '';
+            width: 18px;
+            height: 18px;
+            background: #94a3b8;
+            border-radius: 50%;
+            position: absolute;
+            top: 2px;
+            left: 3px;
+            transition: 0.2s;
+        }
+        input:checked + .toggle-box {
+            background: var(--metal-gold);
+            border-color: gold;
+        }
+        input:checked + .toggle-box::after {
+            left: 24px;
+            background: #0a0c14;
+        }
+
+        #viewer-zone {
+            background: #0b0f18;
+            position: relative;
+            overflow: auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-left: 1px solid rgba(255, 217, 112, 0.2);
+        }
+        
+        /* حاوية عرض الملفات المتوافقة مع Android */
+        .file-viewer-container {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        
+        .pdf-viewer {
+            width: 100%;
+            height: 100%;
+            min-height: 400px;
+            border: none;
+            background: #1a1f2e;
+        }
+        
+        .image-viewer {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+        
+        .text-viewer {
+            width: 100%;
+            height: 100%;
+            background: #1a1f2e;
+            color: #c0cbd6;
+            padding: 20px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            overflow: auto;
+            direction: ltr;
+            text-align: left;
+        }
+        
+        .fallback-message {
+            text-align: center;
+            padding: 40px;
+            background: #10141f;
+            border-radius: 28px;
+            border: 1px solid var(--metal-gold);
+            color: var(--metal-silver);
+        }
+        
+        .fallback-message a {
+            color: var(--metal-gold);
+            text-decoration: none;
+            font-weight: bold;
+        }
+        
+        .fallback-message a:hover {
+            text-decoration: underline;
+        }
+        
+        .download-link {
+            display: inline-block;
+            margin-top: 15px;
+            padding: 10px 25px;
+            background: var(--metal-gold);
+            color: #0a0c14;
+            border-radius: 40px;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        #viewer-controls {
+            position: fixed;
+            top: 100px;
+            right: 35px;
+            z-index: 100000;
+            display: none;
+            gap: 16px;
+        }
+        .split-active ~ #viewer-controls {
+            display: flex;
+        }
+        .v-btn {
+            background: #11161fcc;
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--metal-gold);
+            color: white;
+            padding: 10px 22px;
+            border-radius: 60px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .v-btn:hover {
+            background: var(--metal-gold);
+            color: black;
+        }
+        .v-btn.close {
+            border-color: var(--danger-fire);
+        }
+        .v-btn.close:hover {
+            background: var(--danger-fire);
+            color: white;
+        }
+        .pdf-fallback {
+            color: #aaa;
+            padding: 20px;
+            background: #10141f;
+            border-radius: 28px;
+            border: 1px solid gold;
+        }
+        
+        /* تحسين التمرير العمودي للـ viewer على Android */
+        #viewer-zone {
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+    </style>
+</head>
+<body>
+
+<div id="main-grid">
+    <div id="canvas-wrap">
+        <div id="top-panel">
+            <div class="panel-row">
+                <div style="display: flex; gap: 14px; align-items: center;">
+                    <div class="badge" onclick="toggleSplit()">֎AHEGAZI CB.Split֎</div>
+                    <button class="refresh-btn" id="refreshBtn">🔄</button>
+                    <button class="tool-icon" id="lockBtn" onclick="toggleLock()">🔓 Scroll</button>
+                    <button class="tool-icon" onclick="undo()">↩ Undo</button>
+                    <button class="tool-icon" onclick="redo()">↪ Redo</button>
+                </div>
+                <div class="back">
+                   <a href="tools.html" style="color: inherit; text-decoration: none;">GoBack</a>
+                   <a href="gboard.html" style="color: inherit; text-decoration: none;"> 👽 </a>
+                </div>
+                <div id="dock-trigger" onclick="toggleDock()">
+                    <span>▲</span> <span>HIDE PANEL</span>
+                </div>
+            </div>
+
+            <div class="panel-row">
+                <div style="display: flex; gap: 20px; align-items: center; flex-wrap: wrap;">
+                    <div class="control-group">
+                        <div class="label-row">✧ Angle <span id="aV" style="color:var(--metal-gold)">30°</span></div>
+                        <input type="range" id="pA" min="0" max="180" value="30" oninput="updateUI()">
+                    </div>
+                    <div class="control-group">
+                        <div class="label-row">✧ Ink Size <span id="sV" style="color:var(--metal-gold)">45</span></div>
+                        <input type="range" id="pS" min="1" max="200" value="45" oninput="updateUI()">
+                    </div>
+                    <div class="btn-group">
+                        <button id="mN" onclick="setMode('normal')">● Round</button>
+                        <button id="mC" class="active" onclick="setMode('chisel')">📐 Chisel</button>
+                        <button id="mE" onclick="setMode('eraser')">🧽 Eraser</button>
+                    </div>
+                    <input type="color" id="pC" class="color-circle" value="#00f2ff">
+                </div>
+                <div style="display: flex; gap: 12px;">
+                    <button id="shapeToggle" class="tool-icon" onclick="toggleShapeAssist()">🧲 Shape</button>
+                    <label class="toggle-wrap">
+                        <input type="checkbox" id="saveGrid" style="display:none">
+                        <div class="toggle-box"></div>
+                        <span style="font-size:10px;">Save grid</span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="panel-row">
+                <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+                    <div class="btn-group">
+                        <button id="pBlank" class="active" onclick="setPaper('blank')">Blank</button>
+                        <button id="pGrid" onclick="setPaper('grid')">Grid</button>
+                        <button id="pLines" onclick="setPaper('lines')">Lines</button>
+                        <button id="pDots" onclick="setPaper('dots')">Dots</button>
+                    </div>
+                    <input type="color" id="bC" class="color-circle" value="#f5f7fc" oninput="updateGrid()">
+                    <input type="color" id="gC" class="color-circle" value="#b0b8c5" oninput="updateGrid()">
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <button class="main-action" style="background: var(--metal-gold); color:#0a0c14;" onclick="download()">💾 EXPORT</button>
+                    <button class="main-action" style="background: var(--danger-fire); color:#fff;" onclick="clearAll()">🗑 CLEAR</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="canvas-container" id="canvasContainer">
+            <canvas id="gridCanvas"></canvas>
+            <canvas id="paintCanvas"></canvas>
+            <canvas id="tempCanvas"></canvas>
+        </div>
+    </div>
+
+    <div id="viewer-zone">
+        <input type="file" id="file-input" accept="*/*" style="display:none" onchange="loadFile(event)">
+        <div id="file-viewer" class="file-viewer-container" style="display: none;">
+            <!-- المحتوى سيضاف ديناميكياً -->
+        </div>
+    </div>
+</div>
+
+<div id="viewer-controls">
+    <button class="v-btn upload" onclick="document.getElementById('file-input').click()">📂 Open File</button>
+    <button class="v-btn close" id="closeViewerBtn">✖ Close</button>
+</div>
+
+<script>
+    (function(){
+        // العناصر الأساسية
+        const gCanvas = document.getElementById('gridCanvas');
+        const gCtx = gCanvas.getContext('2d');
+        const pCanvas = document.getElementById('paintCanvas');
+        const pCtx = pCanvas.getContext('2d');
+        const tCanvas = document.getElementById('tempCanvas');
+        const tCtx = tCanvas.getContext('2d');
+
+        let drawing = false, mode = 'chisel', paper = 'blank', lastPos = { x: 0, y: 0 };
+        let penLocked = false, shapeAssist = false, shapePoints = [], history = [], redoStack = [];
+
+        function fullPageRefresh() {
+            location.reload();
+        }
+
+        function updateCanvasDimensions() {
+            const wrap = document.getElementById('canvas-wrap');
+            const rect = wrap.getBoundingClientRect();
+            const w = Math.max(1, rect.width);
+            const h = Math.max(1, rect.height);
+            const backup = pCanvas.toDataURL();
+            [gCanvas, pCanvas, tCanvas].forEach(c => { c.width = w; c.height = h; });
+            const img = new Image();
+            img.onload = () => { pCtx.clearRect(0, 0, w, h); pCtx.drawImage(img, 0, 0); updateGrid(); };
+            img.src = backup;
+        }
+
+        function getCanvasCoords(e) {
+            const rect = pCanvas.getBoundingClientRect();
+            const scaleX = pCanvas.width / rect.width, scaleY = pCanvas.height / rect.height;
+            let clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            let clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            let x = (clientX - rect.left) * scaleX, y = (clientY - rect.top) * scaleY;
+            return { x: Math.min(Math.max(0, x), pCanvas.width), y: Math.min(Math.max(0, y), pCanvas.height) };
+        }
+
+        function saveState() {
+            const data = pCanvas.toDataURL();
+            if (history.length && history[history.length-1] === data) return;
+            if (history.length > 50) history.shift();
+            history.push(data); redoStack = [];
+        }
+        function undo() { if(history.length>1){ redoStack.push(history.pop()); let img=new Image(); img.onload=()=>{ pCtx.clearRect(0,0,pCanvas.width,pCanvas.height); pCtx.drawImage(img,0,0); }; img.src=history[history.length-1]; } }
+        function redo() { if(redoStack.length){ let next=redoStack.pop(); history.push(next); let img=new Image(); img.onload=()=>{ pCtx.clearRect(0,0,pCanvas.width,pCanvas.height); pCtx.drawImage(img,0,0); }; img.src=next; } }
+
+        function drawDot(ctx, x, y) {
+            const size = parseInt(document.getElementById('pS').value);
+            const color = document.getElementById('pC').value;
+            ctx.fillStyle = color;
+            if(mode === 'eraser') {
+                ctx.globalCompositeOperation = 'destination-out';
+                ctx.beginPath(); ctx.arc(x, y, size/2+1, 0, Math.PI*2); ctx.fill();
+                ctx.globalCompositeOperation = 'source-over';
+            } else if(mode === 'normal') {
+                ctx.beginPath(); ctx.arc(x, y, size/2, 0, Math.PI*2); ctx.fill();
+            } else {
+                const angle = parseInt(document.getElementById('pA').value) * Math.PI/180;
+                ctx.save(); ctx.translate(x, y); ctx.rotate(angle); ctx.fillRect(-size/2, -2.5, size, 5); ctx.restore();
+            }
+        }
+        function drawLine(ctx, from, to) {
+            const dist = Math.hypot(to.x - from.x, to.y - from.y);
+            if(dist < 0.8) { drawDot(ctx, to.x, to.y); return; }
+            const steps = Math.max(2, Math.floor(dist/1.5));
+            for(let i=0; i<=steps; i++) { let t=i/steps; drawDot(ctx, from.x+(to.x-from.x)*t, from.y+(to.y-from.y)*t); }
+        }
+
+        function onStart(e) {
+            if(penLocked) return;
+            e.preventDefault();
+            const pos = getCanvasCoords(e);
+            drawing = true; lastPos = pos;
+            if(shapeAssist) { shapePoints = [pos]; tCtx.clearRect(0,0,tCanvas.width,tCanvas.height); }
+            else drawDot(pCtx, pos.x, pos.y);
+        }
+        function onMove(e) {
+            if(!drawing || penLocked) return;
+            e.preventDefault();
+            const pos = getCanvasCoords(e);
+            if(shapeAssist) {
+                shapePoints.push(pos);
+                tCtx.clearRect(0,0,tCanvas.width,tCanvas.height);
+                tCtx.beginPath(); tCtx.strokeStyle="rgba(255,217,112,0.9)"; tCtx.lineWidth=2.5; tCtx.setLineDash([8,6]);
+                if(shapePoints.length>1){ tCtx.moveTo(shapePoints[0].x, shapePoints[0].y); for(let i=1;i<shapePoints.length;i++) tCtx.lineTo(shapePoints[i].x, shapePoints[i].y); tCtx.stroke(); }
+            } else { drawLine(pCtx, lastPos, pos); lastPos = pos; }
+        }
+        function onEnd(e) {
+            if(!drawing) return;
+            if(shapeAssist && shapePoints.length>5) {
+                const xs=shapePoints.map(p=>p.x), ys=shapePoints.map(p=>p.y);
+                const minX=Math.min(...xs), maxX=Math.max(...xs), minY=Math.min(...ys), maxY=Math.max(...ys);
+                pCtx.strokeStyle = document.getElementById('pC').value;
+                pCtx.lineWidth = Math.max(2, parseInt(document.getElementById('pS').value)/5);
+                pCtx.strokeRect(minX, minY, maxX-minX, maxY-minY);
+                shapePoints=[]; saveState();
+            } else if(!shapeAssist) saveState();
+            drawing=false; tCtx.clearRect(0,0,tCanvas.width,tCanvas.height); tCtx.setLineDash([]);
+        }
+
+        function closeViewerAndFullscreen() {
+            const grid = document.getElementById('main-grid');
+            if(grid.classList.contains('split-active')) {
+                grid.classList.remove('split-active');
+            }
+            const viewerDiv = document.getElementById('file-viewer');
+            viewerDiv.style.display = 'none';
+            viewerDiv.innerHTML = '';
+            setTimeout(() => {
+                updateCanvasDimensions();
+                updateGrid();
+                drawing = false;
+                tCtx.clearRect(0,0,tCanvas.width,tCanvas.height);
+            }, 30);
+        }
+
+        function toggleDock() { let panel=document.getElementById('top-panel'); panel.classList.toggle('docked'); let txt=document.querySelector('#dock-trigger span:last-child'); txt.innerText=panel.classList.contains('docked')?'SHOW PANEL':'HIDE PANEL'; }
+        function toggleSplit() { document.getElementById('main-grid').classList.toggle('split-active'); setTimeout(updateCanvasDimensions,50); }
+        function toggleLock() { penLocked=!penLocked; document.getElementById('canvasContainer').classList.toggle('pen-locked',penLocked); document.getElementById('lockBtn').innerHTML=penLocked?"🔒 Locked":"🔓 Scroll"; }
+        function toggleShapeAssist() { shapeAssist=!shapeAssist; document.getElementById('shapeToggle').classList.toggle('active',shapeAssist); tCtx.clearRect(0,0,tCanvas.width,tCanvas.height); }
+        function updateUI() { document.getElementById('sV').innerText=document.getElementById('pS').value; document.getElementById('aV').innerText=document.getElementById('pA').value+'°'; }
+        function setMode(m) { mode=m; ['mN','mC','mE'].forEach(id=>document.getElementById(id).classList.remove('active')); document.getElementById(m==='normal'?'mN':(m==='chisel'?'mC':'mE')).classList.add('active'); }
+        function setPaper(p) { paper=p; ['pBlank','pGrid','pLines','pDots'].forEach(id=>document.getElementById(id).classList.remove('active')); document.getElementById('p'+p.charAt(0).toUpperCase()+p.slice(1)).classList.add('active'); updateGrid(); }
+        function updateGrid() { if(!gCanvas.width) return; gCtx.clearRect(0,0,gCanvas.width,gCanvas.height); gCtx.fillStyle=document.getElementById('bC').value; gCtx.fillRect(0,0,gCanvas.width,gCanvas.height); if(paper==='blank') return; let gridColor=document.getElementById('gC').value; gCtx.strokeStyle=gridColor; gCtx.fillStyle=gridColor; gCtx.lineWidth=1.2; let step=52; gCtx.beginPath(); if(paper==='grid'||paper==='lines') for(let y=step; y<gCanvas.height; y+=step){ gCtx.moveTo(0,y); gCtx.lineTo(gCanvas.width,y); } if(paper==='grid') for(let x=step; x<gCanvas.width; x+=step){ gCtx.moveTo(x,0); gCtx.lineTo(x,gCanvas.height); } if(paper==='dots') for(let x=step; x<gCanvas.width; x+=step) for(let y=step; y<gCanvas.height; y+=step) gCtx.fillRect(x-1.5,y-1.5,3,3); gCtx.stroke(); }
+        function clearAll() { pCtx.clearRect(0,0,pCanvas.width,pCanvas.height); saveState(); }
+        function download() { let out=document.createElement('canvas'); out.width=pCanvas.width; out.height=pCanvas.height; let ctx=out.getContext('2d'); if(document.getElementById('saveGrid').checked) ctx.drawImage(gCanvas,0,0); else { ctx.fillStyle=document.getElementById('bC').value; ctx.fillRect(0,0,out.width,out.height); } ctx.drawImage(pCanvas,0,0); let a=document.createElement('a'); a.download=`Hegazi_Master_${Date.now()}.png`; a.href=out.toDataURL(); a.click(); }
+        
+        // دالة محسنة لعرض الملفات متوافقة مع Android
+        function loadFile(event) {
+            let file = event.target.files[0];
+            if(!file) return;
+            
+            const viewerDiv = document.getElementById('file-viewer');
+            viewerDiv.style.display = 'flex';
+            viewerDiv.innerHTML = '';
+            
+            let fileURL = URL.createObjectURL(file);
+            let fileName = file.name;
+            let fileType = file.type;
+            
+            // صور
+            if(fileType.startsWith('image/')) {
+                const img = document.createElement('img');
+                img.className = 'image-viewer';
+                img.src = fileURL;
+                img.alt = fileName;
+                img.onload = () => URL.revokeObjectURL(fileURL);
+                viewerDiv.appendChild(img);
+            }
+            // PDF - حل متوافق مع Android
+            else if(fileType === 'application/pdf' || fileName.toLowerCase().endsWith('.pdf')) {
+                // المحاولة الأولى: استخدام iframe (قد يعمل على بعض المتصفحات)
+                const iframe = document.createElement('iframe');
+                iframe.className = 'pdf-viewer';
+                iframe.src = fileURL;
+                iframe.sandbox = 'allow-same-origin allow-scripts allow-popups allow-forms';
+                
+                // إضافة رسالة احتياطية في حالة فشل iframe
+                const fallbackDiv = document.createElement('div');
+                fallbackDiv.className = 'fallback-message';
+                fallbackDiv.innerHTML = `
+                    <p>⚠️ لا يمكن عرض PDF مباشرة في هذا المتصفح.</p>
+                    <a href="${fileURL}" download="${fileName}" class="download-link">📥 تحميل الملف</a>
+                    <p style="margin-top: 15px; font-size: 12px;">أو اضغط مع الاستمرار على الرابط أعلاه واختر "حفظ الرابط".</p>
+                `;
+                
+                viewerDiv.appendChild(iframe);
+                viewerDiv.appendChild(fallbackDiv);
+                
+                // إذا فشل iframe بعد 3 ثوان، نعرض فقط رابط التحميل
+                setTimeout(() => {
+                    try {
+                        if(iframe.contentDocument && iframe.contentDocument.body && iframe.contentDocument.body.innerText === '') {
+                            iframe.style.display = 'none';
+                        } else if(iframe.contentWindow && iframe.contentWindow.document && iframe.contentWindow.document.body && iframe.contentWindow.document.body.innerText.includes('Cannot')) {
+                            iframe.style.display = 'none';
+                        }
+                    } catch(e) {
+                        // في Android، الوصول إلى iframe قد يسبب خطأ، نخفيه ونكتفي برابط التحميل
+                        iframe.style.display = 'none';
+                    }
+                }, 2000);
+            }
+            // ملفات نصية
+            else if(fileType.includes('text') || fileName.endsWith('.txt') || fileName.endsWith('.html') || fileName.endsWith('.css') || fileName.endsWith('.js')) {
+                const textarea = document.createElement('pre');
+                textarea.className = 'text-viewer';
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    textarea.textContent = e.target.result;
+                    URL.revokeObjectURL(fileURL);
+                };
+                reader.readAsText(file);
+                viewerDiv.appendChild(textarea);
+            }
+            // أي ملف آخر - عرض رابط تحميل
+            else {
+                const fallbackDiv = document.createElement('div');
+                fallbackDiv.className = 'fallback-message';
+                fallbackDiv.innerHTML = `
+                    <p>📄 ${fileName}</p>
+                    <p>نوع الملف غير مدعوم للعرض المباشر.</p>
+                    <a href="${fileURL}" download="${fileName}" class="download-link">📥 تحميل الملف</a>
+                `;
+                viewerDiv.appendChild(fallbackDiv);
+            }
+        }
+
+        function attachEvents() {
+            let container=document.getElementById('canvasContainer');
+            container.addEventListener('mousedown',onStart);
+            window.addEventListener('mousemove',onMove);
+            window.addEventListener('mouseup',onEnd);
+            container.addEventListener('touchstart',onStart,{passive:false});
+            window.addEventListener('touchmove',onMove,{passive:false});
+            window.addEventListener('touchend',onEnd);
+            window.addEventListener('resize',updateCanvasDimensions);
+            document.getElementById('closeViewerBtn').onclick = closeViewerAndFullscreen;
+            document.getElementById('refreshBtn').onclick = fullPageRefresh;
+        }
+        
+        function init() { attachEvents(); updateCanvasDimensions(); setMode('chisel'); setPaper('blank'); updateUI(); saveState(); }
+        init();
+
+        window.toggleDock=toggleDock; window.toggleSplit=toggleSplit; window.toggleLock=toggleLock; window.toggleShapeAssist=toggleShapeAssist; window.undo=undo; window.redo=redo; window.updateUI=updateUI; window.setMode=setMode; window.setPaper=setPaper; window.updateGrid=updateGrid; window.clearAll=clearAll; window.download=download; window.loadFile=loadFile; window.closeViewerAndFullscreen=closeViewerAndFullscreen;
+    })();
+</script>
+</body>
+</html>

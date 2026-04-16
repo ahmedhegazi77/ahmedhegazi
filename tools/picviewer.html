@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Hegazi Ultimate - 3-Tap System</title>
+    <style>
+        :root { --neon: #00d2ff; }
+        * { margin: 0; padding: 0; box-sizing: border-box; touch-action: none; -webkit-user-select: none; }
+        body { background: #000; color: #fff; font-family: sans-serif; overflow: hidden; height: 100vh; }
+        
+        #neonBox {
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            padding: 20px 40px; background: rgba(0,0,0,0.95); border: 3px solid var(--neon);
+            border-radius: 20px; box-shadow: 0 0 50px var(--neon); z-index: 9999;
+            display: none; text-align: center; font-size: 1.8rem; color: #fff; pointer-events: none;
+        }
+
+        .brand { position: fixed; top: 20px; left: 20px; z-index: 100; font-weight: 900; color: var(--neon); letter-spacing: 2px; }
+        .btn-open { position: fixed; top: 20px; right: 20px; z-index: 100; padding: 12px 25px; background: #111; border: 2px solid var(--neon); color: #fff; border-radius: 50px; cursor: pointer; font-weight: bold; }
+
+        .scene { position: fixed; inset: 0; display: flex; justify-content: center; align-items: center; z-index: 5; perspective: 2200px; }
+        .carousel { position: relative; width: 100%; height: 100%; transform-style: preserve-3d; pointer-events: none; }
+
+        .card {
+            position: absolute; width: 340px; height: 240px; left: 50%; top: 50%; margin: -120px 0 0 -170px;
+            border-radius: 15px; overflow: hidden; background: #000; border: 1px solid rgba(255,255,255,0.15);
+            display: flex; align-items: center; justify-content: center; pointer-events: auto;
+            transition: opacity 0.3s;
+        }
+        .card img { width: 100%; height: 100%; object-fit: contain; }
+
+        .nav { position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%); display: flex; gap: 120px; z-index: 1000; }
+        .nav-btn { width: 70px; height: 70px; border-radius: 50%; border: 2px solid var(--neon); color: var(--neon); display: flex; align-items: center; justify-content: center; font-size: 1.8rem; background: rgba(0,0,0,0.8); cursor: pointer; }
+
+        #zoomView { position: fixed; inset: 0; background: rgba(0,0,0,0.98); z-index: 5000; display: none; justify-content: center; align-items: center; }
+        #zoomView img { max-width: 95%; max-height: 95%; border: 1px solid var(--neon); }
+    </style>
+</head>
+<body>
+
+    <div id="neonBox"></div>
+    <div class="brand">ENG. AHMED HEGAZI</div>
+    <button class="btn-open" onclick="document.getElementById('fileIn').click()">CHOOSE FOLDER 📂</button>
+    <input type="file" id="fileIn" webkitdirectory directory multiple style="display:none">
+
+    <div id="zoomView"><img src=""></div>
+
+    <div class="scene" id="mainScene">
+        <div class="carousel" id="carousel"></div>
+    </div>
+
+    <div class="nav">
+        <div class="nav-btn" id="pBtn">❮</div>
+        <div class="nav-btn" id="nBtn">❯</div>
+    </div>
+
+    <audio id="music" src="../media/music.wav" loop></audio>
+
+    <script>
+        let imgs = [], rotY = 0, targetRotY = 0, isDrag = false, startX = 0, dragDist = 0;
+        let tapCount = 0, tapTimer = null; // نظام النقرات المتعددة
+        const SLOTS = 15, step = 360 / SLOTS, rad = 900; 
+        const carousel = document.getElementById('carousel'), music = document.getElementById('music'), neon = document.getElementById('neonBox');
+
+        function showNeon(txt) {
+            neon.innerText = txt; neon.style.display = 'block';
+            setTimeout(() => neon.style.display = 'none', 1200);
+        }
+
+        document.getElementById('fileIn').onchange = (e) => {
+            const files = Array.from(e.target.files).filter(f => f.type.startsWith('image/'));
+            if(!files.length) return showNeon("لا يوجد صور!");
+            imgs = files.map(f => URL.createObjectURL(f));
+            showNeon("Universe Loaded 🌌");
+            carousel.innerHTML = '';
+            for(let i=0; i<SLOTS; i++){
+                const c = document.createElement('div'); c.className = 'card';
+                c.innerHTML = `<img>`;
+                c.onclick = (ev) => { if(dragDist < 10) zoom(c.querySelector('img').src); };
+                carousel.appendChild(c);
+            }
+            draw();
+        };
+
+        function zoom(s) { const v = document.getElementById('zoomView'); v.querySelector('img').src = s; v.style.display = 'flex'; }
+        document.getElementById('zoomView').onclick = function() { this.style.display = 'none'; };
+
+        function draw() {
+            rotY += (targetRotY - rotY) * 0.1;
+            const cards = document.querySelectorAll('.card');
+            const vIdx = Math.round(-rotY / step);
+            
+            cards.forEach((c, i) => {
+                const a = (i * step + rotY) * (Math.PI/180);
+                const x = Math.sin(a) * rad, z = Math.cos(a) * rad;
+                const depthRatio = (z + rad) / (2 * rad); 
+                
+                // حساب الحجم التنازلي لـ 5 صور في المواجهة
+                let scale = 0.4 + (Math.pow(depthRatio, 4) * 1.1); 
+                c.style.transform = `translate3d(${x}px, 0, ${z}px) scale(${scale}) rotateY(0deg)`;
+                
+                c.style.opacity = depthRatio < 0.4 ? 0 : (depthRatio - 0.4) * 2.5;
+                c.style.zIndex = Math.round(depthRatio * 100);
+                
+                if(depthRatio > 0.6) {
+                    let idx = (i + vIdx) % imgs.length;
+                    if(idx < 0) idx += imgs.length;
+                    const im = c.querySelector('img');
+                    if(im.src !== imgs[idx]) im.src = imgs[idx];
+                }
+            });
+            requestAnimationFrame(draw);
+        }
+
+        const scene = document.getElementById('mainScene');
+        scene.onpointerdown = (e) => { isDrag = true; startX = e.clientX; dragDist = 0; };
+        window.onpointermove = (e) => { 
+            if(isDrag) { 
+                let d = e.clientX - startX;
+                dragDist += Math.abs(d);
+                targetRotY += d * 0.35; 
+                startX = e.clientX; 
+            } 
+        };
+        window.onpointerup = () => { 
+            if(isDrag) { isDrag = false; targetRotY = Math.round(targetRotY / step) * step; } 
+        };
+
+        // --- نظام التحكم بالنقرات المتعددة ---
+        scene.onclick = (e) => {
+            if(e.target === scene && dragDist < 15) {
+                tapCount++;
+                if (tapTimer) clearTimeout(tapTimer);
+
+                tapTimer = setTimeout(() => {
+                    if (tapCount === 1) {
+                        // كليك واحد: موسيقى
+                        if(music.paused) { music.play(); showNeon("Music ON 🎵"); }
+                        else { music.pause(); showNeon("Music OFF 🔇"); }
+                    } 
+                    else if (tapCount === 2) {
+                        // كليك مزدوج: عودة
+                        showNeon("Back to Ahmed...");
+                        setTimeout(() => window.location.href = 'tools.html', 800);
+                    } 
+                    else if (tapCount === 3) {
+                        // كليك ثلاثي: إعادة تصفير العجلة
+                        targetRotY = 0;
+                        showNeon("Reset Universe 🔄");
+                    }
+                    tapCount = 0;
+                }, 300);
+            }
+        };
+
+        document.getElementById('nBtn').onclick = () => { targetRotY -= step; };
+        document.getElementById('pBtn').onclick = () => { targetRotY += step; };
+        window.oncontextmenu = (e) => e.preventDefault();
+    </script>
+</body>
+</html>

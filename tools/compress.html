@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+<title>أداة ضغط وفك ضغط الملفات | Metallic</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: 'Cairo', sans-serif;
+        min-height: 100vh;
+        background: radial-gradient(circle at 30% 40%, #5a5a5a, #2b2b2b 80%);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        padding: 20px;
+        position: relative;
+        overflow-x: hidden;
+    }
+
+    /* خلفية معدنية محفورة */
+    body::before {
+        content: '';
+        position: fixed;
+        top: -30%; left: -20%;
+        width: 140%; height: 140%;
+        background: radial-gradient(circle at 30% 40%, rgba(192,192,192,0.15) 0%, transparent 30%),
+                    radial-gradient(circle at 70% 60%, rgba(255,215,0,0.08) 0%, transparent 30%),
+                    repeating-linear-gradient(45deg, 
+                        transparent 0px, 
+                        transparent 20px, 
+                        rgba(255,255,255,0.02) 20px, 
+                        rgba(255,255,255,0.02) 40px);
+        animation: metalWave 20s linear infinite;
+        pointer-events: none;
+        z-index: 0;
+    }
+
+    @keyframes metalWave {
+        0% { transform: rotate(0deg) scale(1); }
+        50% { transform: rotate(5deg) scale(1.05); }
+        100% { transform: rotate(0deg) scale(1); }
+    }
+
+    body::after {
+        content: '';
+        position: fixed;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        background: repeating-linear-gradient(90deg, 
+            transparent 0px, 
+            transparent 30px, 
+            rgba(255,215,0,0.02) 30px, 
+            rgba(255,215,0,0.02) 60px);
+        pointer-events: none;
+        z-index: 0;
+    }
+
+    /* ===== زر العودة للبوابة (معدني) ===== */
+    .portal-btn {
+        position: fixed;
+        bottom: 20px;
+        left: 20px;
+        width: 70px;
+        height: 70px;
+        background: linear-gradient(145deg, #b0b0b0, #5a5a5a);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        z-index: 10000;
+        border: 3px solid #ffd700;
+        box-shadow: 0 10px 20px rgba(0,0,0,0.6), inset 0 2px 4px rgba(255,255,255,0.3);
+        transition: 0.2s;
+        text-decoration: none;
+    }
+
+    .portal-btn:hover {
+        transform: scale(1.1);
+        background: linear-gradient(145deg, #c0c0c0, #7a7a7a);
+        box-shadow: 0 0 30px #ffd700;
+    }
+
+    .portal-btn i {
+        font-size: 35px;
+        color: white;
+        filter: drop-shadow(0 2px 2px black);
+    }
+
+    /* ===== زر التحكم في الموسيقى (معدني) ===== */
+    .music-control-btn {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        width: 70px;
+        height: 70px;
+        background: linear-gradient(145deg, #b0b0b0, #5a5a5a);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        z-index: 10000;
+        border: 3px solid #ffd700;
+        box-shadow: 0 10px 20px rgba(0,0,0,0.6), inset 0 2px 4px rgba(255,255,255,0.3);
+        transition: 0.2s;
+    }
+
+    .music-control-btn:hover {
+        transform: scale(1.1);
+        background: linear-gradient(145deg, #c0c0c0, #7a7a7a);
+        box-shadow: 0 0 30px #ffd700;
+    }
+
+    .music-control-btn i {
+        font-size: 35px;
+        color: white;
+    }
+
+    .music-control-btn.playing {
+        background: linear-gradient(145deg, #ffd700, #b8860b);
+        border-color: white;
+    }
+
+    /* ===== الاسم المحفور ===== */
+    .engraved-signature {
+        text-align: center;
+        margin: 20px 0 10px;
+        font-family: 'Courier New', monospace;
+        font-size: 32px;
+        font-weight: 700;
+        letter-spacing: 6px;
+        text-transform: uppercase;
+        color: #2a2a2a;
+        text-shadow: 
+            -2px -2px 2px rgba(255,255,255,0.2),
+            3px 3px 5px rgba(0,0,0,0.8),
+            0 0 5px #ffd700;
+        background: none;
+        padding: 10px 0;
+        border-bottom: 2px solid rgba(255,215,0,0.3);
+        width: 100%;
+        position: relative;
+        z-index: 10;
+    }
+
+    /* الكارت الرئيسي (معدني) */
+    .container {
+        background: rgba(30, 30, 30, 0.7);
+        backdrop-filter: blur(15px);
+        -webkit-backdrop-filter: blur(15px);
+        border: 3px solid #ffd700;
+        border-radius: 60px;
+        padding: 40px;
+        max-width: 700px;
+        width: 100%;
+        margin: 20px auto;
+        box-shadow: 0 30px 50px rgba(0,0,0,0.7), inset 0 1px 3px rgba(255,255,255,0.2);
+        position: relative;
+        z-index: 10;
+        text-align: center;
+        overflow: hidden;
+    }
+
+    .container::before {
+        content: '';
+        position: absolute;
+        top: -5px; left: -5px; right: -5px; bottom: -5px;
+        border-radius: 65px;
+        background: linear-gradient(45deg, #ffd700, #ffff00, #ffd700, #ffff00);
+        opacity: 0;
+        transition: opacity 0.4s;
+        z-index: -1;
+        filter: blur(5px);
+    }
+
+    .container:hover::before {
+        opacity: 0.3;
+        animation: glowRotate 2s linear infinite;
+    }
+
+    @keyframes glowRotate {
+        0% { transform: rotate(0deg); filter: blur(5px); }
+        100% { transform: rotate(360deg); filter: blur(8px); }
+    }
+
+    .container h2 {
+        color: white;
+        margin-bottom: 30px;
+        font-size: 32px;
+        text-shadow: 0 2px 5px black, 0 0 15px #ffd700;
+    }
+
+    /* الأزرار المعدنية */
+    button {
+        border: none;
+        padding: 15px 30px;
+        margin: 8px;
+        border-radius: 60px;
+        cursor: pointer;
+        font-size: 16px;
+        font-weight: bold;
+        transition: all 0.25s ease;
+        border: 3px solid transparent;
+        box-shadow: 0 10px 20px rgba(0,0,0,0.3), inset 0 1px 3px rgba(255,255,255,0.3);
+        position: relative;
+        overflow: hidden;
+    }
+
+    button::after {
+        content: '';
+        position: absolute;
+        top: -50%; left: -60%;
+        width: 200%; height: 200%;
+        background: linear-gradient(120deg, transparent, rgba(255,255,255,0.2), transparent);
+        transform: rotate(25deg);
+        transition: 0.5s;
+        opacity: 0;
+    }
+
+    button:hover::after {
+        opacity: 1;
+        left: 100%;
+        top: 100%;
+    }
+
+    button:hover {
+        transform: translateY(-5px) scale(1.02);
+        box-shadow: 0 20px 30px rgba(0,0,0,0.5), 0 0 30px #ffd700;
+    }
+
+    button:active {
+        transform: translateY(0) scale(0.98);
+    }
+
+    /* أزرار فضية */
+    .blue-btn {
+        background: linear-gradient(145deg, #b0b0b0, #6a6a6a);
+        color: white;
+        border: 3px solid #ffd700;
+    }
+
+    .blue-btn:hover {
+        background: linear-gradient(145deg, #c0c0c0, #7a7a7a);
+    }
+
+    /* أزرار ذهبية */
+    .yellow-btn {
+        background: linear-gradient(145deg, #ffd700, #b8860b);
+        color: white;
+        border: 3px solid white;
+    }
+
+    .yellow-btn:hover {
+        background: linear-gradient(145deg, #e5c100, #a57a0a);
+    }
+
+    /* شريط التقدم */
+    .progress {
+        width: 100%;
+        height: 25px;
+        background: rgba(0,0,0,0.5);
+        border-radius: 50px;
+        margin-top: 25px;
+        overflow: hidden;
+        border: 2px solid #ffd700;
+    }
+
+    .progress-bar {
+        height: 100%;
+        width: 0%;
+        background: linear-gradient(90deg, #ffd700, #b8860b);
+        transition: width 0.3s;
+        position: relative;
+        overflow: hidden;
+        box-shadow: inset 0 1px 3px rgba(255,255,255,0.5);
+    }
+
+    .progress-bar::after {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+        animation: shimmer 2s infinite;
+    }
+
+    @keyframes shimmer {
+        0% { transform: translateX(-100%); }
+        100% { transform: translateX(100%); }
+    }
+
+    /* معلومات */
+    .info {
+        margin-top: 20px;
+        font-size: 16px;
+        color: white;
+        background: rgba(0,0,0,0.4);
+        padding: 15px;
+        border-radius: 50px;
+        border: 2px solid #ffd700;
+        backdrop-filter: blur(5px);
+        text-shadow: 0 1px 2px black;
+    }
+
+    /* الفوتر */
+    .footer {
+        margin: 30px 0 20px;
+        text-align: center;
+        position: relative;
+        z-index: 10;
+    }
+
+    .footer button {
+        background: linear-gradient(145deg, #b0b0b0, #5a5a5a);
+        color: white;
+        padding: 18px 50px;
+        font-size: 18px;
+        border: 3px solid #ffd700;
+    }
+
+    .footer button:hover {
+        background: linear-gradient(145deg, #c0c0c0, #7a7a7a);
+        box-shadow: 0 0 30px #ffd700;
+    }
+
+    /* جزيئات ضوئية */
+    .light-particle {
+        position: fixed;
+        width: 8px;
+        height: 8px;
+        background: #ffd700;
+        border-radius: 50%;
+        pointer-events: none;
+        z-index: 9999;
+        animation: particleFloat 1.5s forwards;
+        box-shadow: 0 0 20px #ffd700;
+    }
+
+    @keyframes particleFloat {
+        0% { transform: scale(1); opacity: 1; }
+        100% { transform: scale(4) translateY(-80px); opacity: 0; }
+    }
+
+    /* تحسينات للموبايل */
+    @media (max-width: 768px) {
+        .container { padding: 25px; margin: 20px 10px; }
+        .container h2 { font-size: 24px; }
+        button { padding: 12px 18px; font-size: 14px; width: calc(100% - 20px); margin: 5px; }
+        .portal-btn, .music-control-btn { width: 55px; height: 55px; bottom: 10px; }
+        .portal-btn i, .music-control-btn i { font-size: 28px; }
+        .engraved-signature { font-size: 22px; letter-spacing: 3px; }
+    }
+</style>
+</head>
+<body>
+
+<!-- زر العودة للبوابة -->
+<a href="../index.html" class="portal-btn" id="portalBtn">
+    <i>🏠</i>
+</a>
+
+<!-- زر التحكم في الموسيقى -->
+<div class="music-control-btn" id="musicControlBtn" onclick="toggleMusic()">
+    <i id="musicIcon">🔊</i>
+</div>
+
+<!-- موسيقى خلفية -->
+<audio id="bgMusic" loop>
+    <source src="../media/music.wav" type="audio/mpeg">
+</audio>
+
+<!-- الاسم المحفور -->
+<div class="engraved-signature">ENG. AHMED HEGAZI</div>
+
+<div class="container">
+
+<h2>📦 ضغط وفك ضغط الملفات</h2>
+
+<input type="file" id="fileInput" multiple hidden>
+<input type="file" id="folderInput" webkitdirectory directory hidden>
+<input type="file" id="unzipInput" accept=".zip" hidden>
+
+<button class="blue-btn" onclick="selectFiles()">📁 اختيار ملفات</button>
+<button class="blue-btn" onclick="selectFolder()">📂 اختيار مجلد</button>
+<button class="yellow-btn" onclick="compressFiles()">🗜️ ضغط</button>
+<button class="yellow-btn" onclick="selectZip()">📦 فك الضغط</button>
+
+<div class="progress">
+    <div class="progress-bar" id="progressBar"></div>
+</div>
+
+<div class="info" id="infoText"></div>
+
+</div>
+
+<div class="footer">
+    <button class="blue-btn" onclick="goBack()">⬅️ BACK</button>
+</div>
+
+<script>
+    // ===== نظام الموسيقى =====
+    let music = document.getElementById('bgMusic');
+    let musicBtn = document.getElementById('musicControlBtn');
+    let musicIcon = document.getElementById('musicIcon');
+    let isPlaying = false;
+
+    music.load();
+
+    function toggleMusic() {
+        if (isPlaying) {
+            music.pause();
+            musicIcon.textContent = '🔇';
+            musicBtn.classList.remove('playing');
+        } else {
+            music.play().then(() => {
+                musicIcon.textContent = '🔊';
+                musicBtn.classList.add('playing');
+            }).catch(e => console.log('ممنوع تشغيل الموسيقى'));
+        }
+        isPlaying = !isPlaying;
+        createLightParticle(event?.clientX || window.innerWidth/2, event?.clientY || window.innerHeight/2);
+    }
+
+    function playMusic() {
+        if (!isPlaying) {
+            music.play().then(() => {
+                isPlaying = true;
+                musicIcon.textContent = '🔊';
+                musicBtn.classList.add('playing');
+            }).catch(e => console.log('ممنوع تشغيل الموسيقى تلقائياً'));
+        }
+    }
+
+    // ===== جزيئات ضوئية ذهبية =====
+    function createLightParticle(x, y) {
+        for (let i = 0; i < 3; i++) {
+            setTimeout(() => {
+                const particle = document.createElement('div');
+                particle.className = 'light-particle';
+                particle.style.left = (x || window.innerWidth/2) + (Math.random() - 0.5) * 80 + 'px';
+                particle.style.top = (y || window.innerHeight/2) + (Math.random() - 0.5) * 80 + 'px';
+                document.body.appendChild(particle);
+                
+                setTimeout(() => {
+                    particle.remove();
+                }, 1500);
+            }, i * 50);
+        }
+    }
+
+    // جزيئات مع حركة الماوس
+    document.addEventListener('mousemove', function(e) {
+        if (Math.random() > 0.95) {
+            createLightParticle(e.clientX, e.clientY);
+        }
+    });
+
+    // جزيئات عند التحميل
+    window.addEventListener('load', () => {
+        for (let i = 0; i < 10; i++) {
+            setTimeout(() => {
+                createLightParticle(Math.random() * window.innerWidth, Math.random() * window.innerHeight);
+            }, i * 100);
+        }
+    });
+
+    // ===== الكود الأصلي لأداة الضغط =====
+    let selectedFiles = [];
+
+    function selectFiles() {
+        document.getElementById("fileInput").click();
+        playMusic();
+    }
+
+    function selectFolder() {
+        document.getElementById("folderInput").click();
+        playMusic();
+    }
+
+    function selectZip() {
+        document.getElementById("unzipInput").click();
+        playMusic();
+    }
+
+    document.getElementById("fileInput").addEventListener("change", e => {
+        selectedFiles = Array.from(e.target.files);
+        showInfo();
+        playMusic();
+        createLightParticle();
+    });
+
+    document.getElementById("folderInput").addEventListener("change", e => {
+        selectedFiles = Array.from(e.target.files);
+        showInfo();
+        playMusic();
+        createLightParticle();
+    });
+
+    document.getElementById("unzipInput").addEventListener("change", unzipFile);
+
+    function showInfo() {
+        if (selectedFiles.length === 0) return;
+        let total = selectedFiles.reduce((s, f) => s + f.size, 0);
+        document.getElementById("infoText").innerHTML =
+            "📊 عدد الملفات: " + selectedFiles.length +
+            "<br>💾 الحجم الكلي: " + formatBytes(total);
+    }
+
+    async function compressFiles() {
+        if (selectedFiles.length === 0) {
+            alert("⚠️ يرجى اختيار ملفات أو مجلد أولاً");
+            return;
+        }
+
+        playMusic();
+        createLightParticle();
+
+        const zip = new JSZip();
+
+        selectedFiles.forEach(file => {
+            zip.file(file.webkitRelativePath || file.name, file);
+        });
+
+        const progressBar = document.getElementById("progressBar");
+
+        const content = await zip.generateAsync({ type: "blob" }, meta => {
+            progressBar.style.width = meta.percent.toFixed(0) + "%";
+        });
+
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(content);
+        a.download = "compressed-files.zip";
+        a.click();
+
+        document.getElementById("infoText").innerHTML += "<br>✅ تم إنشاء الملف المضغوط بنجاح!";
+        
+        setTimeout(() => {
+            progressBar.style.width = "0%";
+        }, 2000);
+    }
+
+    async function unzipFile(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        playMusic();
+        createLightParticle();
+
+        const zip = await JSZip.loadAsync(file);
+
+        document.getElementById("infoText").innerHTML = "⏳ جاري فك الضغط...";
+
+        let count = 0;
+
+        for (const relativePath in zip.files) {
+            const zipEntry = zip.files[relativePath];
+
+            if (!zipEntry.dir) {
+                const blob = await zipEntry.async("blob");
+
+                const a = document.createElement("a");
+                a.href = URL.createObjectURL(blob);
+                a.download = relativePath;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+
+                count++;
+                
+                if (count % 5 === 0) {
+                    createLightParticle();
+                }
+            }
+        }
+
+        document.getElementById("infoText").innerHTML =
+            "✅ تم فك الضغط بنجاح! عدد الملفات: " + count;
+    }
+
+    function formatBytes(bytes) {
+        if (bytes === 0) return "0 Bytes";
+        const k = 1024;
+        const sizes = ["Bytes", "KB", "MB", "GB"];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+    }
+
+    function goBack() {
+        playMusic();
+        createLightParticle();
+        window.location.href = "tools.html";
+    }
+</script>
+
+</body>
+</html>

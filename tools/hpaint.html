@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Pro Design Studio</title>
+    <!-- Stable Fabric.js Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
+    <link href="https://cloudflare.com" rel="stylesheet">
+    <style>
+        :root { --bg: #0f172a; --panel: #1e293b; --accent: #38bdf8; --text: #f1f5f9; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; touch-action: manipulation; }
+        body { background: var(--bg); color: var(--text); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+        
+        header { padding: 1rem 2rem; background: var(--panel); display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; }
+        .back-btn { text-decoration: none; color: var(--text); background: #334155; padding: 8px 16px; border-radius: 8px; font-size: 14px; transition: 0.3s; }
+        .back-btn:hover { background: var(--accent); color: #000; }
+
+        main { display: flex; flex: 1; padding: 10px; gap: 10px; }
+        
+        .toolbar { width: 75px; background: var(--panel); border-radius: 12px; display: flex; flex-direction: column; align-items: center; padding: 15px 0; gap: 10px; overflow-y: auto; }
+        .tool-item { width: 55px; height: 55px; border-radius: 10px; border: none; background: #334155; color: white; cursor: pointer; transition: 0.2s; font-size: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; }
+        .tool-item i { font-size: 18px; }
+        .tool-item:hover, .tool-item.active { background: var(--accent); color: #000; }
+
+        .canvas-area { flex: 1; background: #ffffff; border-radius: 12px; position: relative; overflow: hidden; }
+        .settings { width: 250px; background: var(--panel); border-radius: 12px; padding: 15px; display: flex; flex-direction: column; gap: 15px; overflow-y: auto; }
+        
+        .control-group label { display: block; font-size: 11px; color: #94a3b8; margin-bottom: 5px; text-transform: uppercase; }
+        input[type="color"] { width: 100%; height: 35px; border: none; border-radius: 4px; cursor: pointer; background: #334155; }
+        .action-btn { padding: 10px; border-radius: 6px; border: none; cursor: pointer; font-weight: bold; font-size: 13px; display: flex; align-items: center; justify-content: center; gap: 5px; width: 100%; margin-bottom: 5px; }
+        .save-btn { background: #10b981; color: white; }
+        .clear-btn { background: #ef4444; color: white; }
+        .layer-btn { background: #64748b; color: white; }
+    </style>
+</head>
+<body>
+
+<header>
+    <a href="tools.html" class="back-btn"><i class="fas fa-arrow-left"></i> Back</a>
+    <h3 style="color: var(--accent)">STUDIO<span style="color:white">PRO</span></h3>
+    <div style="width: 60px"></div>
+</header>
+
+<main>
+    <div class="toolbar">
+        <button class="tool-item active" onclick="setMode('select')" id="btn-select"><i class="fas fa-mouse-pointer"></i>Select</button>
+        <button class="tool-item" onclick="setMode('draw')" id="btn-draw"><i class="fas fa-paint-brush"></i>Brush</button>
+        <button class="tool-item" onclick="addShape('line')"><i class="fas fa-slash"></i>Line</button>
+        <button class="tool-item" onclick="addShape('rect')"><i class="far fa-square"></i>Rect</button>
+        <button class="tool-item" onclick="addShape('circle')"><i class="far fa-circle"></i>Circle</button>
+        <button class="tool-item" onclick="addShape('triangle')"><i class="fas fa-caret-up"></i>Tri</button>
+        <button class="tool-item" onclick="addShape('star')"><i class="far fa-star"></i>Star</button>
+        <button class="tool-item" onclick="addText()"><i class="fas fa-font"></i>Text</button>
+    </div>
+
+    <div class="canvas-area" id="wrapper">
+        <canvas id="mainCanvas"></canvas>
+    </div>
+
+    <div class="settings">
+        <div class="control-group">
+            <label>Object Color</label>
+            <input type="color" id="fillColor" value="#38bdf8">
+        </div>
+        <div class="control-group">
+            <label>Brush Size</label>
+            <input type="range" id="strokeWidth" min="1" max="50" value="5" style="width:100%">
+        </div>
+        
+        <hr style="border:0; border-top:1px solid #334155">
+        
+        <button class="action-btn layer-btn" onclick="bringToFront()">Bring to Front</button>
+        <button class="action-btn layer-btn" onclick="sendToBack()">Send to Back</button>
+        <button class="action-btn" style="background:#f59e0b; color:black;" onclick="deleteSelected()">Delete Selected</button>
+        <button class="action-btn clear-btn" onclick="clearCanvas()">Clear All</button>
+        <button class="action-btn save-btn" onclick="saveImage()">Export Image</button>
+    </div>
+</main>
+
+<script>
+    const canvas = new fabric.Canvas('mainCanvas', {
+        width: 800,
+        height: 600,
+        backgroundColor: '#ffffff',
+        preserveObjectStacking: true 
+    });
+
+    function resizeCanvas() {
+        const wrapper = document.getElementById('wrapper');
+        canvas.setDimensions({ width: wrapper.clientWidth, height: wrapper.clientHeight });
+        canvas.renderAll();
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    function setMode(mode) {
+        canvas.isDrawingMode = (mode === 'draw');
+        document.querySelectorAll('.tool-item').forEach(b => b.classList.remove('active'));
+        if(document.getElementById('btn-' + mode)) {
+            document.getElementById('btn-' + mode).classList.add('active');
+        }
+        
+        if(canvas.isDrawingMode) {
+            canvas.freeDrawingBrush.color = document.getElementById('fillColor').value;
+            canvas.freeDrawingBrush.width = parseInt(document.getElementById('strokeWidth').value);
+        }
+    }
+
+    function addShape(type) {
+        setMode('select');
+        const color = document.getElementById('fillColor').value;
+        let obj;
+
+        if(type === 'rect') obj = new fabric.Rect({ width: 100, height: 100, fill: color, left: 50, top: 50 });
+        if(type === 'circle') obj = new fabric.Circle({ radius: 50, fill: color, left: 50, top: 50 });
+        if(type === 'triangle') obj = new fabric.Triangle({ width: 100, height: 100, fill: color, left: 50, top: 50 });
+        if(type === 'line') obj = new fabric.Rect({ width: 150, height: 4, fill: color, left: 50, top: 50 });
+        if(type === 'star') {
+            obj = new fabric.Polygon([
+                {x: 50, y: 0}, {x: 61, y: 35}, {x: 98, y: 35}, {x: 68, y: 57}, {x: 79, y: 91}, 
+                {x: 50, y: 70}, {x: 21, y: 91}, {x: 32, y: 57}, {x: 2, y: 35}, {x: 39, y: 35}
+            ], { fill: color, left: 50, top: 50 });
+        }
+        
+        if(obj) {
+            canvas.add(obj);
+            canvas.setActiveObject(obj);
+        }
+    }
+
+    function addText() {
+        setMode('select');
+        const text = new fabric.IText('Edit Me', { left: 100, top: 100, fill: '#334155', fontSize: 40 });
+        canvas.add(text);
+        canvas.setActiveObject(text);
+    }
+
+    function deleteSelected() {
+        canvas.getActiveObjects().forEach(obj => canvas.remove(obj));
+        canvas.discardActiveObject().renderAll();
+    }
+
+    function bringToFront() { canvas.getActiveObject()?.bringToFront(); canvas.renderAll(); }
+    function sendToBack() { canvas.getActiveObject()?.sendToBack(); canvas.renderAll(); }
+
+    function clearCanvas() { if(confirm('Clear everything?')) canvas.clear(); canvas.setBackgroundColor('#fff'); }
+
+    function saveImage() {
+        const link = document.createElement('a');
+        link.download = 'design.png';
+        link.href = canvas.toDataURL({ format: 'png' });
+        link.click();
+    }
+
+    document.getElementById('fillColor').oninput = (e) => {
+        const active = canvas.getActiveObject();
+        if(active) active.set('fill', e.target.value);
+        if(canvas.freeDrawingBrush) canvas.freeDrawingBrush.color = e.target.value;
+        canvas.renderAll();
+    };
+    
+    document.getElementById('strokeWidth').oninput = (e) => {
+        if(canvas.freeDrawingBrush) canvas.freeDrawingBrush.width = parseInt(e.target.value);
+    };
+</script>
+</body>
+</html>

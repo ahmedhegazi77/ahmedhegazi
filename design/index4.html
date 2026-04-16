@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>ENG. AHMED HEGAZY</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: #000; overflow: hidden; cursor: pointer; }
+        
+        /* منطقة الصورة (الدائرة 5 سم) */
+        .profile-zone {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 210px; /* 5cm */
+            height: 210px;
+            border-radius: 50%;
+            z-index: 100;
+            overflow: hidden;
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.05);
+            transition: background 0.2s; /* من أجل الوميض */
+        }
+
+        /* تأثير الوميض عند النقر المزدوج */
+        .profile-zone.flash {
+            background: rgba(255, 255, 255, 0.8) !important;
+        }
+
+        .my-photo {
+            width: 100%;
+            height: 100%;
+            background: url('ahmed_hegazy.jpg') center center / cover no-repeat;
+            opacity: 0;
+            -webkit-mask-image: radial-gradient(circle 62px at var(--x) var(--y), black 20%, transparent 100%);
+            mask-image: radial-gradient(circle 62px at var(--x) var(--y), black 20%, transparent 100%);
+            transition: opacity 0.4s ease;
+        }
+
+        .profile-zone:hover .my-photo { opacity: 1; }
+
+        .container { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 10; }
+        .background { position: absolute; width: 100%; height: 100%; background: url('../media/bg.jpg') center bottom / cover no-repeat; }
+        .water { position: absolute; top: 550px; left: 0; width: 100%; bottom: 0; background: url('bg.jpg') center bottom / cover no-repeat fixed; filter: url('#waterRipple'); }
+        #rainCanvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
+    </style>
+</head>
+<body>
+
+    <!-- منطقة الصورة مع الوميض والانتقال -->
+    <div class="profile-zone" id="photoZone" ondblclick="triggerTransition()">
+        <div class="my-photo" id="flashlightPhoto"></div>
+    </div>
+
+    <div class="container">
+        <div class="background"></div>
+        <div class="water"></div>
+        <canvas id="rainCanvas"></canvas>
+    </div>
+
+    <svg style="position: absolute; width: 0; height: 0;">
+        <filter id="waterRipple">
+            <feTurbulence id="turbulenceNoise" type="fractalNoise" baseFrequency="0.012 0.08" numOctaves="3" seed="2" />
+            <feDisplacementMap xChannelSelector="G" yChannelSelector="B" scale="15" in="SourceGraphic" />
+        </filter>
+    </svg>
+
+    <audio id="rainSound" src="../media/rain.wav" loop></audio>
+    <audio id="musicSound" src="../media/g.wav" loop></audio>
+
+    <script src="gsap.min.js"></script>
+    <script>
+        const photoZone = document.getElementById('photoZone');
+        const photo = document.getElementById('flashlightPhoto');
+        const rain = document.getElementById('rainSound');
+        const music = document.getElementById('musicSound');
+        let isRainPlaying = false;
+
+        // دالة الوميض والانتقال
+        function triggerTransition() {
+            photoZone.classList.add('flash');
+            setTimeout(() => {
+                window.location.href = 'design.html';
+            }, 200); // انتقال سريع بعد الوميض
+        }
+
+        // تتبع الماوس داخل دائرة الصورة
+        photoZone.addEventListener('mousemove', (e) => {
+            const rect = photoZone.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            photo.style.setProperty('--x', x + 'px');
+            photo.style.setProperty('--y', y + 'px');
+        });
+
+        // تبادل الأصوات
+        photoZone.addEventListener('mouseenter', () => {
+            rain.pause();
+            music.play();
+        });
+
+        photoZone.addEventListener('mouseleave', () => {
+            music.pause();
+            music.currentTime = 0;
+            if (isRainPlaying) rain.play();
+        });
+
+        // تشغيل/إيقاف المطر بنقرة واحدة (خارج الصورة)
+        document.body.addEventListener('click', (e) => {
+            if (e.target.closest('#photoZone')) return;
+            if (!isRainPlaying) { rain.play(); isRainPlaying = true; }
+            else { rain.pause(); isRainPlaying = false; }
+        });
+
+        // تشغيل تلقائي
+        window.addEventListener('mouseover', () => {
+            if (!isRainPlaying) { rain.play(); isRainPlaying = true; }
+        }, { once: true });
+
+        // كود المطر والماء
+        const canvas = document.getElementById('rainCanvas');
+        const ctx = canvas.getContext('2d');
+        let w, h, drops = [], splashes = [];
+        const waterLevel = 550;
+
+        function init() {
+            w = canvas.width = window.innerWidth;
+            h = canvas.height = window.innerHeight;
+            drops = [];
+            for(let i = 0; i < 700; i++) {
+                let z = Math.random(); 
+                drops.push({ x: Math.random() * w, y: Math.random() * h, z: z, v: 15 + z * 20, l: 10 + z * 25, opacity: 0.1 + z * 0.4 });
+            }
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, w, h);
+            drops.forEach(p => {
+                ctx.strokeStyle = `rgba(210, 215, 225, ${p.opacity})`;
+                ctx.lineWidth = 0.5 + p.z;
+                ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(p.x, p.y + p.l); ctx.stroke();
+                p.y += p.v;
+                let collisionPoint = waterLevel + (Math.random() * (h - waterLevel));
+                if (p.y > collisionPoint) {
+                    splashes.push({ x: p.x, y: p.y, r: 1, maxR: 4 + p.z * 10, a: p.opacity, z: p.z });
+                    p.y = -30; p.x = Math.random() * w;
+                }
+            });
+            splashes.forEach((s, i) => {
+                ctx.beginPath(); ctx.ellipse(s.x, s.y, s.r, s.r * 0.3, 0, 0, Math.PI * 2);
+                ctx.strokeStyle = `rgba(230, 235, 245, ${s.a})`;
+                ctx.lineWidth = 0.5; ctx.stroke();
+                s.r += 0.8; s.a -= 0.03;
+                if (s.a <= 0) splashes.splice(i, 1);
+            });
+            requestAnimationFrame(draw);
+        }
+
+        gsap.to("#turbulenceNoise", {
+            duration: 15, repeat: -1, yoyo: true,
+            onUpdate: function() {
+                let p = this.progress();
+                document.getElementById('turbulenceNoise').setAttribute('baseFrequency', (0.012 + p * 0.008) + ' ' + (0.08 + p * 0.08));
+            }
+        });
+
+        window.addEventListener('resize', init);
+        init();
+        draw();
+    </script>
+</body>
+</html>

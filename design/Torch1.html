@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <title>الكشاف الحقيقي المركز</title>
+    <style>
+        :root {
+            --speed: 5s;
+            --final-size: 378px; /* 10 سم */
+            --spotlight-size: 60px; /* حجم بؤرة الكشاف - صغره عشان تركز */
+        }
+
+        body, html {
+            margin: 0; padding: 0;
+            width: 100%; height: 100%;
+            background-color: #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        /* 1. المسرح: ينكمش ويختفي */
+        .stage {
+            position: relative;
+            width: 150vw; height: 150vw;
+            border-radius: 50%;
+            overflow: hidden;
+            animation: shrinkAll var(--speed) ease-in-out forwards;
+        }
+
+        #targetImg {
+            width: 100%; height: 100%;
+            object-fit: cover;
+        }
+
+        @keyframes shrinkAll {
+            0% { width: 150vw; height: 150vw; opacity: 1; }
+            100% { width: var(--final-size); height: var(--final-size); opacity: 0; }
+        }
+
+        /* 2. الستارة السوداء: بؤرة كشاف حقيقية */
+        .curtain {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: #000;
+            z-index: 10;
+            opacity: 0;
+            /* السر هنا: شفاف في النص (0) لـ (60px) وبعدها أسود فاحم فوراً */
+            -webkit-mask-image: radial-gradient(circle var(--spotlight-size) at var(--x, -100%) var(--y, -100%), transparent 0%, transparent 100%, black 100%);
+            mask-image: radial-gradient(circle var(--spotlight-size) at var(--x, -100%) var(--y, -100%), transparent 0%, transparent 100%, black 100%);
+            /* إضافة تنعيم بسيط للحواف (Fading) */
+            -webkit-mask-image: radial-gradient(circle var(--spotlight-size) at var(--x, -100%) var(--y, -100%), transparent 0%, black 120%);
+        }
+
+        /* التفاعل عند الجاهزية */
+        .stage.ready:hover { opacity: 1 !important; }
+        .stage.ready:hover .curtain { opacity: 1; }
+        
+    </style>
+</head>
+<body>
+
+    <div class="stage" id="mainStage">
+        <img src="../media/ahmed.jpg" id="targetImg">
+        <div class="curtain" id="maskLayer"></div>
+    </div>
+
+    <audio id="music" src="../media/music.wav" loop></audio>
+
+    <script>
+        const stage = document.getElementById('mainStage');
+        const audio = document.getElementById('music');
+
+        stage.addEventListener('animationend', () => {
+            stage.classList.add('ready');
+            stage.style.opacity = '0'; 
+        });
+
+        stage.addEventListener('mousemove', (e) => {
+            if (stage.classList.contains('ready')) {
+                const rect = stage.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                stage.style.setProperty('--x', x + 'px');
+                stage.style.setProperty('--y', y + 'px');
+            }
+        });
+
+        stage.addEventListener('mouseenter', () => {
+            if (stage.classList.contains('ready')) {
+                audio.play().catch(() => {});
+            }
+        });
+
+        stage.addEventListener('mouseleave', () => {
+            audio.pause();
+            audio.currentTime = 0;
+        });
+
+        // الدبل كليك (في أي مكان على الشاشة)
+        window.addEventListener('dblclick', () => {
+            window.location.href = 'design.html';
+        });
+
+        // للموبايل: محاكاة الدبل كليك باللمس السريع
+        let lastTap = 0;
+        window.addEventListener('touchend', (e) => {
+            const currentTime = new Date().getTime();
+            const tapLength = currentTime - lastTap;
+            if (tapLength < 300 && tapLength > 0) {
+                window.location.href = 'design.html';
+            }
+            lastTap = currentTime;
+        });
+
+    </script>
+</body>
+</html>

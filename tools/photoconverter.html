@@ -1,0 +1,1156 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>PHOTO.CONVERT | A.Hegazi</title>
+    <!-- إضافة المكتبات -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { 
+            margin: 0; 
+            padding: 0; 
+            box-sizing: border-box; 
+            font-family: 'Cairo', sans-serif;
+        }
+
+        body {
+            background: radial-gradient(circle at 30% 40%, #5a5a5a, #2b2b2b 80%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* خلفية معدنية محفورة */
+        body::before {
+            content: '';
+            position: fixed;
+            top: -30%; left: -20%;
+            width: 140%; height: 140%;
+            background: radial-gradient(circle at 30% 40%, rgba(192,192,192,0.15) 0%, transparent 30%),
+                        radial-gradient(circle at 70% 60%, rgba(255,215,0,0.08) 0%, transparent 30%),
+                        repeating-linear-gradient(45deg, 
+                            transparent 0px, 
+                            transparent 20px, 
+                            rgba(255,255,255,0.02) 20px, 
+                            rgba(255,255,255,0.02) 40px);
+            animation: metalWave 20s linear infinite;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        @keyframes metalWave {
+            0% { transform: rotate(0deg) scale(1); }
+            50% { transform: rotate(5deg) scale(1.05); }
+            100% { transform: rotate(0deg) scale(1); }
+        }
+
+        body::after {
+            content: '';
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: repeating-linear-gradient(90deg, 
+                transparent 0px, 
+                transparent 30px, 
+                rgba(255,215,0,0.02) 30px, 
+                rgba(255,215,0,0.02) 60px);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* ===== زر العودة للبوابة (أسفل اليسار) ===== */
+        .portal-btn {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(145deg, #b0b0b0, #5a5a5a);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 10000;
+            border: 3px solid #ffd700;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.6), inset 0 2px 4px rgba(255,255,255,0.3);
+            transition: 0.2s;
+            text-decoration: none;
+        }
+
+        .portal-btn:hover {
+            transform: scale(1.1);
+            background: linear-gradient(145deg, #c0c0c0, #7a7a7a);
+            box-shadow: 0 0 30px #ffd700;
+        }
+
+        .portal-btn i {
+            font-size: 35px;
+            color: white;
+            filter: drop-shadow(0 2px 2px black);
+        }
+
+        /* ===== زر التحكم في الموسيقى (أسفل اليمين) ===== */
+        .music-control-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(145deg, #b0b0b0, #5a5a5a);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 10000;
+            border: 3px solid #ffd700;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.6), inset 0 2px 4px rgba(255,255,255,0.3);
+            transition: 0.2s;
+        }
+
+        .music-control-btn:hover {
+            transform: scale(1.1);
+            background: linear-gradient(145deg, #c0c0c0, #7a7a7a);
+            box-shadow: 0 0 30px #ffd700;
+        }
+
+        .music-control-btn i {
+            font-size: 35px;
+            color: white;
+        }
+
+        .music-control-btn.playing {
+            background: linear-gradient(145deg, #ffd700, #b8860b);
+            border-color: white;
+        }
+
+        /* ===== الاسم المحفور ===== */
+        .engraved-signature {
+            text-align: center;
+            margin-bottom: 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 32px;
+            font-weight: 700;
+            letter-spacing: 6px;
+            text-transform: uppercase;
+            color: #2a2a2a;
+            text-shadow: 
+                -2px -2px 2px rgba(255,255,255,0.2),
+                3px 3px 5px rgba(0,0,0,0.8),
+                0 0 5px #ffd700;
+            background: none;
+            padding: 10px 0;
+            border-bottom: 2px solid rgba(255,215,0,0.3);
+            width: 100%;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* الحاوية الرئيسية */
+        .container {
+            max-width: 1400px;
+            width: 100%;
+            background: rgba(30, 30, 30, 0.7);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border-radius: 50px;
+            padding: 35px;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.7), inset 0 1px 3px rgba(255,255,255,0.2);
+            border: 3px solid rgba(255,215,0,0.3);
+            position: relative;
+            z-index: 10;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .back-to-portal {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: linear-gradient(145deg, #b0b0b0, #6a6a6a);
+            color: white;
+            text-decoration: none;
+            padding: 12px 24px;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            border: 2px solid #ffd700;
+            box-shadow: 0 5px 15px black;
+        }
+
+        .back-to-portal:hover {
+            background: linear-gradient(145deg, #c0c0c0, #7a7a7a);
+            transform: translateY(-2px);
+            box-shadow: 0 0 30px #ffd700;
+        }
+
+        .glowing-name h2 {
+            font-size: 2.2em;
+            background: linear-gradient(145deg, #e0e0e0, #a0a0a0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 10px #ffd700;
+        }
+
+        .main-title h1 {
+            font-size: 2.8em;
+            background: linear-gradient(145deg, #e0e0e0, #ffd700);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+            text-shadow: 0 0 15px #ffd700;
+        }
+
+        .supported-formats {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin: 20px 0;
+        }
+
+        .format-badge {
+            background: linear-gradient(145deg, #6a6a6a, #3a3a3a);
+            color: #ffd700;
+            padding: 10px 20px;
+            border-radius: 50px;
+            font-weight: bold;
+            font-size: 1.1em;
+            border: 2px solid #ffd700;
+            box-shadow: 0 5px 10px black;
+        }
+
+        .arrow-icon {
+            color: #ffd700;
+            font-size: 24px;
+        }
+
+        .upload-section {
+            background: linear-gradient(145deg, #3a3a3a, #1a1a1a);
+            border: 4px dashed #ffd700;
+            border-radius: 50px;
+            padding: 50px;
+            text-align: center;
+            margin-bottom: 30px;
+            cursor: pointer;
+            transition: all 0.4s;
+            position: relative;
+            overflow: hidden;
+            color: white;
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.5), 0 10px 20px black;
+        }
+
+        .upload-section:hover {
+            transform: translateY(-5px);
+            border-color: white;
+            box-shadow: 0 0 40px rgba(255,215,0,0.3);
+        }
+
+        .upload-icon {
+            font-size: 80px;
+            margin-bottom: 15px;
+            animation: bounce 2s infinite;
+            color: #ffd700;
+        }
+
+        .upload-btn {
+            background: linear-gradient(145deg, #b0b0b0, #5a5a5a);
+            color: white;
+            border: 3px solid #ffd700;
+            padding: 15px 45px;
+            border-radius: 50px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 20px;
+            box-shadow: 0 10px 20px black;
+        }
+
+        .upload-btn:hover {
+            background: linear-gradient(145deg, #c0c0c0, #7a7a7a);
+            transform: scale(1.05);
+            box-shadow: 0 0 30px #ffd700;
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        #fileInfo {
+            color: #ffd700;
+            font-weight: 500;
+            margin-top: 15px;
+        }
+
+        .preview-section {
+            background: rgba(0,0,0,0.3);
+            backdrop-filter: blur(5px);
+            border-radius: 40px;
+            padding: 25px;
+            margin-bottom: 30px;
+            border: 2px solid #ffd700;
+        }
+
+        .preview-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .preview-header h2 {
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .file-count {
+            background: linear-gradient(145deg, #b0b0b0, #6a6a6a);
+            color: #ffd700;
+            padding: 8px 20px;
+            border-radius: 40px;
+            border: 2px solid #ffd700;
+        }
+
+        .preview-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 20px;
+        }
+
+        .preview-item {
+            position: relative;
+            aspect-ratio: 1;
+            border-radius: 30px;
+            overflow: hidden;
+            border: 3px solid #ffd700;
+            box-shadow: 0 10px 20px black;
+            transition: 0.2s;
+        }
+
+        .preview-item:hover {
+            transform: scale(1.02);
+            box-shadow: 0 0 30px #ffd700;
+        }
+
+        .preview-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .format-badge-small {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: linear-gradient(145deg, #b0b0b0, #6a6a6a);
+            color: #ffd700;
+            padding: 2px 8px;
+            border-radius: 20px;
+            font-size: 12px;
+            border: 1px solid #ffd700;
+        }
+
+        .remove-btn {
+            position: absolute;
+            bottom: 5px;
+            left: 5px;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: rgba(255,0,0,0.8);
+            color: white;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            transition: 0.2s;
+        }
+
+        .remove-btn:hover {
+            background: red;
+            transform: scale(1.1);
+        }
+
+        .control-panel {
+            background: rgba(0,0,0,0.3);
+            backdrop-filter: blur(5px);
+            border-radius: 40px;
+            padding: 30px;
+            margin-bottom: 30px;
+            border: 2px solid #ffd700;
+        }
+
+        .control-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .control-item {
+            background: rgba(50,50,50,0.6);
+            border-radius: 30px;
+            padding: 20px;
+            border: 2px solid #ffd700;
+            color: white;
+        }
+
+        .control-item label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: #ffd700;
+        }
+
+        .quality-control {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .quality-control input[type="range"] {
+            flex: 1;
+            height: 8px;
+            background: linear-gradient(90deg, #ffd700, #b8860b);
+            border-radius: 10px;
+            outline: none;
+        }
+
+        .quality-value {
+            background: linear-gradient(145deg, #b0b0b0, #6a6a6a);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 30px;
+            border: 2px solid #ffd700;
+        }
+
+        .convert-btn {
+            background: linear-gradient(145deg, #b0b0b0, #5a5a5a);
+            color: white;
+            border: 4px solid #ffd700;
+            padding: 20px 60px;
+            border-radius: 60px;
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin: 20px auto;
+            display: block;
+            box-shadow: 0 15px 30px black;
+            width: fit-content;
+        }
+
+        .convert-btn:hover:not(:disabled) {
+            transform: translateY(-3px) scale(1.02);
+            background: linear-gradient(145deg, #c0c0c0, #7a7a7a);
+            box-shadow: 0 0 40px #ffd700;
+        }
+
+        .convert-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #ffd700;
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 1s infinite linear;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .message {
+            display: none;
+            text-align: center;
+            padding: 15px;
+            border-radius: 40px;
+            margin: 20px 0;
+            font-weight: 600;
+        }
+
+        .error-message {
+            background: rgba(255,0,0,0.2);
+            border: 2px solid red;
+            color: white;
+        }
+
+        .success-message {
+            background: rgba(0,255,0,0.2);
+            border: 2px solid green;
+            color: white;
+        }
+
+        .results-section {
+            margin: 40px 0;
+        }
+
+        .results-title h2 {
+            color: white;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .result-card {
+            background: rgba(30,30,30,0.7);
+            border-radius: 30px;
+            padding: 15px;
+            border: 3px solid #ffd700;
+            transition: 0.2s;
+        }
+
+        .result-card:hover {
+            transform: scale(1.02);
+            box-shadow: 0 0 30px #ffd700;
+        }
+
+        .result-card img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 20px;
+            margin-bottom: 10px;
+        }
+
+        .result-info {
+            display: flex;
+            justify-content: space-between;
+            color: white;
+            margin-bottom: 10px;
+        }
+
+        .file-size {
+            color: #ffd700;
+        }
+
+        .download-single {
+            background: linear-gradient(145deg, #b0b0b0, #6a6a6a);
+            border: 2px solid #ffd700;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 40px;
+            width: 100%;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .download-single:hover {
+            background: linear-gradient(145deg, #c0c0c0, #7a7a7a);
+            box-shadow: 0 0 20px #ffd700;
+        }
+
+        .download-all-btn {
+            background: linear-gradient(145deg, #b0b0b0, #5a5a5a);
+            color: white;
+            border: 4px solid #ffd700;
+            padding: 15px 40px;
+            border-radius: 50px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin: 20px auto;
+            display: block;
+            text-decoration: none;
+            text-align: center;
+            width: fit-content;
+        }
+
+        .download-all-btn:hover {
+            background: linear-gradient(145deg, #c0c0c0, #7a7a7a);
+            box-shadow: 0 0 40px #ffd700;
+        }
+
+        .footer-note {
+            text-align: center;
+            margin-top: 30px;
+            color: rgba(255,255,255,0.7);
+        }
+
+        .light-particle {
+            position: fixed;
+            width: 8px;
+            height: 8px;
+            background: #ffd700;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9999;
+            animation: particleFloat 1.5s forwards;
+            box-shadow: 0 0 20px #ffd700;
+        }
+
+        @keyframes particleFloat {
+            0% { transform: scale(1); opacity: 1; }
+            100% { transform: scale(4) translateY(-80px); opacity: 0; }
+        }
+
+        @media (max-width: 768px) {
+            .header { flex-direction: column; text-align: center; }
+            .engraved-signature { font-size: 22px; letter-spacing: 3px; }
+            .main-title h1 { font-size: 1.8em; }
+            .portal-btn, .music-control-btn { width: 55px; height: 55px; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- زر العودة للبوابة -->
+<a href="../index.html" class="portal-btn" id="portalBtn">
+    <i>🏠</i>
+</a>
+
+<!-- زر التحكم في الموسيقى -->
+<div class="music-control-btn" id="musicControlBtn" onclick="toggleMusic()">
+    <i id="musicIcon">🔊</i>
+</div>
+
+<!-- موسيقى خلفية -->
+<audio id="bgMusic" loop>
+    <source src="../media/music.wav" type="audio/mpeg">
+</audio>
+
+<div class="container">
+    <!-- الاسم المحفور -->
+    <div class="engraved-signature">ENG. AHMED HEGAZI</div>
+
+    <div class="header">
+        <a href="tools.html" class="back-to-portal">
+            <span>←</span>
+            BACK
+        </a>
+        <div class="glowing-name">
+            <h2>The Engineer :)</h2>
+        </div>
+    </div>
+
+    <div class="main-title">
+        <h1>🔄 Photo Converter</h1>
+        <p style="color: #ccc;">AVIF - BMP - ENC - HEIC - WEBP  →  JPG</p>
+    </div>
+    <br>
+    <div class="supported-formats">
+        <span class="format-badge">AVIF</span>
+        <span class="format-badge">BMP</span>
+        <span class="format-badge">ENC</span>
+        <span class="format-badge">HEIC</span>
+        <span class="format-badge">WEBP</span>
+        <span class="arrow-icon">→</span>
+        <span class="format-badge">JPG</span>
+    </div>
+    <br>
+    <div class="upload-section" id="uploadSection">
+        <div class="upload-icon">📸</div>
+        <h2 style="margin-bottom: 15px; color: white;">Drag&Drop Here</h2>
+        <p style="color: #ccc; margin-bottom: 15px;">يدعم: AVIF, BMP, ENC, HEIC, WEBP</p>
+        <button class="upload-btn" id="uploadBtn">Pick Photos</button>
+        <input type="file" id="fileInput" accept="image/*,.avif,.bmp,.enc,.heic,.webp" multiple>
+        <div style="margin-top: 15px; color: #ffd700; font-weight: 500;" id="fileInfo"></div>
+    </div>
+
+    <div class="preview-section">
+        <div class="preview-header">
+            <h2><i class="fas fa-eye"></i> الصور المرفوعة</h2>
+            <div class="file-count" id="fileCount">0 صور</div>
+        </div>
+        <div class="preview-grid" id="previewGrid"></div>
+    </div>
+
+    <div class="control-panel">
+        <div class="control-grid">
+            <div class="control-item">
+                <label>🎚️ جودة التحويل</label>
+                <div class="quality-control">
+                    <input type="range" id="qualityRange" min="10" max="100" value="85">
+                    <span class="quality-value" id="qualityValue">85%</span>
+                </div>
+                <div class="format-stats" style="display: flex; justify-content: space-between; margin-top: 10px;">
+                    <span>حجم صغير</span>
+                    <span>جودة عالية</span>
+                </div>
+            </div>
+            
+            <div class="control-item">
+                <label>📊 إحصائيات التحويل</label>
+                <div style="text-align: center;">
+                    <div style="font-size: 2em; color: #ffd700; margin-bottom: 5px;" id="statsCount">0</div>
+                    <div>صورة جاهزة للتحويل</div>
+                </div>
+            </div>
+            
+            <div class="control-item">
+                <label>⚡ وضع المعالجة</label>
+                <div style="display: flex; gap: 10px; justify-content: center;">
+                    <span style="background: #ffd700; color: black; padding: 8px 15px; border-radius: 50px;">متوازي</span>
+                    <span style="background: #b8860b; color: white; padding: 8px 15px; border-radius: 50px;">سريع</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <button class="convert-btn" id="convertBtn" disabled>🔄 تحويل الكل إلى JPG</button>
+
+    <div class="loading" id="loading">
+        <div class="spinner"></div>
+        <p style="color: #ffd700; font-weight: bold;">جاري التحويل والمعالجة...</p>
+    </div>
+
+    <div id="errorMessage" class="message error-message"></div>
+    <div id="successMessage" class="message success-message"></div>
+
+    <div class="results-section" id="resultsSection" style="display: none;">
+        <div class="results-title">
+            <h2>✨ الصور بعد التحويل</h2>
+        </div>
+        <div class="results-grid" id="resultsGrid"></div>
+        <button class="download-all-btn" id="downloadAllBtn">📥 تحميل الكل كملف ZIP</button>
+    </div>
+
+    <div class="footer-note">
+        <p>⚡ التحويل يتم بالكامل في متصفحك - خصوصية تامة وسرعة عالية</p>
+    </div>
+</div>
+
+<script>
+    // ===== نظام الموسيقى =====
+    let music = document.getElementById('bgMusic');
+    let musicBtn = document.getElementById('musicControlBtn');
+    let musicIcon = document.getElementById('musicIcon');
+    let isPlaying = false;
+
+    music.load();
+
+    function toggleMusic() {
+        if (isPlaying) {
+            music.pause();
+            musicIcon.textContent = '🔇';
+            musicBtn.classList.remove('playing');
+        } else {
+            music.play().then(() => {
+                musicIcon.textContent = '🔊';
+                musicBtn.classList.add('playing');
+            }).catch(e => console.log('ممنوع تشغيل الموسيقى'));
+        }
+        isPlaying = !isPlaying;
+        createLightParticle(event?.clientX || window.innerWidth/2, event?.clientY || window.innerHeight/2);
+    }
+
+    function playMusic() {
+        if (!isPlaying) {
+            music.play().then(() => {
+                isPlaying = true;
+                musicIcon.textContent = '🔊';
+                musicBtn.classList.add('playing');
+            }).catch(e => console.log('ممنوع تشغيل الموسيقى تلقائياً'));
+        }
+    }
+
+    // ===== جزيئات ضوئية ذهبية =====
+    function createLightParticle(x, y) {
+        for (let i = 0; i < 3; i++) {
+            setTimeout(() => {
+                const particle = document.createElement('div');
+                particle.className = 'light-particle';
+                particle.style.left = (x || window.innerWidth/2) + (Math.random() - 0.5) * 80 + 'px';
+                particle.style.top = (y || window.innerHeight/2) + (Math.random() - 0.5) * 80 + 'px';
+                document.body.appendChild(particle);
+                
+                setTimeout(() => {
+                    particle.remove();
+                }, 1500);
+            }, i * 50);
+        }
+    }
+
+    document.addEventListener('mousemove', function(e) {
+        if (Math.random() > 0.95) {
+            createLightParticle(e.clientX, e.clientY);
+        }
+    });
+
+    window.addEventListener('load', () => {
+        for (let i = 0; i < 10; i++) {
+            setTimeout(() => {
+                createLightParticle(Math.random() * window.innerWidth, Math.random() * window.innerHeight);
+            }, i * 100);
+        }
+    });
+
+    // ===== الكود الأصلي للمحول (مع تعديل طفيف للألوان) =====
+    (function() {
+        'use strict';
+
+        const uploadSection = document.getElementById('uploadSection');
+        const uploadBtn = document.getElementById('uploadBtn');
+        const fileInput = document.getElementById('fileInput');
+        const previewGrid = document.getElementById('previewGrid');
+        const fileCount = document.getElementById('fileCount');
+        const fileInfo = document.getElementById('fileInfo');
+        const convertBtn = document.getElementById('convertBtn');
+        const loading = document.getElementById('loading');
+        const resultsSection = document.getElementById('resultsSection');
+        const resultsGrid = document.getElementById('resultsGrid');
+        const downloadAllBtn = document.getElementById('downloadAllBtn');
+        const errorMessage = document.getElementById('errorMessage');
+        const successMessage = document.getElementById('successMessage');
+        const qualityRange = document.getElementById('qualityRange');
+        const qualityValue = document.getElementById('qualityValue');
+        const statsCount = document.getElementById('statsCount');
+
+        let originalImages = [];
+        let convertedImages = [];
+
+        qualityRange.addEventListener('input', () => {
+            qualityValue.textContent = qualityRange.value + '%';
+        });
+
+        function showError(text) {
+            errorMessage.textContent = text;
+            errorMessage.style.display = 'block';
+            successMessage.style.display = 'none';
+            setTimeout(() => {
+                errorMessage.style.display = 'none';
+            }, 3000);
+        }
+
+        function showSuccess(text) {
+            successMessage.textContent = text;
+            successMessage.style.display = 'block';
+            errorMessage.style.display = 'none';
+            setTimeout(() => {
+                successMessage.style.display = 'none';
+            }, 3000);
+        }
+
+        function updatePreview() {
+            previewGrid.innerHTML = '';
+            
+            originalImages.forEach((imgData, index) => {
+                const item = document.createElement('div');
+                item.className = 'preview-item';
+                
+                const img = document.createElement('img');
+                img.src = imgData.url;
+                
+                const formatBadge = document.createElement('div');
+                formatBadge.className = 'format-badge-small';
+                formatBadge.textContent = imgData.format || 'صورة';
+                
+                const removeBtn = document.createElement('button');
+                removeBtn.className = 'remove-btn';
+                removeBtn.innerHTML = '×';
+                removeBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    originalImages.splice(index, 1);
+                    updatePreview();
+                    statsCount.textContent = originalImages.length;
+                    convertBtn.disabled = originalImages.length === 0;
+                    
+                    if (originalImages.length === 0) {
+                        fileInfo.textContent = '';
+                        resultsSection.style.display = 'none';
+                    }
+                    playMusic();
+                    createLightParticle();
+                };
+                
+                item.appendChild(img);
+                item.appendChild(formatBadge);
+                item.appendChild(removeBtn);
+                previewGrid.appendChild(item);
+            });
+
+            fileCount.textContent = `${originalImages.length} صورة`;
+            statsCount.textContent = originalImages.length;
+        }
+
+        function processFiles(files) {
+            const imageFiles = Array.from(files).filter(file => 
+                file.type.startsWith('image/') || 
+                file.name.match(/\.(avif|bmp|enc|heic|webp|jpg|jpeg|png)$/i)
+            );
+
+            if (imageFiles.length === 0) {
+                showError('الرجاء اختيار ملفات صور صالحة');
+                return;
+            }
+
+            loading.classList.add('active');
+            playMusic();
+            
+            const promises = imageFiles.map(file => {
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    
+                    reader.onload = (e) => {
+                        const img = new Image();
+                        
+                        img.onload = () => {
+                            const ext = file.name.split('.').pop().toUpperCase();
+                            
+                            originalImages.push({
+                                file: file,
+                                url: e.target.result,
+                                width: img.width,
+                                height: img.height,
+                                format: ext,
+                                name: file.name,
+                                imageBitmap: img
+                            });
+                            resolve();
+                        };
+                        
+                        img.onerror = () => {
+                            reject(new Error(`فشل تحميل الصورة: ${file.name}`));
+                        };
+                        
+                        img.src = e.target.result;
+                    };
+                    
+                    reader.onerror = () => {
+                        reject(new Error(`فشل قراءة الملف: ${file.name}`));
+                    };
+                    
+                    reader.readAsDataURL(file);
+                });
+            });
+
+            Promise.all(promises)
+                .then(() => {
+                    loading.classList.remove('active');
+                    updatePreview();
+                    fileInfo.textContent = `✅ تم رفع ${originalImages.length} صورة بنجاح`;
+                    convertBtn.disabled = false;
+                    createLightParticle();
+                })
+                .catch(error => {
+                    loading.classList.remove('active');
+                    showError(error.message);
+                });
+        }
+
+        uploadBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            fileInput.click();
+            playMusic();
+        });
+        
+        uploadSection.addEventListener('click', () => {
+            fileInput.click();
+            playMusic();
+        });
+
+        uploadSection.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadSection.style.borderColor = '#ffd700';
+            uploadSection.style.background = 'rgba(255,215,0,0.1)';
+        });
+
+        uploadSection.addEventListener('dragleave', () => {
+            uploadSection.style.borderColor = '#ffd700';
+            uploadSection.style.background = 'linear-gradient(145deg, #3a3a3a, #1a1a1a)';
+        });
+
+        uploadSection.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadSection.style.background = 'linear-gradient(145deg, #3a3a3a, #1a1a1a)';
+            processFiles(e.dataTransfer.files);
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            processFiles(e.target.files);
+            fileInput.value = '';
+        });
+
+        convertBtn.addEventListener('click', async () => {
+            if (originalImages.length === 0) {
+                showError('الرجاء رفع صور أولاً');
+                return;
+            }
+
+            try {
+                convertBtn.disabled = true;
+                loading.classList.add('active');
+                resultsSection.style.display = 'none';
+                convertedImages = [];
+                playMusic();
+
+                const quality = parseInt(qualityRange.value) / 100;
+
+                for (const imgData of originalImages) {
+                    const img = new Image();
+                    
+                    await new Promise((resolve, reject) => {
+                        img.onload = resolve;
+                        img.onerror = reject;
+                        img.src = imgData.url;
+                    });
+
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    
+                    canvas.width = imgData.width;
+                    canvas.height = imgData.height;
+                    
+                    ctx.drawImage(img, 0, 0);
+                    
+                    const jpgUrl = canvas.toDataURL('image/jpeg', quality);
+                    
+                    const base64Length = jpgUrl.length - 'data:image/jpeg;base64,'.length;
+                    const fileSize = Math.round((base64Length * 0.75) / 1024);
+                    
+                    convertedImages.push({
+                        url: jpgUrl,
+                        name: imgData.name.replace(/\.[^/.]+$/, '') + '.jpg',
+                        size: fileSize,
+                        width: imgData.width,
+                        height: imgData.height
+                    });
+                    
+                    createLightParticle();
+                }
+
+                displayResults();
+                showSuccess(`✅ تم تحويل ${convertedImages.length} صورة بنجاح!`);
+
+            } catch (error) {
+                console.error('خطأ في التحويل:', error);
+                showError('حدث خطأ أثناء التحويل: ' + error.message);
+            } finally {
+                convertBtn.disabled = false;
+                loading.classList.remove('active');
+            }
+        });
+
+        function displayResults() {
+            resultsGrid.innerHTML = '';
+            
+            convertedImages.forEach((img, index) => {
+                const card = document.createElement('div');
+                card.className = 'result-card';
+                
+                card.innerHTML = `
+                    <img src="${img.url}" alt="Converted ${index+1}">
+                    <div class="result-info">
+                        <span>${img.name.substring(0, 15)}${img.name.length > 15 ? '...' : ''}</span>
+                        <span class="file-size">${img.size} KB</span>
+                    </div>
+                    <button class="download-single" data-index="${index}">📥 تحميل</button>
+                `;
+                
+                resultsGrid.appendChild(card);
+            });
+
+            resultsGrid.addEventListener('click', (e) => {
+                const downloadBtn = e.target.closest('.download-single');
+                if (downloadBtn) {
+                    const index = downloadBtn.dataset.index;
+                    const img = convertedImages[index];
+                    if (img) {
+                        const link = document.createElement('a');
+                        link.href = img.url;
+                        link.download = img.name;
+                        link.click();
+                        playMusic();
+                        createLightParticle();
+                    }
+                }
+            });
+
+            resultsSection.style.display = 'block';
+        }
+
+        downloadAllBtn.addEventListener('click', async () => {
+            if (convertedImages.length === 0) {
+                showError('لا توجد صور محولة');
+                return;
+            }
+
+            try {
+                loading.classList.add('active');
+                playMusic();
+                
+                const zip = new JSZip();
+                
+                for (let i = 0; i < convertedImages.length; i++) {
+                    const img = convertedImages[i];
+                    
+                    try {
+                        const response = await fetch(img.url);
+                        const blob = await response.blob();
+                        
+                        zip.file(img.name, blob, { binary: true });
+                        
+                        if ((i + 1) % 5 === 0 || i === convertedImages.length - 1) {
+                            fileInfo.textContent = `جاري تجهيز ZIP: ${i + 1}/${convertedImages.length}`;
+                            createLightParticle();
+                        }
+                    } catch (error) {
+                        console.error(`خطأ في إضافة الصورة ${img.name}:`, error);
+                    }
+                }
+                
+                const content = await zip.generateAsync({ 
+                    type: 'blob',
+                    compression: 'DEFLATE',
+                    compressionOptions: { level: 6 }
+                });
+                
+                saveAs(content, 'converted_images.zip');
+                
+                showSuccess(`✅ تم إنشاء ملف ZIP بنجاح مع ${convertedImages.length} صورة!`);
+                fileInfo.textContent = '';
+                
+            } catch (error) {
+                console.error('خطأ في إنشاء ZIP:', error);
+                showError('خطأ في إنشاء ملف ZIP: ' + error.message);
+            } finally {
+                loading.classList.remove('active');
+            }
+        });
+
+    })();
+</script>
+</body>
+</html>

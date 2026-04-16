@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <title>3D Rain Over Background Image</title>
+    <style>
+        * { margin: 0; padding: 0; }
+        
+        body { 
+            /* ضع اسم ملف صورتك هنا بدلاً من background.jpg */
+            background: url('../media/background.jpg') no-repeat center center fixed; 
+            background-size: cover;
+            overflow: hidden; 
+            font-family: sans-serif; 
+        }
+
+        /* جعل الكانفاس شفافاً ليمر المطر فوق الصورة */
+        canvas { 
+            display: block; 
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            z-index: 1; 
+            background: transparent; 
+        }
+        
+        #hidden-container {
+            position: absolute; top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 10cm; height: 10cm; z-index: 10;
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+        }
+
+        #hidden-image {
+            width: 100%; height: 100%; object-fit: cover; opacity: 0;
+            transition: opacity 0.8s ease;
+            mask-image: radial-gradient(circle 120px at var(--x) var(--y), black 0%, transparent 100%);
+            -webkit-mask-image: radial-gradient(circle 120px at var(--x) var(--y), black 0%, transparent 100%);
+        }
+
+        #hidden-container:hover #hidden-image { opacity: 1; }
+    </style>
+</head>
+<body onclick="toggleRainManual()">
+
+<canvas id="c"></canvas>
+
+<audio id="rainAmbient" src="../media/rain.wav" loop></audio>
+<audio id="musicHover" src="../media/ammar.wav" loop></audio>
+
+<div id="hidden-container" 
+     ondblclick="window.location.href='design.html'"
+     onmouseenter="handleMouseEnter()" 
+     onmouseleave="handleMouseLeave()">
+    <img src="../media/ahmed0.jpg" id="hidden-image" alt="Hidden">
+</div>
+
+<script>
+// --- محرك الصوت الذكي ---
+const rainTrack = document.getElementById("rainAmbient");
+const musicTrack = document.getElementById("musicHover");
+let rainManuallyPaused = false;
+let isHovering = false;
+
+function initAudioOnFirstClick() {
+    if (rainTrack.paused && !rainManuallyPaused && !isHovering) {
+        rainTrack.play();
+        rainTrack.volume = 0.6;
+    }
+}
+
+function toggleRainManual() {
+    if (!isHovering) {
+        if (rainTrack.paused) { rainTrack.play(); rainManuallyPaused = false; } 
+        else { rainTrack.pause(); rainManuallyPaused = true; }
+    }
+}
+
+function handleMouseEnter() {
+    isHovering = true; rainTrack.pause();
+    musicTrack.play(); musicTrack.volume = 1.0;
+}
+
+function handleMouseLeave() {
+    isHovering = false; musicTrack.pause(); musicTrack.currentTime = 0;
+    if (!rainManuallyPaused) rainTrack.play();
+}
+
+// --- محرك المطر الشفاف فوق الصورة ---
+const c = document.getElementById("c");
+const ctx = c.getContext("2d");
+
+function resize() {
+    c.width = window.innerWidth;
+    c.height = window.innerHeight;
+}
+window.addEventListener('resize', resize);
+resize();
+
+let raindrops = [];
+const layers = [
+    { count: 400, sMin: 14, sMax: 18, lMin: 10, o: 0.2, w: 1 },
+    { count: 150, sMin: 20, sMax: 26, lMin: 20, o: 0.35, w: 1.5 },
+    { count: 50,  sMin: 30, sMax: 38, lMin: 35, o: 0.5, w: 2.5 }
+];
+
+function createRain() {
+    raindrops = [];
+    layers.forEach(l => {
+        for (let i = 0; i < l.count; i++) {
+            raindrops.push({
+                x: Math.random() * c.width,
+                y: Math.random() * c.height,
+                s: (Math.random() * (l.sMax - l.sMin) + l.sMin) * 1.1,
+                l: Math.random() * 15 + l.lMin,
+                o: l.o,
+                w: l.w
+            });
+        }
+    });
+}
+createRain();
+
+function draw() {
+    // السر في الشفافية: نستخدم clearRect بدلاً من fillRect الأسود
+    // هذا يمسح الشاشة ويجعل صورة الـ CSS تظهر خلف المطر
+    ctx.clearRect(0, 0, c.width, c.height);
+
+    for (let i = 0; i < raindrops.length; i++) {
+        let p = raindrops[i];
+        
+        // لون المطر: أبيض ثلجي شفاف ليظهر فوق أي صورة خلفية
+        ctx.strokeStyle = `rgba(255, 255, 255, ${p.o})`;
+        ctx.lineWidth = p.w;
+        ctx.lineCap = "round";
+        
+        ctx.beginPath();
+        ctx.moveTo(p.x, p.y);
+        ctx.lineTo(p.x + (p.s * 0.04), p.y + p.l);
+        ctx.stroke();
+
+        p.y += p.s;
+        p.x += p.s * 0.04;
+
+        if (p.y > c.height) {
+            p.y = -p.l;
+            p.x = Math.random() * c.width;
+        }
+    }
+    requestAnimationFrame(draw);
+}
+
+// تحريك الكشاف
+const container = document.getElementById('hidden-container');
+const img = document.getElementById('hidden-image');
+container.addEventListener('mousemove', (e) => {
+    const rect = container.getBoundingClientRect();
+    img.style.setProperty('--x', (e.clientX - rect.left) + 'px');
+    img.style.setProperty('--y', (e.clientY - rect.top) + 'px');
+});
+
+document.body.addEventListener('click', initAudioOnFirstClick, {once: true});
+
+draw();
+</script>
+</body>
+</html>

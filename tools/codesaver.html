@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>Code Saver · Metallic</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Arial', sans-serif;
+            min-height: 100vh;
+            background: radial-gradient(circle at 30% 40%, #5a5a5a, #2b2b2b 80%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* metallic brushed texture */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-image: repeating-linear-gradient(45deg, 
+                rgba(255,255,255,0.02) 0px, 
+                rgba(255,255,255,0.02) 3px,
+                transparent 3px,
+                transparent 8px);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* glossy highlight */
+        body::after {
+            content: '';
+            position: fixed;
+            top: -20%; left: -10%;
+            width: 120%; height: 120%;
+            background: radial-gradient(circle at 30% 40%, rgba(255,255,255,0.25) 0%, transparent 40%),
+                        radial-gradient(circle at 80% 70%, rgba(0,0,0,0.3) 0%, transparent 40%);
+            pointer-events: none;
+            z-index: 0;
+            mix-blend-mode: overlay;
+        }
+
+        .container {
+            background: rgba(80, 80, 80, 0.25);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 2px solid rgba(220, 220, 220, 0.5);
+            border-radius: 32px;
+            box-shadow: 0 30px 50px -20px black, inset 0 1px 4px rgba(255,255,255,0.6);
+            padding: 30px;
+            width: 100%;
+            max-width: 800px;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* التوقيع المحفور في الأعلى */
+        .engraved-signature {
+            text-align: left;
+            font-family: 'Courier New', 'Consolas', 'Roboto Mono', monospace;
+            font-size: 24px;
+            font-weight: 700;
+            letter-spacing: 3px;
+            color: #2a2a2a;
+            text-shadow: 
+                -1px -1px 1px rgba(255,255,255,0.3),
+                2px 2px 3px rgba(0,0,0,0.5),
+                0px 0px 0px #5a5a5a;
+            background: none;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(255,215,0,0.2);
+            position: relative;
+            text-transform: uppercase;
+        }
+
+        /* علامة ® ملكية */
+        .registered-mark {
+            font-size: 28px;
+            font-weight: 900;
+            color: #ffd700;
+            text-shadow: 0 0 8px #ffd700, 0 0 15px #b8860b;
+            margin-left: 10px;
+            display: inline-block;
+            vertical-align: middle;
+        }
+
+        h2 {
+            color: #f0f0f0;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5), 0 0 10px rgba(255,255,255,0.3);
+            font-weight: 600;
+            letter-spacing: 1px;
+            margin-bottom: 20px;
+            font-size: 32px;
+            text-transform: uppercase;
+            border-left: 6px solid silver;
+            padding-left: 20px;
+        }
+
+        h2 .registered-mark {
+            font-size: 36px;
+            margin-left: 8px;
+        }
+
+        textarea {
+            width: 100%;
+            height: 200px;
+            background: rgba(30,30,30,0.7);
+            backdrop-filter: blur(4px);
+            border: 2px solid #b0b0b0;
+            border-radius: 20px;
+            padding: 18px;
+            font-family: 'Courier New', monospace;
+            font-size: 16px;
+            color: #f0f0f0;
+            box-shadow: inset 0 5px 15px rgba(0,0,0,0.5), 0 2px 5px rgba(255,255,255,0.1);
+            resize: vertical;
+            margin-bottom: 20px;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #d4d4d4;
+            box-shadow: inset 0 5px 15px rgba(0,0,0,0.7), 0 0 15px #c0c0c0;
+        }
+
+        .input-group {
+            display: flex;
+            margin-bottom: 20px;
+            gap: 10px;
+        }
+
+        .input-group input {
+            flex: 1;
+            padding: 14px 20px;
+            background: rgba(20,20,20,0.6);
+            backdrop-filter: blur(4px);
+            border: 2px solid #9a9a9a;
+            border-radius: 40px;
+            font-size: 16px;
+            color: white;
+            box-shadow: inset 0 3px 8px rgba(0,0,0,0.5);
+        }
+
+        .input-group input::placeholder {
+            color: #aaa;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: silver;
+        }
+
+        /* metallic button style */
+        button {
+            flex: 1;
+            min-width: 80px;
+            padding: 12px 18px;
+            border: none;
+            border-radius: 40px;
+            background: linear-gradient(145deg, #b5b5b5, #7a7a7a);
+            box-shadow: 
+                0 10px 15px -8px black,
+                inset 0 -3px 5px rgba(0,0,0,0.4),
+                inset 0 3px 5px rgba(255,255,255,0.6),
+                0 0 0 1px #c9c9c9;
+            color: #1e1e1e;
+            font-weight: bold;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        button::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -60%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(120deg, transparent, rgba(255,255,255,0.2), transparent);
+            transform: rotate(25deg);
+            transition: 0.5s;
+            opacity: 0;
+        }
+
+        button:hover::after {
+            opacity: 1;
+            left: 100%;
+            top: 100%;
+        }
+
+        button:hover {
+            background: linear-gradient(145deg, #c7c7c7, #8f8f8f);
+            box-shadow: 
+                0 15px 20px -10px black,
+                inset 0 -3px 5px rgba(0,0,0,0.5),
+                inset 0 3px 7px rgba(255,255,255,0.8),
+                0 0 0 2px #e0e0e0;
+            transform: translateY(-2px);
+        }
+
+        button:active {
+            transform: translateY(3px);
+            box-shadow: 
+                0 5px 10px -3px black,
+                inset 0 2px 5px rgba(0,0,0,0.5),
+                inset 0 -2px 4px rgba(255,255,255,0.3);
+        }
+
+        .button-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .note-actions button {
+            background: linear-gradient(145deg, #9c9c9c, #686868);
+        }
+
+        .notes-list {
+            margin-top: 25px;
+            background: rgba(0,0,0,0.2);
+            backdrop-filter: blur(4px);
+            border-radius: 24px;
+            padding: 15px;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .note-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 15px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            color: #f0f0f0;
+            font-weight: 500;
+        }
+
+        .note-item:last-child {
+            border-bottom: none;
+        }
+
+        .note-item span {
+            font-size: 16px;
+            text-shadow: 0 1px 2px black;
+        }
+
+        .note-item div {
+            display: flex;
+            gap: 8px;
+        }
+
+        .note-item button {
+            min-width: 70px;
+            padding: 8px 12px;
+            font-size: 14px;
+            background: linear-gradient(145deg, #a0a0a0, #6a6a6a);
+        }
+
+        .note-item button:last-child {
+            background: linear-gradient(145deg, #b22222, #7a1f1f);
+        }
+
+        /* back button */
+        .back-btn {
+            display: inline-block;
+            margin-bottom: 20px;
+            padding: 12px 28px;
+            background: linear-gradient(145deg, #a0a0a0, #606060);
+            color: white;
+            text-decoration: none;
+            border-radius: 40px;
+            font-weight: bold;
+            letter-spacing: 1px;
+            box-shadow: 0 8px 15px -5px black, inset 0 1px 3px rgba(255,255,255,0.6);
+            border: 1px solid #b0b0b0;
+            transition: 0.2s;
+        }
+
+        .back-btn:hover {
+            background: linear-gradient(145deg, #b5b5b5, #787878);
+            transform: translateY(-2px);
+            box-shadow: 0 12px 20px -8px black, inset 0 2px 4px rgba(255,255,255,0.7);
+        }
+
+        .back-btn:active {
+            transform: translateY(3px);
+            box-shadow: 0 4px 8px -3px black;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- زر العودة إلى tools.html -->
+    <a href="tools.html" class="back-btn">⬅ BACK TO TOOLS</a>
+
+    <!-- التوقيع المحفور ENG. AHMED HEGAZI + علامة ® -->
+    <div class="engraved-signature">
+        ENG. AHMED HEGAZI <span class="registered-mark">®</span>
+    </div>
+    
+    <h2>
+        CODE SAVER <span class="registered-mark">®</span>
+    </h2>
+    <textarea id="codeInput" placeholder="Write your code here..."></textarea>
+    <div class="input-group">
+        <input type="text" id="noteName" placeholder="Enter note name">
+        <button onclick="saveNote()">Save Note</button>
+    </div>
+    <div class="button-group">
+        <button onclick="saveFile('html')">Save as HTML</button>
+        <button onclick="saveFile('txt')">Save as TXT</button>
+        <button onclick="saveFile('json')">Save as JSON</button>
+        <button onclick="saveFile('js')">Save as JS</button>
+        <button onclick="saveFile('css')">Save as CSS</button>
+        <button onclick="saveFile('py')">Save as PY</button>
+        <button onclick="saveFile('bat')">Save as BAT</button>
+    </div>
+    <div class="button-group note-actions">
+        <button onclick="copyCode()">Copy Code</button>
+        <button onclick="clearCode()">Clear Code</button>
+    </div>
+    <div class="notes-list" id="notesList"></div>
+</div>
+
+<script>
+    function saveFile(extension) {
+        const codeContent = document.getElementById('codeInput').value;
+        const noteName = document.getElementById('noteName').value.trim() || 'Untitled';
+        const blob = new Blob([codeContent], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${noteName}.${extension}`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+
+    function copyCode() {
+        const codeInput = document.getElementById('codeInput');
+        codeInput.select();
+        document.execCommand('copy');
+        alert('Code copied to clipboard!');
+    }
+
+    function clearCode() {
+        document.getElementById('codeInput').value = '';
+    }
+
+    function saveNote() {
+        const noteName = document.getElementById('noteName').value || 'Untitled';
+        const codeContent = document.getElementById('codeInput').value;
+        if (codeContent.trim()) {
+            const notes = JSON.parse(localStorage.getItem('notes') || '[]');
+            notes.push({ name: noteName, content: codeContent });
+            localStorage.setItem('notes', JSON.stringify(notes));
+            document.getElementById('noteName').value = '';
+            document.getElementById('codeInput').value = '';
+            displayNotes();
+        } else {
+            alert("Please enter some code to save.");
+        }
+    }
+
+    function displayNotes() {
+        const notes = JSON.parse(localStorage.getItem('notes') || '[]');
+        const notesList = document.getElementById('notesList');
+        notesList.innerHTML = '';
+        notes.forEach((note, index) => {
+            const noteItem = document.createElement('div');
+            noteItem.className = 'note-item';
+            noteItem.innerHTML = `
+                <span>${note.name}</span>
+                <div>
+                    <button onclick="openNote(${index})">Open</button>
+                    <button onclick="deleteNote(${index})">Delete</button>
+                </div>
+            `;
+            notesList.appendChild(noteItem);
+        });
+    }
+
+    function openNote(index) {
+        const notes = JSON.parse(localStorage.getItem('notes') || '[]');
+        const note = notes[index];
+        document.getElementById('codeInput').value = note.content;
+        document.getElementById('noteName').value = note.name;
+    }
+
+    function deleteNote(index) {
+        const notes = JSON.parse(localStorage.getItem('notes') || '[]');
+        notes.splice(index, 1);
+        localStorage.setItem('notes', JSON.stringify(notes));
+        displayNotes();
+    }
+
+    // Initialize notes display on page load
+    window.onload = displayNotes;
+</script>
+
+</body>
+</html>

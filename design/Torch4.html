@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>كشاف ضوئي - دخول الصورة ثم التلاشي</title>
+    <style>
+        :root {
+            --speed: 5s;
+            --final-size: clamp(250px, 10cm, 378px); 
+            --spotlight-size: 120px;
+        }
+
+        * {
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background: black;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            touch-action: none;
+        }
+
+        /* الخلفية الملونة */
+        .bg-gradient {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: conic-gradient(from 0deg, red, yellow, lime, aqua, blue, magenta, red);
+            z-index: 0;
+        }
+
+        /* ========== طبقة الدخول: الصورة تظهر كدائرة كبيرة ========== */
+        .intro-layer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 200;
+            background: radial-gradient(circle at center, transparent, black);
+            pointer-events: none;
+            animation: fadeOutIntroLayer 0.5s ease-in-out var(--speed) forwards;
+        }
+
+        .intro-circle {
+            width: 150vw;
+            height: 150vw;
+            border-radius: 50%;
+            overflow: hidden;
+            animation: shrinkAndFade var(--speed) ease-in-out forwards;
+            box-shadow: 0 0 50px rgba(0,212,255,0.5);
+        }
+
+        .intro-circle img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        @keyframes shrinkAndFade {
+            0% {
+                width: 150vw;
+                height: 150vw;
+                opacity: 1;
+                filter: blur(0);
+            }
+            80% {
+                opacity: 0.8;
+                filter: blur(2px);
+            }
+            100% {
+                width: var(--final-size);
+                height: var(--final-size);
+                opacity: 0;
+                filter: blur(10px);
+                visibility: hidden;
+            }
+        }
+
+        @keyframes fadeOutIntroLayer {
+            to {
+                opacity: 0;
+                visibility: hidden;
+                display: none;
+                z-index: -1;
+            }
+        }
+
+        /* ========== المحتوى الرئيسي يظهر بعد اختفاء الدخول ========== */
+        .main-container {
+            opacity: 0;
+            visibility: hidden;
+            animation: fadeInMain 0.8s ease-in-out calc(var(--speed) + 0.3s) forwards;
+        }
+
+        @keyframes fadeInMain {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+                visibility: visible;
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+                visibility: visible;
+            }
+        }
+
+        /* حاوية الدائرة الرئيسية */
+        .stage {
+            position: relative;
+            width: 150vw;
+            height: 150vw;
+            border-radius: 50%;
+            overflow: hidden;
+            animation: shrinkMain 0s forwards;
+            cursor: none;
+            z-index: 10;
+            background: transparent;
+        }
+
+        /* تثبيت الحجم النهائي فوراً */
+        .stage {
+            width: var(--final-size);
+            height: var(--final-size);
+        }
+
+        /* الصورة الرئيسية */
+        #targetImg {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1;
+            display: block;
+        }
+
+        /* الوضع العادي: الصورة مخفية تماماً */
+        #targetImg {
+            opacity: 0;
+        }
+
+        /* عند التمرير بالماوس: الصورة تظهر ولكن فقط تحت الكشاف */
+        .stage:hover #targetImg {
+            opacity: 1;
+            -webkit-mask-image: radial-gradient(circle var(--spotlight-size) at var(--x, 50%) var(--y, 50%), black 0%, transparent 100%);
+            mask-image: radial-gradient(circle var(--spotlight-size) at var(--x, 50%) var(--y, 50%), black 0%, transparent 100%);
+        }
+
+        /* للشاشات اللمسية */
+        .stage.active #targetImg {
+            opacity: 1;
+            -webkit-mask-image: radial-gradient(circle var(--spotlight-size) at var(--x, 50%) var(--y, 50%), black 0%, transparent 100%);
+            mask-image: radial-gradient(circle var(--spotlight-size) at var(--x, 50%) var(--y, 50%), black 0%, transparent 100%);
+        }
+
+        /* إظهار المؤشر المخصص للكشاف */
+        .stage:hover {
+            cursor: none;
+        }
+
+        /* كشاف متوهج */
+        .stage:hover::before {
+            content: '';
+            position: absolute;
+            width: var(--spotlight-size);
+            height: var(--spotlight-size);
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255,255,255,0.25), transparent);
+            pointer-events: none;
+            z-index: 20;
+            left: calc(var(--x, 0px) - var(--spotlight-size)/2);
+            top: calc(var(--y, 0px) - var(--spotlight-size)/2);
+            transform: translate(0, 0);
+        }
+
+        /* تأثير وهج إضافي للكشاف */
+        .stage:hover::after {
+            content: '';
+            position: absolute;
+            width: calc(var(--spotlight-size) * 1.5);
+            height: calc(var(--spotlight-size) * 1.5);
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1), transparent);
+            pointer-events: none;
+            z-index: 19;
+            left: calc(var(--x, 0px) - calc(var(--spotlight-size) * 0.75));
+            top: calc(var(--y, 0px) - calc(var(--spotlight-size) * 0.75));
+            transform: translate(0, 0);
+            filter: blur(5px);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- الخلفية الملونة -->
+    <div class="bg-gradient"></div>
+
+    <!-- طبقة الدخول: الصورة تظهر كدائرة كبيرة ثم تتصغر وتتلاشى -->
+    <div class="intro-layer" id="introLayer">
+        <div class="intro-circle">
+            <img src="../media/Ahmed4.jpg" alt="intro" onerror="this.parentElement.parentElement.style.display='none'">
+        </div>
+    </div>
+
+    <!-- المحتوى الرئيسي -->
+    <div class="main-container">
+        <div class="stage" id="mainStage">
+            <img src="../media/Ahmed4.jpg" id="targetImg" onerror="console.log('الصورة غير موجودة')">
+        </div>
+    </div>
+
+    <audio id="music" src="../media/music.wav" loop></audio>
+
+    <script>
+        const introLayer = document.getElementById('introLayer');
+        const stage = document.getElementById('mainStage');
+        const targetImg = document.getElementById('targetImg');
+        const audio = document.getElementById('music');
+        
+        // التأكد من وجود الصورة
+        let imgExists = true;
+        targetImg.onerror = () => {
+            imgExists = false;
+            console.log('الصورة غير موجودة');
+        };
+
+        // وضع الكشاف في المنتصف كبداية
+        const rect = stage.getBoundingClientRect();
+        const centerX = rect.width / 2;
+        const centerY = rect.height / 2;
+        stage.style.setProperty('--x', centerX + 'px');
+        stage.style.setProperty('--y', centerY + 'px');
+
+        // بعد انتهاء حركة الدخول، نجهز الكشاف
+        setTimeout(() => {
+            console.log('جاهز - حرك الماوس فوق الدائرة');
+        }, 5300);
+
+        // تحديث مكان الكشاف للماوس
+        function updateSpotlightMouse(e) {
+            const rect = stage.getBoundingClientRect();
+            let x = e.clientX - rect.left;
+            let y = e.clientY - rect.top;
+            
+            // التأكد من أن الكشاف داخل الحدود
+            x = Math.min(Math.max(x, 0), rect.width);
+            y = Math.min(Math.max(y, 0), rect.height);
+            
+            stage.style.setProperty('--x', x + 'px');
+            stage.style.setProperty('--y', y + 'px');
+        }
+
+        // تحديث مكان الكشاف للمس
+        function updateSpotlightTouch(e) {
+            const rect = stage.getBoundingClientRect();
+            const touch = e.touches[0];
+            if (!touch) return;
+            
+            let x = touch.clientX - rect.left;
+            let y = touch.clientY - rect.top;
+            
+            x = Math.min(Math.max(x, 0), rect.width);
+            y = Math.min(Math.max(y, 0), rect.height);
+            
+            stage.style.setProperty('--x', x + 'px');
+            stage.style.setProperty('--y', y + 'px');
+        }
+
+        // أحداث الماوس
+        stage.addEventListener('mousemove', updateSpotlightMouse);
+        
+        // إخفاء الكشاف عند مغادرة الماوس
+        stage.addEventListener('mouseleave', () => {
+            stage.classList.remove('active');
+            audio.pause();
+            audio.currentTime = 0;
+        });
+
+        // إظهار الكشاف عند دخول الماوس
+        stage.addEventListener('mouseenter', () => {
+            audio.play().catch(() => {});
+        });
+
+        // أحداث اللمس
+        stage.addEventListener('touchstart', (e) => {
+            stage.classList.add('active');
+            updateSpotlightTouch(e);
+            audio.play().catch(() => {});
+            e.preventDefault();
+        });
+        
+        stage.addEventListener('touchmove', (e) => {
+            updateSpotlightTouch(e);
+            e.preventDefault();
+        });
+        
+        stage.addEventListener('touchend', () => {
+            stage.classList.remove('active');
+            audio.pause();
+        });
+
+        // النقر المزدوج لإعادة تشغيل التجربة كاملة
+        function restartExperience() {
+            // إعادة تعيين طبقة الدخول
+            introLayer.style.animation = 'none';
+            introLayer.style.display = 'flex';
+            introLayer.style.opacity = '1';
+            introLayer.style.visibility = 'visible';
+            introLayer.style.zIndex = '200';
+            
+            // إعادة تعيين عنصر الدخول
+            const introCircle = document.querySelector('.intro-circle');
+            introCircle.style.animation = 'none';
+            
+            // إعادة تعيين الحاوية الرئيسية
+            const mainContainer = document.querySelector('.main-container');
+            mainContainer.style.animation = 'none';
+            mainContainer.style.opacity = '0';
+            mainContainer.style.visibility = 'hidden';
+            
+            // إعادة تعيين stage
+            stage.classList.remove('active');
+            
+            // إعادة تشغيل الحركات بعد تأخير بسيط
+            setTimeout(() => {
+                introLayer.style.animation = 'fadeOutIntroLayer 0.5s ease-in-out var(--speed) forwards';
+                introCircle.style.animation = 'shrinkAndFade var(--speed) ease-in-out forwards';
+                mainContainer.style.animation = 'fadeInMain 0.8s ease-in-out calc(var(--speed) + 0.3s) forwards';
+            }, 10);
+            
+            // إيقاف الصوت
+            audio.pause();
+            audio.currentTime = 0;
+            
+            // إعادة تعيين الكشاف للمنتصف
+            setTimeout(() => {
+                const rect = stage.getBoundingClientRect();
+                stage.style.setProperty('--x', (rect.width / 2) + 'px');
+                stage.style.setProperty('--y', (rect.height / 2) + 'px');
+            }, 100);
+            
+            console.log('تمت إعادة تشغيل التجربة');
+        }
+        
+        // النقر المزدوج العادي
+        // window.addEventListener('dblclick', restartExperience);
+        
+        // النقر المزدوج باللمس
+       //  let lastTap = 0;
+        // window.addEventListener('touchend', (e) => {
+        //     const now = Date.now();
+        //     if (now - lastTap < 300) {
+         //        restartExperience();
+          //       e.preventDefault();
+         //    }
+       //      lastTap = now;
+       //  });
+        
+        // منع القائمة اليمنى
+        stage.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+            return false;
+        });
+        
+        // منع النقر على طبقة الدخول من التأثير
+        introLayer.addEventListener('click', (e) => {
+            e.stopPropagation();
+        });
+
+        // الدبل كليك (في أي مكان على الشاشة)
+        window.addEventListener('dblclick', () => {
+            window.location.href = 'design.html';
+        });
+
+        // للموبايل: محاكاة الدبل كليك باللمس السريع
+        let lastTap = 0;
+        window.addEventListener('touchend', (e) => {
+            const currentTime = new Date().getTime();
+            const tapLength = currentTime - lastTap;
+            if (tapLength < 300 && tapLength > 0) {
+                window.location.href = 'design.html';
+            }
+            lastTap = currentTime;
+        });
+
+    </script>
+</body>
+</html>

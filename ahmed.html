@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AHMED.H</title>
+    <style>
+        /* تعريف متغير الزاوية للحركة */
+        @property --angle {
+            syntax: "<angle>";
+            initial-value: 0deg;
+            inherits: false;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            background: #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* خلفية النجوم (كما في الكود المرجعي) */
+        .night-sky {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            background: radial-gradient(ellipse at 20% 30%, #0a0f2a, #000 70%);
+        }
+
+        .stars, .twinkling {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        .stars {
+            background: #000 url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48Y2lyY2xlIGN4PSI2IiBjeT0iMTQiIHI9IjEiIGZpbGw9IndoaXRlIiAvPjxjaXJjbGUgY3g9IjYwIiBjeT0iMjAiIHI9IjEiIGZpbGw9IndoaXRlIiAvPjxjaXJjbGUgY3g9IjE0MCIgY3k9IjUiIHI9IjEiIGZpbGw9IndoaXRlIiAvPjxjaXJjbGUgY3g9IjIwMCIgY3k9IjE4MCIgcj0iMSIgZmlsbD0id2hpdGUiIC8+PGNpcmNsZSBjeD0iMjUwIiBjeT0iMjUwIiByPSIxIiBmaWxsPSJ3aGl0ZSIgLz48Y2lyY2xlIGN4PSI4MCIgY3k9IjEwMCIgcj0iMSIgZmlsbD0id2hpdGUiIC8+PC9zdmc+');
+            background-size: 200px 200px;
+            animation: starsAnim 200s linear infinite;
+            opacity: 0.8;
+        }
+
+        .twinkling {
+            background: transparent url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48Y2lyY2xlIGN4PSI4IiBjeT0iMjAiIHI9IjIiIGZpbGw9IndoaXRlIiBmaWxsLW9wYWNpdHk9IjAuNSIgLz48Y2lyY2xlIGN4PSI5MCIgY3k9IjUwIiByPSIxLjUiIGZpbGw9IndoaXRlIiBmaWxsLW9wYWNpdHk9IjAuNyIgLz48Y2lyY2xlIGN4PSIxNzAiIGN5PSIxMjAiIHI9IjEiIGZpbGw9IndoaXRlIiBmaWxsLW9wYWNpdHk9IjAuNCIgLz48Y2lyY2xlIGN4PSIyMjAiIGN5PSIyMDAiIHI9IjIiIGZpbGw9IndoaXRlIiBmaWxsLW9wYWNpdHk9IjAuNiIgLz48L3N2Zz4=');
+            background-size: 300px 300px;
+            animation: twinklingAnim 4s infinite alternate;
+            opacity: 0.5;
+        }
+
+        @keyframes starsAnim {
+            from { transform: translateY(0); }
+            to { transform: translateY(-2000px); }
+        }
+
+        @keyframes twinklingAnim {
+            0% { opacity: 0.2; }
+            100% { opacity: 0.8; }
+        }
+
+        /* حاوية البطاقات */
+        .cards-container {
+            position: relative;
+            z-index: 10;
+            width: 100%;
+            max-width: 1200px;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .card-grid {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 2rem;
+            width: 100%;
+        }
+
+        /* البطاقة - مربعة مع ضوء دوار */
+        .card {
+            position: relative;
+            width: 150px;
+            height: 150px;
+            background: #000;
+            border: 4px solid transparent; /* نخفي الحدود الأصلية ونستخدم ::before */
+            border-radius: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-evenly;
+            color: #ffd700; /* اللون الذهبي الأساسي */
+            transition: all 0.3s cubic-bezier(0.2, 0.9, 0.3, 1.2);
+            cursor: pointer;
+            text-align: center;
+            padding: 0.5rem;
+            will-change: transform, width, height, box-shadow;
+            transform: scale(1);
+            z-index: 1;
+            /* متغيرات الألوان - سيتم تعيينها عبر :nth-child */
+            --glow-color: #ffd700; /* ذهبي افتراضي */
+        }
+
+        /* طبقة الضوء الدوار (ذيل قصير) - مشتركة لجميع البطاقات */
+        .card::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            padding: 2px;                /* سمك الحافة المضيئة */
+            border-radius: 20px;
+            background: conic-gradient(
+                from var(--angle),
+                transparent 75%,
+                var(--glow-color) 85%,
+                transparent 95%
+            );
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            animation: spin 5s linear infinite;
+            pointer-events: none;        /* لا تمنع النقر */
+            z-index: 0;                  /* تحت المحتوى */
+        }
+
+        /* حركة الدوران */
+        @keyframes spin {
+            to {
+                --angle: 360deg;
+            }
+        }
+
+        /* البطاقات الفضية (الزوجية) */
+        .card:nth-child(even) {
+            --glow-color: #c0c0c0;       /* فضي */
+            color: #c0c0c0;              /* لون النص */
+        }
+
+        /* البطاقات الذهبية (الفردية) - تأخذ القيم الافتراضية */
+
+        /* تأثير hover (تكبير وظل نيون) */
+        .card:hover {
+            transform: scale(1.3);
+            border-color: transparent;    /* نظل شفاف */
+            box-shadow: 0 0 40px rgba(255, 255, 255, 1), 0 0 80px rgba(255, 255, 255, 0.9), 0 0 120px rgba(220, 240, 255, 0.9), inset 0 0 30px rgba(255, 255, 255, 0.8);
+            z-index: 10;
+        }
+
+        /* تأثير النقر (فلاش ومضة) */
+        .card:active {
+            transform: scale(1.25);
+            transition: 0.08s linear;
+            box-shadow: 0 -15px 40px var(--glow-color), 15px 0 40px var(--glow-color), 0 15px 40px var(--glow-color), -15px 0 40px var(--glow-color), inset 0 0 40px white;
+            border-color: transparent;
+            z-index: 10;
+        }
+
+        /* منطقة الصورة */
+        .card-image {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #222;
+            border: 2px solid currentColor; /* يأخذ لون النص (ذهبي أو فضي) */
+            margin-bottom: 5px;
+            z-index: 2;                     /* فوق الضوء */
+            position: relative;
+        }
+
+        .card-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .default-badge {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #2a2a2a;
+            color: currentColor;
+            font-size: 3rem;
+            font-weight: bold;
+            border-radius: 50%;
+        }
+
+        .card-name {
+            font-size: 1.2rem;
+            filter: drop-shadow(0 0 5px currentColor);
+            transition: font-size 0.2s ease;
+            color: currentColor;
+            z-index: 2;
+            position: relative;
+        }
+
+        .card:hover .card-name {
+            font-size: 1.5rem;
+            color: #ffffff;
+        }
+
+        @media (max-width: 600px) {
+            .card {
+                width: 120px;
+                height: 120px;
+            }
+            .card-image {
+                width: 65px;
+                height: 65px;
+            }
+            .default-badge {
+                font-size: 2.5rem;
+            }
+            .card-name {
+                font-size: 1rem;
+            }
+            .card:hover {
+                transform: scale(1.2);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="night-sky">
+        <div class="stars"></div>
+        <div class="twinkling"></div>
+    </div>
+
+    <div class="cards-container">
+        <div class="card-grid" id="cardGrid"></div>
+    </div>
+
+    <script>
+        // بيانات البطاقات (أضف بطاقة جديدة بسطر واحد هنا)
+        const cardsData = [
+            { name: "DiNO", link: "Chrome Dino/dino.html", image: "media/dino.jpg" },
+            { name: "Sch.Portal", link: "gportal/secschool.html", image: "media/portal.jpg" },
+            { name: "TOOLS", link: "tools/tools.html", image: "media/tool.jpg" },
+            { name: "الزهرة", link: "index.html", image: "media/ahmed.jpg" },
+            { name: "المشتري", link: "index.html", image: "media/ahmed.jpg" },
+            { name: "DESiGN", link: "design/design.html", image: "media/design.jpg" }
+            // يمكنك إضافة المزيد بنفس الطريقة
+        ];
+
+        const grid = document.getElementById('cardGrid');
+
+        // إنشاء البطاقات ديناميكياً
+        cardsData.forEach(card => {
+            const cardDiv = document.createElement('div');
+            cardDiv.className = 'card';
+
+            const imageDiv = document.createElement('div');
+            imageDiv.className = 'card-image';
+
+            if (card.image) {
+                const img = document.createElement('img');
+                img.src = card.image;
+                img.alt = card.name;
+                img.onerror = function() {
+                    const badge = document.createElement('div');
+                    badge.className = 'default-badge';
+                    badge.textContent = '✓';
+                    imageDiv.innerHTML = '';
+                    imageDiv.appendChild(badge);
+                };
+                imageDiv.appendChild(img);
+            } else {
+                const badge = document.createElement('div');
+                badge.className = 'default-badge';
+                badge.textContent = '✓';
+                imageDiv.appendChild(badge);
+            }
+
+            const nameSpan = document.createElement('div');
+            nameSpan.className = 'card-name';
+            nameSpan.textContent = card.name;
+
+            cardDiv.appendChild(imageDiv);
+            cardDiv.appendChild(nameSpan);
+
+            cardDiv.addEventListener('click', (e) => {
+                e.stopPropagation();
+                window.location.href = card.link;
+            });
+
+            cardDiv.addEventListener('dblclick', (e) => {
+                e.stopPropagation();
+            });
+
+            grid.appendChild(cardDiv);
+        });
+
+        // الدبل كليك على الخلفية للعودة إلى index.html
+        document.body.addEventListener('dblclick', (e) => {
+            if (!e.target.closest('.card')) {
+                window.location.href = 'index.html';
+            }
+        });
+    </script>
+</body>
+</html>

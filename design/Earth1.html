@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>خطوط الطول - حمرا بلون الدم</title>
+    <style>
+        body { margin: 0; overflow: hidden; }
+    </style>
+</head>
+<body>
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.128.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.128.0/examples/jsm/"
+            }
+        }
+    </script>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x000000);
+
+        const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(0, 0, 3.5);
+        camera.lookAt(0, 0, 0);
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        document.body.appendChild(renderer.domElement);
+
+        const ambientLight = new THREE.AmbientLight(0x331111);
+        scene.add(ambientLight);
+        
+        const dirLight = new THREE.DirectionalLight(0xff6666, 0.6);
+        dirLight.position.set(1, 2, 1.5);
+        scene.add(dirLight);
+        
+        const backLight = new THREE.PointLight(0xcc3333, 0.4);
+        backLight.position.set(-1, -1, -1.5);
+        scene.add(backLight);
+
+        const planetGroup = new THREE.Group();
+        scene.add(planetGroup);
+
+        const meridiansCount = 48;
+        
+        for (let i = 0; i < meridiansCount; i++) {
+            const angle = (i / meridiansCount) * Math.PI * 2;
+            const points = [];
+            for (let phi = -Math.PI/2; phi <= Math.PI/2; phi += Math.PI/180) {
+                const x = Math.cos(phi) * Math.cos(angle);
+                const z = Math.cos(phi) * Math.sin(angle);
+                const y = Math.sin(phi);
+                points.push(new THREE.Vector3(x, y, z));
+            }
+            const lineGeometry = new THREE.BufferGeometry().setFromPoints(points);
+            const lineMat = new THREE.LineBasicMaterial({ color: 0xcc0000 });
+            const meridianLine = new THREE.Line(lineGeometry, lineMat);
+            planetGroup.add(meridianLine);
+        }
+
+        const bgStarsGeo = new THREE.BufferGeometry();
+        const bgStarsCount = 2000;
+        const bgStarsPos = new Float32Array(bgStarsCount * 3);
+        for (let i = 0; i < bgStarsCount; i++) {
+            bgStarsPos[i*3] = (Math.random() - 0.5) * 200;
+            bgStarsPos[i*3+1] = (Math.random() - 0.5) * 150;
+            bgStarsPos[i*3+2] = (Math.random() - 0.5) * 100 - 50;
+        }
+        bgStarsGeo.setAttribute('position', new THREE.BufferAttribute(bgStarsPos, 3));
+        const bgStarsMat = new THREE.PointsMaterial({ color: 0xaa5555, size: 0.07, transparent: true, opacity: 0.4 });
+        const bgStars = new THREE.Points(bgStarsGeo, bgStarsMat);
+        scene.add(bgStars);
+
+        const controls = new OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.05;
+        controls.autoRotate = false;
+        controls.enableZoom = true;
+        controls.enablePan = false;
+        controls.zoomSpeed = 0.7;
+        controls.rotateSpeed = 0.8;
+
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            planetGroup.rotation.y += 0.004;
+            
+            bgStars.rotation.y -= 0.0006;
+            bgStars.rotation.x += 0.0003;
+            
+            controls.update();
+            renderer.render(scene, camera);
+        }
+        
+        animate();
+        
+        window.addEventListener('resize', onWindowResize, false);
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+
+        // الدبل كليك (في أي مكان على الشاشة)
+        window.addEventListener('dblclick', () => {
+            window.location.href = 'design.html';
+        });
+
+        // للموبايل: محاكاة الدبل كليك باللمس السريع
+        let lastTap = 0;
+        window.addEventListener('touchend', (e) => {
+            const currentTime = new Date().getTime();
+            const tapLength = currentTime - lastTap;
+            if (tapLength < 300 && tapLength > 0) {
+                window.location.href = 'design.html';
+            }
+            lastTap = currentTime;
+        });
+
+    </script>
+</body>
+</html>

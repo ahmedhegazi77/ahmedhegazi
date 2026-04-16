@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Realistic Cinematic Rain 3D</title>
+    <style>
+        * { margin: 0; padding: 0; user-select: none; -webkit-tap-highlight-color: transparent; }
+        body { background: #000; overflow: hidden; font-family: sans-serif; }
+        canvas { display: block; position: fixed; top: 0; left: 0; z-index: 1; }
+        
+        #hidden-container {
+            position: absolute; top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 10cm; height: 10cm; z-index: 10;
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            touch-action: manipulation;
+        }
+
+        #hidden-image {
+            width: 100%; height: 100%; object-fit: cover; opacity: 0;
+            transition: opacity 0.8s ease;
+            mask-image: radial-gradient(circle 120px at var(--x) var(--y), black 0%, transparent 100%);
+            -webkit-mask-image: radial-gradient(circle 120px at var(--x) var(--y), black 0%, transparent 100%);
+        }
+
+        #hidden-container:hover #hidden-image { opacity: 1; }
+        
+        @media (max-width: 768px) {
+            #hidden-container {
+                width: 8cm;
+                height: 8cm;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<canvas id="c"></canvas>
+
+<!-- أصوات الخلفية -->
+<audio id="rainAmbient" src="media/rain.wav" loop preload="auto"></audio>
+<audio id="musicHover" src="media/music.wav" loop preload="auto"></audio>
+
+<div id="hidden-container" 
+     onmouseenter="handleMouseEnter()" 
+     onmouseleave="handleMouseLeave()">
+    <img src="media/ahmed.jpg" id="hidden-image" alt="Hidden">
+</div>
+
+<script>
+// --- محرك الصوت الذكي ---
+const rainTrack = document.getElementById("rainAmbient");
+const musicTrack = document.getElementById("musicHover");
+let rainManuallyPaused = false;
+let isHovering = false;
+let audioInitialized = false;
+
+// تشغيل الصوت بعد أول تفاعل من المستخدم (لأجهزة أندرويد)
+function initAudioOnFirstInteraction() {
+    if (!audioInitialized && !isHovering) {
+        audioInitialized = true;
+        rainTrack.play().catch(e => console.log("Audio play failed:", e));
+        rainTrack.volume = 0.6;
+    }
+}
+
+function toggleRainManual() {
+    if (!isHovering && audioInitialized) {
+        if (rainTrack.paused) {
+            rainTrack.play().catch(e => console.log("Audio play failed:", e));
+            rainManuallyPaused = false;
+        } else {
+            rainTrack.pause();
+            rainManuallyPaused = true;
+        }
+    }
+}
+
+function handleMouseEnter() {
+    isHovering = true;
+    rainTrack.pause();
+    if (audioInitialized) {
+        musicTrack.play().catch(e => console.log("Music play failed:", e));
+        musicTrack.volume = 1.0;
+    }
+}
+
+function handleMouseLeave() {
+    isHovering = false;
+    musicTrack.pause();
+    musicTrack.currentTime = 0;
+    if (!rainManuallyPaused && audioInitialized) {
+        rainTrack.play().catch(e => console.log("Audio play failed:", e));
+    }
+}
+
+// --- دعم اللمس المزدوج لأجهزة أندرويد ---
+const hiddenContainer = document.getElementById('hidden-container');
+let lastTap = 0;
+let touchTimeout;
+
+hiddenContainer.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    const currentTime = new Date().getTime();
+    const tapLength = currentTime - lastTap;
+    
+    clearTimeout(touchTimeout);
+    
+    if (tapLength < 500 && tapLength > 0) {
+        // لمسة مزدوجة - الانتقال إلى ahmed.html
+        window.location.href = 'ahmed.html';
+        e.stopPropagation();
+    } else {
+        // لمسة واحدة - بدء الصوت
+        initAudioOnFirstInteraction();
+        lastTap = currentTime;
+        
+        // إعادة تعيين العداد بعد 500ms
+        touchTimeout = setTimeout(() => {
+            lastTap = 0;
+        }, 500);
+    }
+});
+
+// دعم الفأرة لسطح المكتب (دبل كليك عادي)
+hiddenContainer.addEventListener('dblclick', (e) => {
+    window.location.href = 'ahmed.html';
+    e.stopPropagation();
+});
+
+// النقر العادي على الجسم لتفعيل الصوت
+document.body.addEventListener('click', initAudioOnFirstInteraction);
+
+// --- محرك المطر الواقعي (الطبقي) مع زيادة السرعة 10% ---
+const c = document.getElementById("c");
+const ctx = c.getContext("2d");
+
+function resize() {
+    c.width = window.innerWidth;
+    c.height = window.innerHeight;
+}
+window.addEventListener('resize', resize);
+resize();
+
+let raindrops = [];
+const layers = [
+    { count: 400, speedMin: 13, speedMax: 17, lengthMin: 10, lengthMax: 15, opacity: 0.15, width: 1 }, // بعيد
+    { count: 150, speedMin: 18, speedMax: 24, lengthMin: 20, lengthMax: 30, opacity: 0.3, width: 1.5 }, // متوسط
+    { count: 50,  speedMin: 28, speedMax: 35, lengthMin: 35, lengthMax: 50, opacity: 0.5, width: 2.5 }  // قريب
+];
+
+function createRain() {
+    raindrops = [];
+    layers.forEach(layer => {
+        for (let i = 0; i < layer.count; i++) {
+            raindrops.push({
+                x: Math.random() * c.width,
+                y: Math.random() * c.height,
+                s: (Math.random() * (layer.speedMax - layer.speedMin) + layer.speedMin) * 1.1,
+                l: Math.random() * (layer.lengthMax - layer.lengthMin) + layer.lengthMin,
+                o: layer.opacity,
+                w: layer.width
+            });
+        }
+    });
+}
+createRain();
+
+function draw() {
+    // Motion Blur ناعم جداً للواقعية
+    ctx.fillStyle = "rgba(0, 0, 0, 0.22)";
+    ctx.fillRect(0, 0, c.width, c.height);
+
+    for (let i = 0; i < raindrops.length; i++) {
+        let p = raindrops[i];
+        ctx.strokeStyle = `rgba(174, 194, 224, ${p.o})`;
+        ctx.lineWidth = p.w;
+        ctx.lineCap = "round";
+        
+        ctx.beginPath();
+        ctx.moveTo(p.x, p.y);
+        ctx.lineTo(p.x + (p.s * 0.04), p.y + p.l);
+        ctx.stroke();
+
+        p.y += p.s;
+        p.x += p.s * 0.04;
+
+        if (p.y > c.height) {
+            p.y = -p.l;
+            p.x = Math.random() * c.width;
+        }
+    }
+    requestAnimationFrame(draw);
+}
+
+// تحريك الكشاف (دعم اللمس والفأرة)
+const img = document.getElementById('hidden-image');
+
+function updateSpotlight(e) {
+    const rect = hiddenContainer.getBoundingClientRect();
+    let clientX, clientY;
+    
+    if (e.touches) {
+        // حدث لمس
+        clientX = e.touches[0].clientX;
+        clientY = e.touches[0].clientY;
+    } else {
+        // حدث فأرة
+        clientX = e.clientX;
+        clientY = e.clientY;
+    }
+    
+    const x = clientX - rect.left;
+    const y = clientY - rect.top;
+    
+    if (x >= 0 && x <= rect.width && y >= 0 && y <= rect.height) {
+        img.style.setProperty('--x', x + 'px');
+        img.style.setProperty('--y', y + 'px');
+    }
+}
+
+hiddenContainer.addEventListener('mousemove', updateSpotlight);
+hiddenContainer.addEventListener('touchmove', updateSpotlight);
+hiddenContainer.addEventListener('touchstart', updateSpotlight);
+
+// تحسين الأداء لمنع التمرير أثناء اللمس على الحاوية
+hiddenContainer.addEventListener('touchmove', (e) => {
+    e.preventDefault();
+}, { passive: false });
+
+draw();
+</script>
+</body>
+</html>

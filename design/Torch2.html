@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <title>انكماش الصورة والكشاف</title>
+    <style>
+        :root {
+            --speed: 5s; /* 1. سرعة الاختفاء والانكماش */
+            --final-size: 16.5%; /* 2. الأبعاد النهائية (ثلث الشاشة) */
+        }
+
+        body, html {
+            margin: 0; padding: 0;
+            width: 100%; height: 100%;
+            background-color: #000; /* صفحة سوداء */
+            overflow: hidden;
+        }
+
+        .stage {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* الصورة تكون محبوسة داخل القناع الدائري */
+        #targetImg {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            position: absolute;
+            /* تطبيق الأنيميشن مرة واحدة عند التحميل */
+            animation: shrinkAndFade var(--speed) ease-in-out forwards;
+            -webkit-mask-repeat: no-repeat;
+            mask-repeat: no-repeat;
+        }
+
+        @keyframes shrinkAndFade {
+            0% {
+                -webkit-mask-image: radial-gradient(circle 75% at 50% 50%, black 100%, transparent 100%);
+                opacity: 1;
+            }
+            100% {
+                /* تنكمش لثلث أبعاد الشاشة وتختفي */
+                -webkit-mask-image: radial-gradient(circle var(--final-size) at 50% 50%, black 100%, transparent 100%);
+                opacity: 0;
+            }
+        }
+
+        /* طبقة الكشاف (تظهر فقط بعد انتهاء الأنيميشن عند الهوفر) */
+        .flashlight {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: #000;
+            /* هذا القناع يجعل ما تحت الكشاف مرئياً */
+            -webkit-mask-image: radial-gradient(circle 120px at var(--x, -100%) var(--y, -100%), transparent 100%, black 100%);
+            -webkit-mask-composite: destination-out;
+            pointer-events: none;
+            opacity: 0;
+            z-index: 10;
+        }
+
+        /* تفعيل الحالة بعد الانتهاء */
+        .stage.ready:hover #targetImg {
+            animation: none;
+            -webkit-mask-image: none;
+            opacity: 1;
+        }
+        
+        .stage.ready:hover .flashlight {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="stage" id="mainStage">
+        <img src="../media/ahmed0.jpg" id="targetImg">
+        <div class="flashlight" id="flashlightLayer"></div>
+    </div>
+
+    <audio id="music" src="../media/music.wav" loop></audio>
+
+    <script>
+        const stage = document.getElementById('mainStage');
+        const img = document.getElementById('targetImg');
+        const audio = document.getElementById('music');
+
+        // بمجرد انتهاء أنيميشن الانكماش لمرة واحدة
+        img.addEventListener('animationend', () => {
+            stage.classList.add('ready');
+        });
+
+        // تحريك الكشاف
+        stage.addEventListener('mousemove', (e) => {
+            if (stage.classList.contains('ready')) {
+                stage.style.setProperty('--x', e.clientX + 'px');
+                stage.style.setProperty('--y', e.clientY + 'px');
+            }
+        });
+
+        // الموسيقى عند الهوفر فقط
+        stage.addEventListener('mouseenter', () => {
+            if (stage.classList.contains('ready')) {
+                audio.play().catch(() => console.log("Interaction required"));
+            }
+        });
+
+        stage.addEventListener('mouseleave', () => {
+            audio.pause();
+            audio.currentTime = 0;
+        });
+
+
+        // الدبل كليك (في أي مكان على الشاشة)
+        window.addEventListener('dblclick', () => {
+            window.location.href = 'design.html';
+        });
+
+        // للموبايل: محاكاة الدبل كليك باللمس السريع
+        let lastTap = 0;
+        window.addEventListener('touchend', (e) => {
+            const currentTime = new Date().getTime();
+            const tapLength = currentTime - lastTap;
+            if (tapLength < 300 && tapLength > 0) {
+                window.location.href = 'design.html';
+            }
+            lastTap = currentTime;
+        });
+
+    </script>
+</body>
+</html>

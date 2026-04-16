@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>كويس</title>
+    <style>
+        :root {
+            --spotlight-size: 130px;
+        }
+
+        * {
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body, html {
+            width: 100%;
+            height: 100%;
+            background: black;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            font-family: 'Segoe UI', Arial, sans-serif;
+        }
+
+        /* الخلفية السحرية */
+        .magic-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center, #0a0a2a, #000000);
+            z-index: 0;
+        }
+
+        /* النجوم المتألقة */
+        .stars {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .star {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            opacity: 0;
+            animation: twinkle 3s infinite;
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.2); }
+        }
+
+        /* طبقة الفيديو - أنت بتظهر وتعمل حركة */
+        .video-layer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 200;
+            background: #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            animation: fadeOutVideo 1s ease-in-out 8s forwards;
+        }
+
+        #magicVideo {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            animation: walkAway 6s ease-in-out forwards;
+        }
+
+        @keyframes walkAway {
+            0% {
+                transform: scale(1);
+                filter: blur(0);
+                opacity: 1;
+            }
+            70% {
+                transform: scale(0.5);
+                filter: blur(3px);
+            }
+            100% {
+                transform: scale(0.1);
+                filter: blur(15px);
+                opacity: 0;
+            }
+        }
+
+        @keyframes fadeOutVideo {
+            to {
+                opacity: 0;
+                visibility: hidden;
+                z-index: -1;
+            }
+        }
+
+        /* المحتوى الرئيسي */
+        .main-content {
+            opacity: 0;
+            visibility: hidden;
+            animation: fadeInMain 1s ease-in-out 7.5s forwards;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            z-index: 10;
+        }
+
+        @keyframes fadeInMain {
+            from {
+                opacity: 0;
+                transform: scale(0.8);
+                visibility: visible;
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+                visibility: visible;
+            }
+        }
+
+        /* الدائرة السحرية */
+        .magic-circle {
+            position: relative;
+            width: 350px;
+            height: 350px;
+            border-radius: 50%;
+            overflow: hidden;
+            cursor: none;
+            box-shadow: 0 0 50px rgba(0,212,255,0.5), 0 0 100px rgba(0,212,255,0.3);
+            transition: transform 0.2s ease;
+        }
+
+        .magic-circle.click-effect {
+            transform: scale(0.97);
+        }
+
+        #finalImage {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            position: absolute;
+            top: 0;
+            left: 0;
+            opacity: 0;
+        }
+
+        /* الكشاف السحري */
+        .magic-circle:hover #finalImage {
+            opacity: 1;
+            -webkit-mask-image: radial-gradient(circle var(--spotlight-size) at var(--x, 50%) var(--y, 50%), black 0%, transparent 100%);
+            mask-image: radial-gradient(circle var(--spotlight-size) at var(--x, 50%) var(--y, 50%), black 0%, transparent 100%);
+        }
+
+        .magic-circle.active #finalImage {
+            opacity: 1;
+            -webkit-mask-image: radial-gradient(circle var(--spotlight-size) at var(--x, 50%) var(--y, 50%), black 0%, transparent 100%);
+            mask-image: radial-gradient(circle var(--spotlight-size) at var(--x, 50%) var(--y, 50%), black 0%, transparent 100%);
+        }
+
+        /* كشاف ضوئي مرئي */
+        .magic-circle:hover::before {
+            content: '';
+            position: absolute;
+            width: var(--spotlight-size);
+            height: var(--spotlight-size);
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255,255,255,0.3), transparent);
+            pointer-events: none;
+            z-index: 20;
+            left: calc(var(--x, 0px) - var(--spotlight-size)/2);
+            top: calc(var(--y, 0px) - var(--spotlight-size)/2);
+        }
+
+        /* النص الترحيبي */
+        .welcome-text {
+            margin-top: 30px;
+            color: #00d4ff;
+            font-size: 18px;
+            text-align: center;
+            text-shadow: 0 0 10px rgba(0,212,255,0.5);
+            opacity: 0;
+            animation: fadeText 1s ease-out 8s forwards;
+        }
+
+        @keyframes fadeText {
+            to { opacity: 1; }
+        }
+
+        /* رسالة التأثيرات */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: rgba(0,0,0,0.9);
+            color: #00d4ff;
+            padding: 10px 20px;
+            border-radius: 30px;
+            font-size: 14px;
+            z-index: 300;
+            opacity: 0;
+            transition: all 0.3s ease;
+            pointer-events: none;
+            white-space: nowrap;
+            border: 1px solid #00d4ff;
+            backdrop-filter: blur(5px);
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="magic-bg"></div>
+    
+    <!-- نجوم سحرية -->
+    <div class="stars" id="stars"></div>
+
+    <!-- طبقة الفيديو - أنت بتظهر -->
+    <div class="video-layer" id="videoLayer">
+        <video id="magicVideo" autoplay muted playsinline>
+            <source src="../media/you.mp4" type="video/mp4">
+            <source src="you.webm" type="video/webm">
+        </video>
+    </div>
+
+    <!-- المحتوى الرئيسي -->
+    <div class="main-content">
+        <div class="magic-circle" id="magicCircle">
+            <img src="../media/you.jpg" id="finalImage" alt="your image">
+        </div>
+        <div class="welcome-text" id="welcomeText">
+            ✨ و تجري جري الوحوش ..الاوتوبيس ما تلحقوش✨
+        </div>
+    </div>
+
+    <audio id="bgMusic" src="../media/music.wav" loop></audio>
+    <div class="toast" id="toastMsg"></div>
+
+    <script>
+        const videoLayer = document.getElementById('videoLayer');
+        const magicVideo = document.getElementById('magicVideo');
+        const magicCircle = document.getElementById('magicCircle');
+        const finalImage = document.getElementById('finalImage');
+        const bgMusic = document.getElementById('bgMusic');
+        const toastMsg = document.getElementById('toastMsg');
+        
+        // توليد نجوم عشوائية
+        function generateStars() {
+            const starsContainer = document.getElementById('stars');
+            for (let i = 0; i < 150; i++) {
+                const star = document.createElement('div');
+                star.classList.add('star');
+                star.style.left = Math.random() * 100 + '%';
+                star.style.top = Math.random() * 100 + '%';
+                star.style.width = Math.random() * 3 + 1 + 'px';
+                star.style.height = star.style.width;
+                star.style.animationDelay = Math.random() * 3 + 's';
+                star.style.animationDuration = Math.random() * 2 + 1 + 's';
+                starsContainer.appendChild(star);
+            }
+        }
+        generateStars();
+        
+        // تشغيل الفيديو
+        magicVideo.play().catch(e => console.log('فيديو يحتاج تفاعل:', e));
+        
+        // مركز الكشاف
+        const rect = magicCircle.getBoundingClientRect();
+        magicCircle.style.setProperty('--x', (rect.width / 2) + 'px');
+        magicCircle.style.setProperty('--y', (rect.height / 2) + 'px');
+        
+        // تحديث الكشاف
+        function updateSpotlight(e) {
+            const rect = magicCircle.getBoundingClientRect();
+            let clientX, clientY;
+            
+            if (e.touches) {
+                clientX = e.touches[0].clientX;
+                clientY = e.touches[0].clientY;
+            } else {
+                clientX = e.clientX;
+                clientY = e.clientY;
+            }
+            
+            let x = clientX - rect.left;
+            let y = clientY - rect.top;
+            
+            x = Math.min(Math.max(x, 0), rect.width);
+            y = Math.min(Math.max(y, 0), rect.height);
+            
+            magicCircle.style.setProperty('--x', x + 'px');
+            magicCircle.style.setProperty('--y', y + 'px');
+        }
+        
+        // إظهار رسالة
+        function showMessage(msg, isError = false) {
+            toastMsg.textContent = msg;
+            toastMsg.style.color = isError ? '#ff6666' : '#00d4ff';
+            toastMsg.classList.add('show');
+            setTimeout(() => toastMsg.classList.remove('show'), 1500);
+        }
+        
+        // التحكم في النقرات
+        let clickCount = 0;
+        let clickTimer = null;
+        let isMusicPlaying = false;
+        
+        function handleClick() {
+            clickCount++;
+            
+            if (clickTimer) clearTimeout(clickTimer);
+            
+            clickTimer = setTimeout(() => {
+                if (clickCount === 1) {
+                    // تشغيل/إيقاف الموسيقى
+                    if (isMusicPlaying) {
+                        bgMusic.pause();
+                        isMusicPlaying = false;
+                        showMessage('🔇 موسيقى');
+                    } else {
+                        bgMusic.play().catch(() => showMessage('❌ تفاعل أولاً', true));
+                        isMusicPlaying = true;
+                        showMessage('🔊 موسيقى');
+                    }
+                } else if (clickCount === 2) {
+                    showMessage('🚀 إلى index...');
+                    setTimeout(() => window.location.href = 'index.html', 150);
+                } else if (clickCount >= 3) {
+                    showMessage('🔄 إعادة التشغيل...');
+                    setTimeout(() => location.reload(), 300);
+                }
+                
+                clickCount = 0;
+                clickTimer = null;
+            }, 250);
+            
+            // تأثير النقر
+            magicCircle.classList.add('click-effect');
+            setTimeout(() => magicCircle.classList.remove('click-effect'), 150);
+        }
+        
+        // أحداث الماوس
+        magicCircle.addEventListener('mousemove', updateSpotlight);
+        magicCircle.addEventListener('click', handleClick);
+        magicCircle.addEventListener('mouseleave', () => magicCircle.classList.remove('active'));
+        
+        // أحداث اللمس
+        magicCircle.addEventListener('touchstart', (e) => {
+            magicCircle.classList.add('active');
+            updateSpotlight(e);
+            e.preventDefault();
+        });
+        magicCircle.addEventListener('touchmove', (e) => {
+            updateSpotlight(e);
+            e.preventDefault();
+        });
+        magicCircle.addEventListener('touchend', () => magicCircle.classList.remove('active'));
+        magicCircle.addEventListener('touchstart', (e) => {
+            handleClick();
+            e.preventDefault();
+        });
+        
+        // منع القائمة
+        magicCircle.addEventListener('contextmenu', (e) => e.preventDefault());
+        
+        console.log('✨ مهندس / أحمد حجازي ✨');
+
+
+        // الدبل كليك (في أي مكان على الشاشة)
+        window.addEventListener('dblclick', () => {
+            window.location.href = 'design.html';
+        });
+
+        // للموبايل: محاكاة الدبل كليك باللمس السريع
+        let lastTap = 0;
+        window.addEventListener('touchend', (e) => {
+            const currentTime = new Date().getTime();
+            const tapLength = currentTime - lastTap;
+            if (tapLength < 300 && tapLength > 0) {
+                window.location.href = 'design.html';
+            }
+            lastTap = currentTime;
+        });
+
+    </script>
+</body>
+</html>

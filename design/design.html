@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    <title>Eng.Ahmed Hegazi - Design Carousel</title>
+    <style>
+        @property --angle {
+            syntax: '<angle>';
+            initial-value: 0deg;
+            inherits: false;
+        }
+
+        :root {
+            --metal: #1a1c1e;
+            --neon-silver: #c0c0c0;
+            --neon-gold: #ffd700;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            background: radial-gradient(circle at center, #0a0a0a, #000000);
+            min-height: 100vh;
+            overflow: hidden;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            cursor: grab;
+        }
+
+        body:active {
+            cursor: grabbing;
+        }
+
+        .eng-name {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            background: linear-gradient(135deg, #e8e8e8, #a0a0a0);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            z-index: 100;
+            letter-spacing: 2px;
+        }
+
+        .scene {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            perspective: 1500px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .carousel {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transform-style: preserve-3d;
+        }
+
+        .card {
+            position: absolute;
+            width: 140px;
+            height: 180px;
+            left: 50%;
+            top: 50%;
+            margin-left: -70px;
+            margin-top: -90px;
+            border-radius: 20px;
+            background: linear-gradient(145deg, #1e2022, #121416);
+            border: 2px solid transparent;
+            background-image: linear-gradient(var(--metal), var(--metal)), 
+                              conic-gradient(from var(--angle), transparent 65%, var(--neon-silver) 75%, var(--neon-gold) 85%, transparent 95%);
+            background-origin: border-box;
+            background-clip: padding-box, border-box;
+            animation: rotateBorder 3s linear infinite;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: transform 0.05s linear, opacity 0.2s, filter 0.2s;
+            cursor: pointer;
+            will-change: transform;
+            backface-visibility: hidden;
+        }
+
+        .card:hover {
+            filter: brightness(1.5) !important;
+            box-shadow: 0 0 40px rgba(255, 215, 0, 0.4);
+        }
+
+        .card-icon { font-size: 3.5rem; margin-bottom: 10px; pointer-events: none; }
+        .card-label { font-size: 0.8rem; font-weight: bold; color: #fff; text-align: center; pointer-events: none; }
+
+        @keyframes rotateBorder { to { --angle: 360deg; } }
+        
+        .flash {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: white; opacity: 0; pointer-events: none; z-index: 1000;
+        }
+        @keyframes flash-anim { 0% { opacity: 1; } 100% { opacity: 0; } }
+
+        .instruction {
+            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+            color: rgba(255,255,255,0.5); font-size: 0.8rem; z-index: 100;
+            background: rgba(0,0,0,0.5);
+            padding: 5px 15px;
+            border-radius: 30px;
+            backdrop-filter: blur(5px);
+            pointer-events: none;
+        }
+
+        @media (max-width: 700px) {
+            .card { width: 100px; height: 130px; margin-left: -50px; margin-top: -65px; }
+            .card-icon { font-size: 2.5rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="eng-name">⚡ ENG. AHMED HEGAZI ⚡</div>
+    <div class="flash" id="flash"></div>
+    <div class="instruction">🖱️ اسحب لتدوير المعرض | اضغط للدخول 🎯</div>
+
+    <div class="scene">
+        <div class="carousel" id="carousel"></div>
+    </div>
+
+    <audio id="bgMusic" loop preload="auto">
+        <source src="../media/jmj.wav" type="audio/wav">
+    </audio>
+
+    <script>
+        // ============================================================
+        // CAROUSEL WITH PHYSICS-INSPIRED DRAG (REALISTIC GRAB & SPIN)
+        // ============================================================
+        
+        // --- بيانات البطاقات (قابلة للتعديل) ---
+        const iconsList = ["🔥", "🔥", "🔥", "🧠", "🔥", "🔥", "🧠", "🔥", "🔥", "🧠", "🔥", "🧠"];
+        const labelsList = ["index1", "index2", "index3", "index4", "Torch1", "Torch2", "Torch3", "Torch4", "WebParticles", "", "", "thanks"];
+        const linksList = [
+         "ind1.html", "ind2.html", "ind3.html", "ind4.html","Torch1.html", "Torch2.html", "Torch3.html", "Torch4.html","particles.html", "", "", "thanks.html"
+                                ];
+
+        const totalCards = 12;
+        let radius = window.innerWidth <= 700 ? 220 : 350;
+        let currentAngle = 0;          // زاوية الدوران الحالية (بالراديان)
+        let targetVelocity = 0;         // السرعة المستهدفة (راديان/إطار)
+        let velocity = 0;               // السرعة الحالية
+        let isDragging = false;
+        let lastX = 0;
+        let lastTimestamp = 0;
+        let dragStartAngle = 0;
+        let dragStartX = 0;
+        let animationId = null;
+        
+        const carousel = document.getElementById('carousel');
+        const flashEl = document.getElementById('flash');
+        const music = document.getElementById('bgMusic');
+        
+        // عامل الاحتكاك (كلما كان أكبر، كلما توقف أسرع)
+        const FRICTION = 0.965;
+        // حساسية السحب (كلما زادت، زادت سرعة الاستجابة)
+        const DRAG_SENSITIVITY = 0.008;
+        // أقصى سرعة
+        const MAX_VELOCITY = 0.35;
+        
+        // متغير لمنع النقر أثناء الدوران السريع
+        let isSpinningFast = false;
+        
+        // تحديث نصف القطر عند تغيير حجم النافذة
+        function updateRadius() {
+            radius = window.innerWidth <= 700 ? 220 : 350;
+        }
+        window.addEventListener('resize', updateRadius);
+        
+        // ========== إنشاء البطاقات ==========
+        function initCarousel() {
+            carousel.innerHTML = '';
+            for (let i = 0; i < totalCards; i++) {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.innerHTML = `
+                    <div class="card-icon">${iconsList[i]}</div>
+                    <div class="card-label">${labelsList[i]}</div>
+                `;
+                
+                // حدث الضغط على البطاقة
+                card.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    // منع النقر أثناء الدوران السريع (سرعة عالية)
+                    if (Math.abs(velocity) > 0.12) {
+                        // وميض سريع لإشعار المستخدم
+                        flashEl.style.animation = 'flash-anim 0.15s ease-out';
+                        setTimeout(() => flashEl.style.animation = '', 200);
+                        return;
+                    }
+                    // تأثير وميض أبيض
+                    flashEl.style.animation = 'flash-anim 0.3s ease-out';
+                    setTimeout(() => {
+                        window.location.href = linksList[i];
+                    }, 200);
+                });
+                
+                carousel.appendChild(card);
+            }
+            updateCardPositions();
+        }
+        
+        // ========== تحديث مواقع البطاقات بناءً على الزاوية الحالية ==========
+        function updateCardPositions() {
+            const cards = document.querySelectorAll('.card');
+            const angleStep = (Math.PI * 2) / totalCards;
+            
+            cards.forEach((card, i) => {
+                // حساب الزاوية المطلقة لكل بطاقة
+                const cardAngle = i * angleStep + currentAngle;
+                const x = Math.sin(cardAngle) * radius;
+                const z = Math.cos(cardAngle) * radius;
+                
+                // تطبيق التحويل مع تأثير Billboard (تواجه المستخدم دائماً)
+                card.style.transform = `translate3d(${x}px, 0, ${z}px) rotateY(0deg)`;
+                
+                // تحسين العمق: البطاقات القريبة أكثر وضوحاً
+                const depth = (z + radius) / (2 * radius);
+                card.style.zIndex = Math.round(depth * 100);
+                card.style.opacity = 0.3 + (depth * 0.7);
+                card.style.filter = `brightness(${0.5 + depth * 0.6}) blur(${(1 - depth) * 1.8}px)`;
+                
+                // البطاقات الخلفية لا تستقبل النقر
+                card.style.pointerEvents = depth < 0.35 ? 'none' : 'auto';
+            });
+        }
+        
+        // ========== حلقة التحريك الفيزيائية ==========
+        function animate() {
+            if (!isDragging) {
+                // تطبيق الاحتكاك على السرعة
+                velocity *= FRICTION;
+                
+                // إذا كانت السرعة صغيرة جداً، أوقفها تماماً
+                if (Math.abs(velocity) < 0.002) {
+                    velocity = 0;
+                }
+                
+                // تحديث الزاوية بناءً على السرعة
+                currentAngle += velocity;
+                
+                // الحفاظ على الزاوية ضمن نطاق 2PI
+                currentAngle = ((currentAngle % (Math.PI * 2)) + (Math.PI * 2)) % (Math.PI * 2);
+            }
+            
+            // تحديث مواقع البطاقات
+            updateCardPositions();
+            
+            // متابعة الحلقة
+            animationId = requestAnimationFrame(animate);
+        }
+        
+        // ========== أحداث السحب (تجربة واقعية) ==========
+        function onDragStart(clientX) {
+            isDragging = true;
+            lastX = clientX;
+            dragStartX = clientX;
+            dragStartAngle = currentAngle;
+            
+            // تسجيل الوقت لحساب السرعة
+            lastTimestamp = performance.now();
+            
+            // تغيير شكل المؤشر
+            document.body.style.cursor = 'grabbing';
+            
+            // إيقاف الزخم السابق
+            velocity = 0;
+        }
+        
+        function onDragMove(clientX) {
+            if (!isDragging) return;
+            
+            const now = performance.now();
+            const deltaX = clientX - lastX;
+            const deltaTime = Math.max(8, now - lastTimestamp);
+            
+            if (deltaX !== 0) {
+                // حساب تغير الزاوية بناءً على حركة الماوس (حساسية عالية)
+                // نستخدم عامل الحساسية مع نصف القطر لتجربة طبيعية
+                const angleDelta = deltaX * DRAG_SENSITIVITY;
+                
+                // تحديث الزاوية الحالية
+                currentAngle += angleDelta;
+                
+                // حساب السرعة اللحظية (راديان/ميلي ثانية * 16 لقياس لكل إطار تقريباً)
+                const instantVelocity = (angleDelta / deltaTime) * 16;
+                velocity = instantVelocity * 0.7 + velocity * 0.3; // متوسط متحرك للسلاسة
+                
+                // تحديد السرعة القصوى
+                if (Math.abs(velocity) > MAX_VELOCITY) {
+                    velocity = velocity > 0 ? MAX_VELOCITY : -MAX_VELOCITY;
+                }
+                
+                // تحديث آخر موضع ووقت
+                lastX = clientX;
+                lastTimestamp = now;
+                
+                // تحديث البطاقات بشكل فوري
+                updateCardPositions();
+            }
+        }
+        
+        function onDragEnd() {
+            if (!isDragging) return;
+            isDragging = false;
+            document.body.style.cursor = 'grab';
+            
+            // التحقق من وجود سرعة كافية للاستمرار
+            if (Math.abs(velocity) < 0.008) {
+                velocity = 0;
+            }
+            
+            // إعادة تعيين مؤشر السرعة السريعة بعد فترة
+            setTimeout(() => {
+                if (!isDragging && Math.abs(velocity) < 0.05) {
+                    // هدوء
+                }
+            }, 100);
+        }
+        
+        // ========== أحداث اللمس (للأجهزة المحمولة) ==========
+        function onTouchStart(e) {
+            e.preventDefault();
+            const touch = e.touches[0];
+            onDragStart(touch.clientX);
+        }
+        
+        function onTouchMove(e) {
+            e.preventDefault();
+            const touch = e.touches[0];
+            onDragMove(touch.clientX);
+        }
+        
+        function onTouchEnd(e) {
+            e.preventDefault();
+            onDragEnd();
+        }
+        
+        // ========== تسجيل الأحداث ==========
+        function bindEvents() {
+            // الفأرة
+            window.addEventListener('mousedown', (e) => {
+                // نمنع السحب إذا كان الهدف بطاقة (لأن السحب يجب أن يتم من الخلفية)
+                // ولكن لتجربة أفضل، نجعل السحب يعمل من أي مكان على الشاشة
+                // مع إمكانية النقر على البطاقات
+                if (e.target.closest('.card')) {
+                    // إذا كان النقر على بطاقة، نسمح بذلك دون سحب
+                    return;
+                }
+                onDragStart(e.clientX);
+                e.preventDefault();
+            });
+            
+            window.addEventListener('mousemove', (e) => {
+                if (isDragging) {
+                    onDragMove(e.clientX);
+                    e.preventDefault();
+                }
+            });
+            
+            window.addEventListener('mouseup', () => {
+                if (isDragging) onDragEnd();
+            });
+            
+            // اللمس (للهواتف والأجهزة اللوحية)
+            window.addEventListener('touchstart', (e) => {
+                // إذا كان اللمس على بطاقة، لا نبدأ السحب (لنتمكن من الضغط)
+                if (e.target.closest('.card')) {
+                    return;
+                }
+                onTouchStart(e);
+            });
+            
+            window.addEventListener('touchmove', (e) => {
+                if (isDragging) {
+                    onTouchMove(e);
+                }
+            });
+            
+            window.addEventListener('touchend', (e) => {
+                if (isDragging) onTouchEnd(e);
+            });
+        }
+        
+        // ========== الموسيقى ==========
+        let musicPlaying = false;
+        
+        function initMusic() {
+            music.volume = 0.35;
+            music.loop = true;
+            music.load();
+            
+            // محاولة تشغيل الموسيقى عند أول تفاعل
+            const playMusicOnInteraction = () => {
+                if (!musicPlaying) {
+                    music.play().then(() => {
+                        musicPlaying = true;
+                    }).catch(err => {
+                        console.log("الموسيقى تحتاج تفاعل إضافي");
+                    });
+                }
+                document.removeEventListener('click', playMusicOnInteraction);
+                document.removeEventListener('touchstart', playMusicOnInteraction);
+            };
+            
+            document.addEventListener('click', playMusicOnInteraction);
+            document.addEventListener('touchstart', playMusicOnInteraction);
+        }
+        
+        // ========== دبل كليك للعودة إلى الصفحة الرئيسية ==========
+        function setupDoubleClick() {
+            let clickTimer = null;
+            let clickCount = 0;
+            
+            document.body.addEventListener('click', (e) => {
+                // تجاهل إذا كان النقر على بطاقة (لتجنب التداخل)
+                if (e.target.closest('.card')) return;
+                
+                clickCount++;
+                if (clickTimer) clearTimeout(clickTimer);
+                
+                clickTimer = setTimeout(() => {
+                    if (clickCount === 2) {
+                        // دبل كليك على الخلفية -> العودة إلى الصفحة الرئيسية
+                        window.location.href = '../ahmed.html';
+                    }
+                    clickCount = 0;
+                }, 250);
+            });
+            
+            // للشاشات اللمسية
+            let touchTimer = null;
+            let touchCount = 0;
+            
+            document.body.addEventListener('touchend', (e) => {
+                if (e.target.closest('.card')) return;
+                
+                touchCount++;
+                if (touchTimer) clearTimeout(touchTimer);
+                
+                touchTimer = setTimeout(() => {
+                    if (touchCount === 2) {
+                        window.location.href = '../ahmed.html';
+                    }
+                    touchCount = 0;
+                }, 250);
+            });
+        }
+        
+        // ========== تهيئة الكاروسيل ==========
+        function init() {
+            initCarousel();
+            bindEvents();
+            initMusic();
+            setupDoubleClick();
+            
+            // بدء الحلقة
+            animate();
+            
+            // تعيين المؤشر الافتراضي
+            document.body.style.cursor = 'grab';
+            
+            // تحديث نصف القطر عند بدء التشغيل
+            updateRadius();
+        }
+        
+        // بدء كل شيء
+        init();
+    </script>
+</body>
+</html>

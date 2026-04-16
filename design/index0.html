@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ENG.AHMEDHEGAZI</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: #000; overflow: hidden; }
+        canvas { display: block; position: fixed; top: 0; left: 0; z-index: 1; }
+        
+        .credit {
+            position: absolute; bottom: 15px; right: 20px;
+            color: #0f0; font-size: 11px; opacity: 0.3;
+            font-family: 'Courier New', monospace; z-index: 2;
+            letter-spacing: 2px;
+        }
+
+        /* المنطقة التفاعلية (دائرة 10 سم) */
+        .interactive-area {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 10cm;
+            height: 10cm;
+            max-width: 70vmin;
+            max-height: 70vmin;
+            border-radius: 50%;
+            cursor: pointer;
+            z-index: 5;
+            overflow: hidden;
+            background: transparent;
+        }
+
+        /* الصورة المخفية (تظهر فقط تحت الكشاف) */
+        .hidden-image {
+            width: 100%;
+            height: 100%;
+            /* استخدام صورة PNG */
+            background: url('../media/ahmed.jpg') no-repeat center center / cover;
+            background-color: #111;
+            
+            /* الماسك: يكشف فقط دائرة نصف قطرها 80px حول المؤشر */
+            -webkit-mask-image: radial-gradient(80px at var(--x, -200px) var(--y, -200px), white 80%, transparent);
+            mask-image: radial-gradient(80px at var(--x, -200px) var(--y, -200px), white 80%, transparent);
+            -webkit-mask-repeat: no-repeat;
+            mask-repeat: no-repeat;
+            -webkit-mask-size: 100% 100%;
+            mask-size: 100% 100%;
+        }
+
+        /* دائرة الضوء الأبيض (الكشاف) */
+        .spotlight-light {
+            position: absolute;
+            width: 160px;               /* قطر الضوء (2 * 80px) */
+            height: 160px;
+            border-radius: 50%;
+            background: radial-gradient(circle at center, rgba(255, 255, 255, 0.8) 0%, rgba(255, 255, 255, 0.1) 70%, transparent 100%);
+            filter: blur(10px);
+            mix-blend-mode: screen;      /* يضيء الصورة تحته */
+            pointer-events: none;
+            opacity: 0.9;
+            transform: translate(-50%, -50%);
+            z-index: 6;
+            display: none;               /* يظهر فقط عند التفاعل */
+        }
+
+        .interactive-area.active .spotlight-light {
+            display: block;
+        }
+
+        /* للشاشات الصغيرة */
+        @media (max-width: 600px) {
+            .interactive-area {
+                width: 200px;
+                height: 200px;
+            }
+            .spotlight-light {
+                width: 120px;
+                height: 120px;
+            }
+        }
+        @media (max-width: 400px) {
+            .interactive-area {
+                width: 160px;
+                height: 160px;
+            }
+            .spotlight-light {
+                width: 100px;
+                height: 100px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="matrixCanvas"></canvas>
+    
+    <div class="interactive-area" id="interactiveArea">
+        <div class="hidden-image" id="hiddenImage"></div>
+        <div class="spotlight-light" id="spotlightLight"></div>
+    </div>
+
+    <div class="credit">// SYSTEM ACTIVE //</div>
+
+    <script>
+        (function() {
+            // ===== 1. إعدادات الماتريكس (بدون تغيير) =====
+            const canvas = document.getElementById('matrixCanvas');
+            const ctx = canvas.getContext('2d');
+            const fontSize = 11;
+            const fadeOpacity = 0.055;
+            const baseSpeed = 0.45;
+            const greenBase = '#008f11';
+            const greenHead = '#e5ffe5';
+            const chars = "ｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄﾅﾆﾇネノハヒフヘホマミムメモヤユヨラリルレロワヲン0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ$#@%";
+
+            let columns, drops = [], speeds = [];
+
+            function resizeCanvas() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+                columns = Math.floor(canvas.width / (fontSize - 1));
+                for (let i = 0; i < columns; i++) {
+                    if (drops[i] === undefined) {
+                        drops[i] = Math.random() * -100;
+                        speeds[i] = baseSpeed + Math.random() * 0.35;
+                    }
+                }
+            }
+
+            function drawMatrix() {
+                ctx.fillStyle = `rgba(0, 0, 0, ${fadeOpacity})`;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.font = `bold ${fontSize}px monospace`;
+
+                for (let i = 0; i < drops.length; i++) {
+                    let char = chars[Math.floor(Math.random() * chars.length)];
+                    const x = i * (fontSize - 1);
+                    const y = drops[i] * fontSize;
+
+                    if (Math.random() > 0.98) {
+                        ctx.fillStyle = "#fff";
+                        ctx.shadowBlur = 12;
+                        ctx.shadowColor = "#fff";
+                    } else {
+                        ctx.shadowBlur = 4;
+                        ctx.shadowColor = "#0f0";
+                        ctx.fillStyle = greenHead;
+                    }
+
+                    ctx.fillText(char, x, y);
+                    ctx.shadowBlur = 0;
+                    ctx.fillStyle = greenBase;
+                    ctx.fillText(chars[Math.floor(Math.random() * chars.length)], x, y - fontSize);
+
+                    drops[i] += speeds[i];
+                    if (drops[i] * fontSize > canvas.height && Math.random() > 0.985) {
+                        drops[i] = 0;
+                        speeds[i] = baseSpeed + Math.random() * 0.35;
+                    }
+                }
+                requestAnimationFrame(drawMatrix);
+            }
+
+            window.addEventListener('resize', resizeCanvas);
+            resizeCanvas();
+            drawMatrix();
+
+            // ===== 2. نظام الكشاف الضوئي =====
+            const area = document.getElementById('interactiveArea');
+            const image = document.getElementById('hiddenImage');
+            const light = document.getElementById('spotlightLight');
+
+            // متغيرات CSS المخصصة
+            image.style.setProperty('--x', '-200px');
+            image.style.setProperty('--y', '-200px');
+
+            function setActive(active) {
+                if (active) {
+                    area.classList.add('active');
+                } else {
+                    area.classList.remove('active');
+                    image.style.setProperty('--x', '-200px');
+                    image.style.setProperty('--y', '-200px');
+                }
+            }
+
+            function moveSpotlight(e) {
+                e.preventDefault();
+
+                let clientX, clientY;
+                if (e.touches) {
+                    clientX = e.touches[0].clientX;
+                    clientY = e.touches[0].clientY;
+                } else {
+                    clientX = e.clientX;
+                    clientY = e.clientY;
+                }
+
+                const rect = area.getBoundingClientRect();
+
+                if (clientX < rect.left || clientX > rect.right || clientY < rect.top || clientY > rect.bottom) {
+                    return;
+                }
+
+                const relativeX = clientX - rect.left;
+                const relativeY = clientY - rect.top;
+
+                image.style.setProperty('--x', relativeX + 'px');
+                image.style.setProperty('--y', relativeY + 'px');
+
+                const lightSize = light.offsetWidth;
+                light.style.left = (clientX - rect.left) + 'px';
+                light.style.top = (clientY - rect.top) + 'px';
+            }
+
+            function handleEnter(e) {
+                setActive(true);
+                moveSpotlight(e);
+                document.addEventListener('mousemove', handleMove);
+                document.addEventListener('touchmove', handleMove, { passive: false });
+            }
+
+            function handleMove(e) {
+                moveSpotlight(e);
+            }
+
+            function handleLeave(e) {
+                setActive(false);
+                document.removeEventListener('mousemove', handleMove);
+                document.removeEventListener('touchmove', handleMove);
+            }
+
+            // ===== 3. الانتقال عند النقر المزدوج (double click / double tap) =====
+            function navigateToAhmed(e) {
+                e.preventDefault();
+                window.location.href = 'design.html';
+            }
+
+            // للماوس: نستخدم dblclick
+            area.addEventListener('dblclick', navigateToAhmed);
+
+            // للّمس: محاكاة double tap
+            let lastTouchTime = 0;
+            const doubleTapDelay = 300;
+
+            area.addEventListener('touchend', function(e) {
+                e.preventDefault();
+                
+                const currentTime = new Date().getTime();
+                const timeDiff = currentTime - lastTouchTime;
+
+                if (timeDiff < doubleTapDelay) {
+                    // يعتبر double tap
+                    navigateToAhmed(e);
+                    lastTouchTime = 0;
+                } else {
+                    lastTouchTime = currentTime;
+                }
+
+                // ننهي تفعيل الكشاف بعد رفع اللمس (مع تأخير بسيط)
+                setTimeout(() => {
+                    if (!area.matches(':hover') && !area.matches(':active')) {
+                        handleLeave(e);
+                    }
+                }, 100);
+            });
+
+            // أحداث الماوس العادية (للكشاف)
+            area.addEventListener('mouseenter', handleEnter);
+            area.addEventListener('mouseleave', handleLeave);
+
+            // أحداث اللمس للدخول والخروج (للكشاف)
+            area.addEventListener('touchstart', function(e) {
+                e.preventDefault();
+                handleEnter(e);
+            });
+
+            area.addEventListener('touchcancel', function(e) {
+                e.preventDefault();
+                handleLeave(e);
+            });
+
+            // عند تغيير حجم النافذة، نخفف الكشاف
+            window.addEventListener('resize', function() {
+                setActive(false);
+            });
+
+        })();
+    </script>
+</body>
+</html>

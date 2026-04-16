@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>TOOLS · METALIC</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            background: radial-gradient(circle at 20% 30%, #b0b0b0, #505050 80%);
+            display: flex;
+            flex-direction: column;      /* ترتيب عمودي */
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            /* التعديلات الأساسية للتمرير */
+            overflow-x: hidden;          /* منع التمرير الأفقي نهائياً */
+            overflow-y: auto;            /* السماح بالتمرير العمودي عند الحاجة */
+        }
+
+        /* تحسين التمرير العمودي على Android */
+        body {
+            -webkit-overflow-scrolling: touch;  /* تمرير سلس على اللمس */
+        }
+
+        /* metallic brushed texture overlay */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-image: repeating-linear-gradient(45deg, 
+                rgba(255,255,255,0.05) 0px, 
+                rgba(255,255,255,0.05) 2px,
+                transparent 2px,
+                transparent 6px);
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        /* glossy highlights */
+        body::after {
+            content: '';
+            position: fixed;
+            top: -30%; left: -20%;
+            width: 140%; height: 140%;
+            background: radial-gradient(circle at 30% 40%, rgba(255,255,255,0.35) 0%, transparent 40%),
+                        radial-gradient(circle at 80% 70%, rgba(0,0,0,0.2) 0%, transparent 40%);
+            pointer-events: none;
+            z-index: 1;
+            mix-blend-mode: overlay;
+        }
+
+        /* ===== التوقيع المحفور في أعلى المنتصف ===== */
+        .engraved-signature {
+            position: relative;
+            z-index: 20;
+            text-align: center;
+            margin-top: 30px;             /* مسافة من الأعلى */
+            margin-bottom: 20px;          /* مسافة تحت الاسم */
+            font-family: 'Courier New', 'Consolas', 'Roboto Mono', monospace;
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: 4px;
+            color: #2a2a2a;
+            text-shadow: 
+                -1px -1px 1px rgba(255,255,255,0.3),
+                2px 2px 3px rgba(0,0,0,0.5),
+                0px 0px 0px #5a5a5a;
+            text-transform: uppercase;
+            background: none;
+            padding: 0 20px;
+        }
+
+        .container {
+            position: relative;
+            z-index: 10;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+            justify-content: center;
+            align-items: center;
+            max-width: 1200px;
+            width: 100%;
+            padding: 20px 30px 40px 30px;  /* padding سفلي للتمرير */
+            margin: 0 auto;
+        }
+
+        /* metallic button style */
+        .tool-btn {
+            width: 170px;
+            height: 170px;
+            border-radius: 40px;
+            background: linear-gradient(145deg, #c0c0c0, #808080);
+            border: none;
+            box-shadow: 
+                0 20px 30px -10px rgba(0,0,0,0.5),
+                inset 0 -5px 8px rgba(0,0,0,0.4),
+                inset 0 5px 8px rgba(255,255,255,0.7),
+                0 0 0 2px #d4d4d4;
+            color: #1e1e1e;
+            font-weight: 700;
+            font-size: 22px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            text-decoration: none;
+            padding: 20px 10px;
+            backdrop-filter: blur(2px);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* shiny reflection overlay */
+        .tool-btn::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(120deg, 
+                transparent 20%, 
+                rgba(255,255,255,0.3) 50%, 
+                transparent 80%);
+            transform: rotate(25deg);
+            transition: 0.6s;
+            opacity: 0;
+        }
+
+        .tool-btn:hover::before {
+            opacity: 1;
+            left: 100%;
+            top: 100%;
+        }
+
+        .tool-btn:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 
+                0 30px 40px -10px black,
+                inset 0 -4px 6px rgba(0,0,0,0.5),
+                inset 0 4px 8px rgba(255,255,255,0.9),
+                0 0 0 3px #f0f0f0;
+            background: linear-gradient(145deg, #d0d0d0, #909090);
+        }
+
+        .tool-btn:active {
+            transform: translateY(4px) scale(0.98);
+            box-shadow: 
+                0 10px 20px -5px black,
+                inset 0 2px 4px rgba(0,0,0,0.6),
+                inset 0 -2px 4px rgba(255,255,255,0.4);
+        }
+
+        .tool-btn i {
+            font-size: 52px;
+            filter: drop-shadow(2px 4px 4px rgba(0,0,0,0.3));
+            color: #2a2a2a;
+        }
+
+        .tool-btn span {
+            background: rgba(0,0,0,0.2);
+            padding: 6px 16px;
+            border-radius: 40px;
+            color: #111;
+            text-shadow: 0 1px 1px rgba(255,255,255,0.3);
+            font-size: 18px;
+            font-weight: 800;
+            backdrop-filter: blur(4px);
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.2);
+        }
+
+        /* metallic shine animation on bg */
+        @keyframes metalShimmer {
+            0% { background-position: -500px; }
+            100% { background-position: 500px; }
+        }
+
+        /* mobile adjust */
+        @media (max-width: 600px) {
+            .engraved-signature {
+                font-size: 20px;
+                letter-spacing: 2px;
+                margin-top: 20px;
+                margin-bottom: 10px;
+            }
+            .tool-btn {
+                width: 140px;
+                height: 140px;
+                font-size: 18px;
+                border-radius: 30px;
+            }
+            .tool-btn i {
+                font-size: 42px;
+            }
+            .tool-btn span {
+                font-size: 14px;
+                padding: 4px 10px;
+            }
+            .container {
+                gap: 15px;
+                padding: 15px 20px 30px 20px;
+            }
+        }
+
+        /* للشاشات الصغيرة جداً */
+        @media (max-width: 380px) {
+            .tool-btn {
+                width: 120px;
+                height: 120px;
+            }
+            .tool-btn i {
+                font-size: 36px;
+            }
+            .tool-btn span {
+                font-size: 12px;
+            }
+            .container {
+                gap: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- الاسم المحفور في المنتصف (بدلاً من الـ hint) -->
+    <div class="engraved-signature">ENG. AHMED HEGAZI</div>
+
+    <div class="container" id="toolContainer">
+        <a href="pdftopic.html" class="tool-btn" id="btn-pdftopic">
+            <i>🔀</i>
+            <span>pdftopic</span>
+        </a>
+        <a href="pictopdf.html" class="tool-btn" id="btn-pictopdf">
+            <i>🧰</i>
+            <span>pictopdf</span>
+        </a>
+        <a href="pdfsplitter.html" class="tool-btn" id="btn-pdfsplitter">
+            <i>🪓</i>
+            <span>pdfsplitter</span>
+        </a>
+        <a href="pdfmerger.html" class="tool-btn" id="btn-pdfmerger">
+            <i>🔗</i>
+            <span>pdfmerger</span>
+        </a>
+        <a href="time.html" class="tool-btn" id="btn-time">
+            <i>🕚</i>
+            <span>time.is</span>
+        </a>
+        <!-- collator -->
+        <a href="collage.html" class="tool-btn" id="btn-collage">
+            <i>⚖️</i>
+            <span>ph.collage</span>
+        </a>
+        <!-- compress -->
+        <a href="compress.html" class="tool-btn" id="btn-compress">
+            <i>🗜️</i>
+            <span>COMPRESS</span>
+        </a>
+        <!-- photoconverter -->
+        <a href="photoconverter.html" class="tool-btn" id="btn-photoconverter">
+            <i>🖼️</i>
+            <span>PH.CONVERT</span>
+        </a>
+        <a href="bgeditor.html" class="tool-btn" id="btn-bgeditor">
+            <i>🎭</i>
+            <span>BG.EDITOR</span>
+        </a>
+        <a href="picviewer.html" class="tool-btn" id="btn-picviewer">
+            <i>📸</i>
+            <span>picviewer</span>
+        </a>
+        <!-- mediaplayer -->
+        <a href="mediaplayer.html" class="tool-btn" id="btn-mediaplayer">
+            <i>▶️</i>
+            <span>MEDIA</span>
+        </a>
+        <!-- codesaver -->
+        <a href="codesaver.html" class="tool-btn" id="btn-codesaver">
+            <i>💾</i>
+            <span>Code.Saver</span>
+        </a>
+        <a href="editor.html" class="tool-btn" id="btn-jseditor">
+            <i>🤖</i>
+            <span>JS EDiTOR</span>
+        </a>
+        <a href="cboard.html" class="tool-btn" id="btn-cboard">
+            <i>✍️</i>
+            <span>CBOARD</span>
+        </a>
+        <a href="hpaint.html" class="tool-btn" id="btn-hpaint">
+            <i>🎨</i>
+            <span>HPaint</span>
+        </a>
+        <a href="notepad.html" class="tool-btn" id="btn-notepad">
+            <i>🔤</i>
+            <span>HNote.P</span>
+        </a>
+
+        <a href="colorhunter.html" class="tool-btn" id="btn-colorhunter">
+            <i>🎯</i>
+            <span>colorhunter</span>
+        </a>
+        <a href="emoticons.html" class="tool-btn" id="btn-emo">
+            <i>❤️</i>
+            <span>emoticons</span>
+        </a>
+
+    </div>
+
+    <script>
+        // double‑click on body → redirect to ../ahmed.html
+        document.body.addEventListener('dblclick', function(e) {
+            window.location.href = '../ahmed.html';
+        });
+    </script>
+</body>
+</html>

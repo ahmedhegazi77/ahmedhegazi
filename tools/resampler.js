@@ -1,0 +1,8 @@
+/**
+ * Minified by jsDelivr using Terser v5.39.0.
+ * Original file: /npm/resampler@0.0.1/lib/index.js
+ *
+ * Do NOT use SRI with dynamically generated files! More information: https://www.jsdelivr.com/using-sri-with-dynamic-files
+ */
+var Resampler,binding,stream,__hasProp={}.hasOwnProperty,__extends=function(r,e){for(var t in e)__hasProp.call(e,t)&&(r[t]=e[t]);function n(){this.constructor=r}return n.prototype=e.prototype,r.prototype=new n,r.__super__=e.prototype,r};binding=require("../build/Release/binding"),(Resampler=function(r){function e(r,t,n){null==n&&(n=e.QUALITY_HI),stream.Transform.call(this),this.resampler=new binding.Resampler(r,t,n)}return __extends(e,r),e.prototype._resample=function(r,e){var t=this;return this.resampler.resample(r,(function(r,n){if(null!=r)throw r;return t.push(n),e()}))},e.prototype._transform=function(r,e,t){var n=this;return this.resampler.opened?this._resample(r,t):this.resampler.open((function(e){if(null!=e)throw e;return n._resample(r,t)}))},e.prototype._flush=function(r){var e=this;return this.resampler.opened?this.resampler.flush((function(t,n){if(null!=t)throw t;return e.push(n),e.resampler.close((function(e){if(null!=e)throw e;return r()}))})):r()},e}((stream=require("stream")).Transform)).QUALITY_HI=1,Resampler.QUALITY_LO=0,module.exports=Resampler;
+//# sourceMappingURL=/sm/a522a163f10b8791db97dd54d822013f2a9ad147ea8164a25d513a129ec23524.map

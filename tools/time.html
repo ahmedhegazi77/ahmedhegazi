@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>ENG.AHMED HEGAZI CLOCK</title>
+  <!-- استيراد خط Montserrat للعناوين (احتياطي) -->
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@900&display=swap" rel="stylesheet">
+  <style>
+    /* تعريف خط TimeTraveler المستخدم في Time.is */
+    /*src: url('https://time.is/fonts/TimeTravelerPal-Normal-Regular.ttf') format('truetype');*/
+    @font-face {
+      font-family: 'TimeTraveler';
+      font-style: normal;
+      font-weight: 400;
+      src: local('TimeTraveler'), 
+           local('TimeTravelerPal-Normal-Regular'),
+           url('TimeTravelerPal-Normal-Regular.ttf') format('truetype');
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: Verdana, Arial;
+      background: #ffffff;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* TOP BAR */
+    .topbar {
+      position: relative;
+      height: 90px;
+    }
+
+    .name-panel {
+      position: absolute;
+      left: 30px;
+      top: 0;
+      background: #fff000;
+      color: blue;
+      padding: 18px 40px;
+      font-size: 22px;
+      font-weight: bold;
+      letter-spacing: 2px;
+      border-radius: 0 0 40px 40px;
+      box-shadow: 0 8px 18px rgba(0,0,0,.25);
+    }
+
+    .lang-panel {
+      position: absolute;
+      right: 30px;
+      top: 0;
+      background: #c92c4a;
+      padding: 14px 22px;
+      border-radius: 0 0 40px 40px;
+      box-shadow: 0 8px 18px rgba(0,0,0,.25);
+    }
+
+    .lang-panel button {
+      border: none;
+      padding: 7px 14px;
+      margin: 0 3px;
+      cursor: pointer;
+      border-radius: 6px;
+      font-weight: bold;
+      background: #333;
+      color: white;
+    }
+
+    .lang-panel button.active {
+      background: silver;
+      color: black;
+      box-shadow: 0 0 10px silver, 0 0 25px silver;
+    }
+
+    /* CLOCK AREA */
+    main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+
+    /* CLOCK - بنفس خط Time.is (TimeTraveler) */
+    .clock {
+      display: flex;
+      align-items: center;
+      justify-content: right;
+      font-family: 'TimeTraveler', 'Montserrat', sans-serif;
+      font-size: 200px;
+      font-weight: 400;   /* TimeTraveler يأتي بوزن عادي */
+      color: #000;
+      font-variant-numeric: tabular-nums;
+      line-height: 1;
+      letter-spacing: 0;
+    }
+
+    /* كل خانة رقمية بعرض ثابت جداً */
+    .clock span:not(.colon) {
+      display: inline-block;
+      width: 1.1em;
+      text-align: center;
+      font-feature-settings: "tnum";
+    }
+
+    /* النقطتين (:) */
+    .colon {
+      display: inline-block;
+      width: 0.4em;
+      text-align: center;
+      margin: 0 -0 em;
+    }
+
+    /* AM PM BOX */
+    .ampm {
+      margin-left: 25px;
+      width: 90px;
+      height: 90px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #c92c4a;
+      color: white;
+      font-size: 26px;
+      font-weight: bold;
+      font-family: Verdana, Arial;
+      border-radius: 16px;
+      box-shadow: 0 10px 20px rgba(0,0,0,.3), inset 0 1px 0 rgba(255,255,255,.4);
+    }
+
+    /* DATE */
+    .date {
+      margin-top: 15px;
+      font-size: 22px;
+      color: #333;
+    }
+
+    /* WORLD TIMES */
+    .world {
+      background: #2e2e2e;
+      color: white;
+      padding: 30px;
+    }
+
+    .city-grid {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 18px;
+    }
+
+    .city {
+      background: #3e3e3e;
+      padding: 12px 22px;
+      border-radius: 10px;
+      min-width: 120px;
+      text-align: center;
+      box-shadow: 0 6px 14px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.2);
+    }
+
+    .city span {
+      display: block;
+      font-size: 20px;
+      margin-top: 4px;
+    }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <div class="name-panel">ENG.AHMED HEGAZI</div>
+    <div class="lang-panel">
+      <button id="arBtn" class="active" onclick="setLang('ar')">AR</button>
+      <button id="enBtn" onclick="setLang('en')">EN</button>
+    </div>
+  </div>
+
+  <main>
+    <div class="clock">
+      <span id="hh">00</span>
+      <span class="colon">:</span>
+      <span id="mm">00</span>
+      <span class="colon">:</span>
+      <span id="ss">00</span>
+      <div class="ampm" id="ampm">AM</div>
+    </div>
+    <div class="date" id="date"></div>
+  </main>
+
+  <section class="world">
+    <div class="city-grid">
+      <div class="city"><div id="cairoName">Cairo</div><span id="cairo"></span></div>
+      <div class="city"><div id="meccaName">Mecca</div><span id="mecca"></span></div>
+      <div class="city"><div id="aqsaName">Jerusalem</div><span id="aqsa"></span></div>
+      <div class="city"><div id="riyadhName">Riyadh</div><span id="riyadh"></span></div>
+      <div class="city"><div id="dubaiName">Dubai</div><span id="dubai"></span></div>
+      <div class="city"><div id="dohaName">Doha</div><span id="doha"></span></div>
+      <div class="city"><div id="londonName">London</div><span id="london"></span></div>
+      <div class="city"><div id="parisName">Paris</div><span id="paris"></span></div>
+      <div class="city"><div id="nyName">New York</div><span id="ny"></span></div>
+      <div class="city"><div id="tokyoName">Tokyo</div><span id="tokyo"></span></div>
+    </div>
+  </section>
+
+  <script>
+    let lang = "ar";
+
+    function setLang(l) {
+      lang = l;
+      document.getElementById("arBtn").classList.remove("active");
+      document.getElementById("enBtn").classList.remove("active");
+
+      if (l === "ar") {
+        document.getElementById("arBtn").classList.add("active");
+        document.getElementById("cairoName").innerText = "القاهرة";
+        document.getElementById("meccaName").innerText = "مكة";
+        document.getElementById("aqsaName").innerText = "القدس";
+        document.getElementById("riyadhName").innerText = "الرياض";
+        document.getElementById("dubaiName").innerText = "دبي";
+        document.getElementById("dohaName").innerText = "الدوحة";
+        document.getElementById("londonName").innerText = "لندن";
+        document.getElementById("parisName").innerText = "باريس";
+        document.getElementById("nyName").innerText = "نيويورك";
+        document.getElementById("tokyoName").innerText = "طوكيو";
+      } else {
+        document.getElementById("enBtn").classList.add("active");
+        document.getElementById("cairoName").innerText = "Cairo";
+        document.getElementById("meccaName").innerText = "Mecca";
+        document.getElementById("aqsaName").innerText = "Jerusalem";
+        document.getElementById("riyadhName").innerText = "Riyadh";
+        document.getElementById("dubaiName").innerText = "Dubai";
+        document.getElementById("dohaName").innerText = "Doha";
+        document.getElementById("londonName").innerText = "London";
+        document.getElementById("parisName").innerText = "Paris";
+        document.getElementById("nyName").innerText = "New York";
+        document.getElementById("tokyoName").innerText = "Tokyo";
+      }
+      update();
+    }
+
+    function format12(d) {
+      let h = d.getHours();
+      let m = d.getMinutes();
+      let s = d.getSeconds();
+      let ampm = h >= 12 ? "PM" : "AM";
+      h = h % 12;
+      h = h ? h : 12;
+      return {
+        h: String(h).padStart(1, '0'),
+        m: String(m).padStart(2, '0'),
+        s: String(s).padStart(2, '0'),
+        ampm: ampm
+      };
+    }
+
+    function city(offset) {
+      let now = new Date();
+      let utc = now.getTime() + now.getTimezoneOffset() * 60000;
+      let d = new Date(utc + (3600000 * offset));
+      let t = format12(d);
+      return t.h + ":" + t.m;
+    }
+
+    function update() {
+      let now = new Date();
+      let t = format12(now);
+
+      document.getElementById("hh").innerText = t.h;
+      document.getElementById("mm").innerText = t.m;
+      document.getElementById("ss").innerText = t.s;
+      document.getElementById("ampm").innerText = t.ampm;
+
+      let options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+      document.getElementById("date").innerText = now.toLocaleDateString(lang === "ar" ? "ar-EG" : "en-US", options);
+
+      document.getElementById("cairo").innerText = city(2);
+      document.getElementById("mecca").innerText = city(3);
+      document.getElementById("aqsa").innerText = city(2);
+      document.getElementById("riyadh").innerText = city(3);
+      document.getElementById("dubai").innerText = city(4);
+      document.getElementById("doha").innerText = city(3);
+      document.getElementById("london").innerText = city(0);
+      document.getElementById("paris").innerText = city(1);
+      document.getElementById("ny").innerText = city(-4);
+      document.getElementById("tokyo").innerText = city(9);
+    }
+
+    setInterval(update, 1000);
+    update();
+
+        // الدبل كليك (في أي مكان على الشاشة)
+        window.addEventListener('dblclick', () => {
+            window.location.href = 'tools.html';
+        });
+
+        // للموبايل: محاكاة الدبل كليك باللمس السريع
+        let lastTap = 0;
+        window.addEventListener('touchend', (e) => {
+            const currentTime = new Date().getTime();
+            const tapLength = currentTime - lastTap;
+            if (tapLength < 300 && tapLength > 0) {
+                window.location.href = 'tools.html';
+            }
+            lastTap = currentTime;
+        });
+  </script>
+</body>
+</html>

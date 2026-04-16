@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Hegazi WordPad Pro | Tools + Refresh + Clear | Full Editor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-dark: #1e1f2c;
+            --panel-glass: rgba(30, 31, 44, 0.96);
+            --neon-mint: #00f2b0;
+            --neon-gold: #ffd966;
+            --border-glow: rgba(0, 242, 176, 0.3);
+            --shadow-xl: 0 20px 35px -12px rgba(0,0,0,0.5);
+        }
+
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: 'Segoe UI', 'Inter', system-ui, sans-serif;
+            background: #0f111a;
+        }
+
+        .app {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background: #2d2f3a;
+        }
+
+        .toolbar {
+            background: var(--panel-glass);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border-glow);
+            padding: 12px 20px;
+            transition: transform 0.3s ease, margin 0.3s ease;
+            z-index: 1000;
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            align-items: center;
+            overflow-y: auto;
+            max-height: 180px;
+            flex-shrink: 0;
+        }
+
+        .toolbar.hidden {
+            transform: translateY(-100%);
+            margin-bottom: -180px;
+        }
+
+        .tool-group {
+            display: flex;
+            gap: 6px;
+            background: rgba(0,0,0,0.4);
+            padding: 6px 12px;
+            border-radius: 48px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .tool-btn {
+            background: none;
+            border: none;
+            color: #e2e8f0;
+            padding: 8px 14px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            border-radius: 32px;
+            transition: 0.2s;
+        }
+
+        .tool-btn:hover {
+            background: rgba(0,242,176,0.2);
+            color: var(--neon-mint);
+        }
+
+        .tool-btn.active {
+            background: var(--neon-mint);
+            color: #0a0c14;
+        }
+
+        select, input {
+            background: #1e1f2c;
+            border: 1px solid var(--neon-mint);
+            border-radius: 28px;
+            padding: 8px 14px;
+            color: white;
+            font-size: 13px;
+        }
+
+        .color-circle {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+            padding: 0;
+        }
+        .color-circle::-webkit-color-swatch-wrapper {
+            padding: 0;
+        }
+        .color-circle::-webkit-color-swatch {
+            border: none;
+            border-radius: 50%;
+        }
+
+        .hide-toggle {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            z-index: 1001;
+            width: 48px;
+            height: 48px;
+            background: var(--panel-glass);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border: 1px solid var(--neon-mint);
+            color: var(--neon-mint);
+            font-size: 20px;
+            transition: 0.2s;
+        }
+
+        .editor-container {
+            flex: 1;
+            padding: 20px;
+            overflow: auto;
+            background: #2d2f3a;
+            transition: all 0.3s ease;
+            min-height: 0;
+        }
+
+        #richEditor {
+            background: white;
+            border-radius: 24px;
+            padding: 40px;
+            min-height: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            box-shadow: var(--shadow-xl);
+            font-family: 'Segoe UI', sans-serif;
+            font-size: 16px;
+            line-height: 1.6;
+            color: #1a1e2a;
+            outline: none;
+            overflow-y: auto;
+            transition: all 0.3s ease;
+        }
+
+        .capture-btn {
+            background: var(--neon-mint);
+            color: #0a0c14;
+            padding: 10px 24px;
+            border-radius: 40px;
+            font-weight: bold;
+            border: none;
+            cursor: pointer;
+        }
+
+        .font-select {
+            min-width: 180px;
+        }
+        
+        .load-fonts-btn {
+            background: rgba(0,242,176,0.2);
+            border: 1px solid var(--neon-mint);
+        }
+
+        @media (max-width: 800px) {
+            .tool-group { padding: 4px 8px; }
+            .tool-btn { padding: 5px 10px; font-size: 11px; }
+            #richEditor { padding: 20px; }
+        }
+    </style>
+</head>
+<body>
+<div class="app">
+    <div class="toolbar" id="toolbar">
+        <!-- NEW: Tools, Refresh, Clear All (first group) -->
+        <div class="tool-group">
+            <button class="tool-btn" id="toolsBtn" title="Go to Tools">⬅️ Tools</button>
+            <button class="tool-btn" id="refreshBtn" title="Refresh Page">🔄 Refresh</button>
+            <button class="tool-btn" id="clearAllBtn" title="Clear Entire Page">🗑️ Clear All</button>
+        </div>
+        <!-- Text style + Undo -->
+        <div class="tool-group">
+            <button class="tool-btn" id="undoBtn" title="Undo">↩️ Undo</button>
+            <button class="tool-btn" id="clearFormatBtn" title="Clear Formatting">🧹 Clear Format</button>
+            <button class="tool-btn" id="boldBtn"><b>B</b></button>
+            <button class="tool-btn" id="italicBtn"><i>I</i></button>
+            <button class="tool-btn" id="underlineBtn"><u>U</u></button>
+            <button class="tool-btn" id="strikeBtn"><s>S</s></button>
+        </div>
+        <!-- Alignment -->
+        <div class="tool-group">
+            <button class="tool-btn" id="alignLeftBtn">◀ L</button>
+            <button class="tool-btn" id="alignCenterBtn">◆ C</button>
+            <button class="tool-btn" id="alignRightBtn">▶ R</button>
+            <button class="tool-btn" id="alignJustifyBtn">☰ J</button>
+        </div>
+        <!-- Fonts & Sizes -->
+        <div class="tool-group">
+            <select id="fontFamilySelect" class="font-select"></select>
+            <select id="fontSizeSelect">
+                <option>8</option><option>10</option><option>12</option><option>14</option>
+                <option selected>16</option><option>18</option><option>24</option><option>32</option>
+                <option>48</option><option>64</option><option>72</option>
+            </select>
+        </div>
+        <!-- Colors -->
+        <div class="tool-group">
+            <input type="color" id="textColorPicker" class="color-circle" value="#000000" title="Text Color">
+            <input type="color" id="bgColorPicker" class="color-circle" value="#e0f7fa" title="Background Color">
+            <button class="tool-btn" id="applyBgBtn">🎨 Apply BG</button>
+            <button class="tool-btn" id="clearBgBtn">🗑 Clear BG</button>
+            <input type="color" id="highlightColorPicker" class="color-circle" value="#ffff00" title="Highlight Color">
+            <button class="tool-btn" id="highlightBtn">🖍️ Highlight</button>
+        </div>
+        <!-- Lists & Indent -->
+        <div class="tool-group">
+            <button class="tool-btn" id="bulletListBtn">• List</button>
+            <button class="tool-btn" id="numberedListBtn">1. List</button>
+            <button class="tool-btn" id="indentBtn">→ Tab</button>
+            <button class="tool-btn" id="outdentBtn">← Tab</button>
+        </div>
+        <!-- Media & Fonts loader -->
+        <div class="tool-group">
+            <button class="tool-btn" id="insertImageBtn">🖼️ Image</button>
+            <button class="tool-btn" id="insertLinkBtn">🔗 Link</button>
+            <button class="tool-btn load-fonts-btn" id="manualLoadFontsBtn">📁 Load Fonts</button>
+        </div>
+        <!-- Capture -->
+        <div class="tool-group">
+            <button class="capture-btn" id="captureEditorBtn">📸 CAPTURE PNG</button>
+        </div>
+    </div>
+
+    <div class="hide-toggle" id="hideToggleBtn">▲</div>
+
+    <div class="editor-container">
+        <div id="richEditor" contenteditable="true">
+            <h1>✨ Hegazi WordPad Pro</h1>
+            <p><strong>Professional rich text editor</strong> with full font support from <code>/fonts/</code> folder.</p>
+            <p>You can change <span style="color:#00aaff;">text color</span>, <span style="background-color: #ffff99;">highlight background</span>, apply <strong>bold</strong>, <em>italic</em>, lists and more.</p>
+            <p>👉 <span style="background-color: #b2dfdb;">This text has background color applied correctly.</span></p>
+            <ul><li>Load custom fonts from folder</li><li>Full color palettes</li><li>Undo / Clear / Background Color works perfectly</li></ul>
+            <p>👉 Click "Load Fonts" to import .ttf/.otf files from your device.</p>
+            <p style="margin-top: 20px;"><strong>💡 Tip:</strong> Hide the toolbar using the ▲ button — the editor will expand to full screen!</p>
+        </div>
+    </div>
+</div>
+
+<script>
+    (function(){
+        const editor = document.getElementById('richEditor');
+        const toolbar = document.getElementById('toolbar');
+        const hideToggle = document.getElementById('hideToggleBtn');
+        let toolbarHidden = false;
+
+        // Toggle toolbar
+        hideToggle.addEventListener('click', () => {
+            toolbarHidden = !toolbarHidden;
+            toolbar.classList.toggle('hidden', toolbarHidden);
+            hideToggle.innerHTML = toolbarHidden ? '▼' : '▲';
+            setTimeout(() => editor.focus(), 50);
+        });
+
+        // ========== NEW BUTTONS ==========
+        // 1. Tools - redirect to tools.html
+        document.getElementById('toolsBtn').addEventListener('click', () => {
+            window.location.href = 'tools.html';
+        });
+        // 2. Refresh - reload page
+        document.getElementById('refreshBtn').addEventListener('click', () => {
+            location.reload();
+        });
+        // 3. Clear All - completely empty the editor content
+        document.getElementById('clearAllBtn').addEventListener('click', () => {
+            editor.innerHTML = '<p>✨ New document started. Start typing...</p>';
+            editor.focus();
+            // Place cursor at the beginning
+            const range = document.createRange();
+            const sel = window.getSelection();
+            range.selectNodeContents(editor);
+            range.collapse(true);
+            sel.removeAllRanges();
+            sel.addRange(range);
+        });
+
+        // Helper
+        function execCmd(command, value = null) {
+            document.execCommand(command, false, value);
+            editor.focus();
+        }
+
+        function applyBackgroundColor(color) {
+            const selection = window.getSelection();
+            if (!selection.isCollapsed) {
+                execCmd('backColor', color);
+            } else {
+                const range = selection.getRangeAt(0);
+                const parentElement = range.startContainer.parentElement;
+                const blockElement = parentElement.closest('p, h1, h2, h3, h4, h5, h6, div, li, td, th');
+                if (blockElement) {
+                    blockElement.style.backgroundColor = color;
+                } else {
+                    execCmd('backColor', color);
+                }
+            }
+            editor.focus();
+        }
+
+        function clearBackgroundColor() {
+            const selection = window.getSelection();
+            if (!selection.isCollapsed) {
+                const range = selection.getRangeAt(0);
+                const span = document.createElement('span');
+                span.style.backgroundColor = '';
+                range.surroundContents(span);
+                span.removeAttribute('style');
+                span.replaceWith(...span.childNodes);
+            } else {
+                const range = selection.getRangeAt(0);
+                const parentElement = range.startContainer.parentElement;
+                const blockElement = parentElement.closest('p, h1, h2, h3, h4, h5, h6, div, li, td, th');
+                if (blockElement) {
+                    blockElement.style.backgroundColor = '';
+                } else {
+                    execCmd('removeFormat');
+                }
+            }
+            editor.focus();
+        }
+
+        // Existing buttons
+        document.getElementById('undoBtn').addEventListener('click', () => execCmd('undo'));
+        document.getElementById('clearFormatBtn').addEventListener('click', () => {
+            if (window.getSelection().toString().length > 0) {
+                execCmd('removeFormat');
+            } else {
+                editor.querySelectorAll('*').forEach(el => {
+                    el.removeAttribute('style');
+                    el.removeAttribute('class');
+                    if (el.tagName === 'SPAN' && el.innerHTML.trim() === '') el.remove();
+                });
+                editor.normalize();
+            }
+            editor.focus();
+        });
+        document.getElementById('boldBtn').onclick = () => execCmd('bold');
+        document.getElementById('italicBtn').onclick = () => execCmd('italic');
+        document.getElementById('underlineBtn').onclick = () => execCmd('underline');
+        document.getElementById('strikeBtn').onclick = () => execCmd('strikeThrough');
+        document.getElementById('alignLeftBtn').onclick = () => execCmd('justifyLeft');
+        document.getElementById('alignCenterBtn').onclick = () => execCmd('justifyCenter');
+        document.getElementById('alignRightBtn').onclick = () => execCmd('justifyRight');
+        document.getElementById('alignJustifyBtn').onclick = () => execCmd('justifyFull');
+        document.getElementById('bulletListBtn').onclick = () => execCmd('insertUnorderedList');
+        document.getElementById('numberedListBtn').onclick = () => execCmd('insertOrderedList');
+        document.getElementById('indentBtn').onclick = () => execCmd('indent');
+        document.getElementById('outdentBtn').onclick = () => execCmd('outdent');
+        document.getElementById('insertLinkBtn').onclick = () => { let url = prompt('Enter URL:'); if(url) execCmd('createLink', url); };
+        document.getElementById('insertImageBtn').onclick = () => { let url = prompt('Image URL:'); if(url) execCmd('insertImage', url); };
+
+        // Colors
+        const textColorPicker = document.getElementById('textColorPicker');
+        const bgColorPicker = document.getElementById('bgColorPicker');
+        const applyBgBtn = document.getElementById('applyBgBtn');
+        const clearBgBtn = document.getElementById('clearBgBtn');
+        const highlightPicker = document.getElementById('highlightColorPicker');
+        const highlightBtn = document.getElementById('highlightBtn');
+
+        textColorPicker.addEventListener('input', (e) => execCmd('foreColor', e.target.value));
+        applyBgBtn.addEventListener('click', () => applyBackgroundColor(bgColorPicker.value));
+        clearBgBtn.addEventListener('click', () => clearBackgroundColor());
+        highlightBtn.addEventListener('click', () => applyBackgroundColor(highlightPicker.value));
+
+        // Font family
+        const fontSelect = document.getElementById('fontFamilySelect');
+        function addFontToDropdown(fontName, isCustom = false) {
+            let option = document.createElement('option');
+            option.value = fontName;
+            option.textContent = isCustom ? `${fontName} 📁` : fontName;
+            fontSelect.appendChild(option);
+        }
+
+        async function loadFontsFromFolder() {
+            const systemFonts = ['Arial', 'Verdana', 'Segoe UI', 'Times New Roman', 'Courier New', 'Georgia', 'Comic Sans MS', 'Tahoma', 'Impact', 'Trebuchet MS'];
+            systemFonts.forEach(f => addFontToDropdown(f, false));
+            
+            const possibleFonts = ['Poppins', 'Roboto', 'OpenSans', 'Lato', 'Montserrat', 'Raleway', 'Merriweather', 'Oswald'];
+            for (const fontName of possibleFonts) {
+                try {
+                    const response = await fetch(`fonts/${fontName}.ttf`, { method: 'HEAD' });
+                    if (response.ok) {
+                        addFontToDropdown(`'${fontName}'`, true);
+                        const style = document.createElement('style');
+                        style.textContent = `@font-face { font-family: '${fontName}'; src: url('fonts/${fontName}.ttf'); }`;
+                        document.head.appendChild(style);
+                    }
+                } catch(e) { }
+            }
+            for (const fontName of possibleFonts) {
+                try {
+                    const res = await fetch(`fonts/${fontName}.otf`, { method: 'HEAD' });
+                    if (res.ok) {
+                        addFontToDropdown(`'${fontName}'`, true);
+                        const style = document.createElement('style');
+                        style.textContent = `@font-face { font-family: '${fontName}'; src: url('fonts/${fontName}.otf'); }`;
+                        document.head.appendChild(style);
+                    }
+                } catch(e) { }
+            }
+        }
+
+        function manualLoadFonts() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.multiple = true;
+            input.accept = '.ttf,.otf,.woff,.woff2';
+            input.onchange = (e) => {
+                const files = Array.from(e.target.files);
+                files.forEach(file => {
+                    const fontName = file.name.split('.')[0];
+                    const url = URL.createObjectURL(file);
+                    const style = document.createElement('style');
+                    style.textContent = `@font-face { font-family: '${fontName}'; src: url('${url}'); }`;
+                    document.head.appendChild(style);
+                    addFontToDropdown(`'${fontName}'`, true);
+                });
+                alert(`${files.length} font(s) loaded. Select from dropdown.`);
+            };
+            input.click();
+        }
+
+        fontSelect.addEventListener('change', (e) => {
+            execCmd('fontName', e.target.value);
+        });
+
+        const fontSizeSelect = document.getElementById('fontSizeSelect');
+        fontSizeSelect.addEventListener('change', (e) => {
+            let size = e.target.value;
+            execCmd('fontSize', '7');
+            let fonts = document.querySelectorAll('#richEditor font[size="7"]');
+            fonts.forEach(el => {
+                el.removeAttribute('size');
+                el.style.fontSize = size + 'px';
+            });
+            editor.focus();
+        });
+
+        function captureEditorAsImage() {
+            const element = document.getElementById('richEditor');
+            const originalStyle = element.style.cssText;
+            element.style.margin = '0 auto';
+            element.style.width = '100%';
+            if (typeof html2canvas === 'undefined') {
+                const script = document.createElement('script');
+                script.src = 'https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js';
+                script.onload = () => {
+                    html2canvas(element, { scale: 2, backgroundColor: '#ffffff' }).then(canvas => {
+                        const link = document.createElement('a');
+                        link.download = 'Hegazi_Editor.png';
+                        link.href = canvas.toDataURL();
+                        link.click();
+                        element.style.cssText = originalStyle;
+                    });
+                };
+                document.head.appendChild(script);
+            } else {
+                html2canvas(element, { scale: 2, backgroundColor: '#ffffff' }).then(canvas => {
+                    const link = document.createElement('a');
+                    link.download = 'Hegazi_Editor.png';
+                    link.href = canvas.toDataURL();
+                    link.click();
+                    element.style.cssText = originalStyle;
+                });
+            }
+        }
+
+        document.getElementById('captureEditorBtn').addEventListener('click', captureEditorAsImage);
+        document.getElementById('manualLoadFontsBtn').addEventListener('click', manualLoadFonts);
+
+        loadFontsFromFolder().catch(() => {
+            const systemFonts = ['Arial', 'Verdana', 'Segoe UI', 'Times New Roman', 'Courier New', 'Georgia'];
+            systemFonts.forEach(f => addFontToDropdown(f, false));
+        });
+
+        editor.focus();
+    })();
+</script>
+</body>
+</html>

@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    <title>Color Picker · Pixel Hunter | ENG. Ahmed Hegazi</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            min-height: 100vh;
+            background: radial-gradient(circle at 20% 30%, #0f1325, #020408);
+            font-family: 'Segoe UI', 'Poppins', 'Inter', system-ui, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            overflow-x: hidden;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            padding: 20px 16px 50px;
+        }
+
+        .main-container {
+            max-width: 1400px;
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        /* ========== شريط الموسيقى الفضي العلوي ========== */
+        .music-bar-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            z-index: 2000;
+            pointer-events: none;
+            padding-top: 10px;
+        }
+        
+        .music-silver-bar {
+            pointer-events: auto;
+            width: 100px;
+            height: 10px;
+            background: linear-gradient(90deg, #b0b0b0, #e0e0e0, #a0a0a0);
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+            box-shadow: 0 1px 4px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.5);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .music-silver-bar::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,215,0,0.6), transparent);
+            transition: left 0.2s ease;
+        }
+        
+        .music-silver-bar.playing {
+            background: linear-gradient(90deg, #d4af37, #ffd966, #e6c200);
+            box-shadow: 0 0 12px rgba(255, 215, 0, 0.7), inset 0 1px 0 rgba(255,255,200,0.8);
+            height: 10px;
+        }
+        
+        .music-silver-bar.playing::before {
+            left: 100%;
+            transition: left 0.6s ease-in-out;
+        }
+        
+        /* مؤشر نبض ذهبي خفيف */
+        @keyframes goldPulse {
+                0% { opacity: 0.5; }
+              50% { opacity: 0.9; }
+            100% { opacity: 1; }
+        }
+        
+        /* ========== HEADER PANEL ========== */
+        .hero-panel {
+            text-align: center;
+            background: rgba(0, 0, 0, 0.55);
+            backdrop-filter: blur(14px);
+            border-radius: 70px;
+            padding: 18px 24px;
+            margin-bottom: 30px;
+            margin-top: 20px;
+            border: 1px solid rgba(255, 200, 80, 0.5);
+        }
+
+        .hero-panel h1 {
+            font-size: 1.8rem;
+            background: linear-gradient(135deg, #ffdd99, #ffbc6e);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .hero-panel p {
+            color: #aab4d0;
+            font-size: 0.75rem;
+        }
+
+        /* ========== MAIN FLEX LAYOUT ========== */
+        .color-lab {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        /* ========== IMAGE ZONE ========== */
+        .image-zone {
+            flex: 2.5;
+            min-width: 280px;
+            background: rgba(12, 18, 28, 0.65);
+            backdrop-filter: blur(16px);
+            border-radius: 48px;
+            padding: 24px;
+            border: 1px solid rgba(255, 215, 0, 0.4);
+            box-shadow: 0 20px 35px -12px black;
+        }
+
+        /* صف الأزرار العلوية */
+        .action-buttons {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .action-btn {
+            background: linear-gradient(135deg, #3a3f5e, #2a2f4a);
+            padding: 10px 20px;
+            border-radius: 50px;
+            font-weight: 700;
+            color: #ffeaac;
+            cursor: pointer;
+            transition: 0.2s;
+            font-size: 0.85rem;
+            border: 1px solid #ffd966;
+        }
+
+        .action-btn:hover {
+            transform: scale(1.02);
+            box-shadow: 0 0 10px rgba(255, 217, 102, 0.4);
+        }
+
+        /* أزرار التكبير والتصغير */
+        .zoom-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            justify-content: center;
+        }
+
+        .zoom-btn {
+            background: linear-gradient(135deg, #ffd966, #ffb347);
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            font-weight: 800;
+            font-size: 1.5rem;
+            color: #1a1f2e;
+            cursor: pointer;
+            transition: 0.2s;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .zoom-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 12px gold;
+        }
+
+        .zoom-level {
+            background: #1a1f2ecc;
+            padding: 8px 16px;
+            border-radius: 40px;
+            font-size: 0.8rem;
+            color: #ffeaac;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        /* زر رفع الصورة */
+        .upload-btn {
+            display: inline-block;
+            background: linear-gradient(135deg, #ffd966, #ffb347);
+            padding: 12px 28px;
+            border-radius: 50px;
+            font-weight: 800;
+            color: #1a1f2e;
+            cursor: pointer;
+            transition: 0.2s;
+            font-size: 0.9rem;
+            margin-bottom: 20px;
+            border: none;
+        }
+
+        .upload-btn:hover {
+            transform: scale(1.02);
+            box-shadow: 0 0 15px gold;
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        /* حاوية Canvas مع دعم السحب */
+        .canvas-container {
+            position: relative;
+            overflow: hidden;
+            background: #03060c;
+            border-radius: 36px;
+            padding: 15px;
+            border: 1px solid rgba(255, 200, 100, 0.3);
+            cursor: grab;
+        }
+
+        .canvas-container:active {
+            cursor: grabbing;
+        }
+
+        .canvas-wrapper {
+            overflow: auto;
+            max-width: 100%;
+            max-height: 500px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        #imageCanvas {
+            display: block;
+            border-radius: 28px;
+            cursor: crosshair;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            background: #111;
+            transform-origin: 0 0;
+            transition: transform 0.1s ease;
+        }
+
+        .image-info {
+            margin-top: 15px;
+            font-size: 0.7rem;
+            color: #b9c4dd;
+            text-align: center;
+        }
+
+        /* ========== INFO PANEL (RIGHT SIDE) ========== */
+        .info-zone {
+            flex: 1.2;
+            min-width: 260px;
+            background: rgba(0, 0, 0, 0.65);
+            backdrop-filter: blur(20px);
+            border-radius: 48px;
+            padding: 28px 20px;
+            border: 1px solid rgba(255, 200, 100, 0.6);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 22px;
+        }
+
+        .color-preview {
+            width: 160px;
+            height: 160px;
+            border-radius: 50%;
+            background: #ff3366;
+            border: 4px solid rgba(255, 245, 180, 0.9);
+            box-shadow: 0 0 30px rgba(0,0,0,0.5);
+            transition: background 0.08s linear;
+        }
+
+        .hex-box {
+            background: #010101cc;
+            padding: 14px 22px;
+            border-radius: 60px;
+            font-family: monospace;
+            font-size: 1.8rem;
+            font-weight: 800;
+            letter-spacing: 2px;
+            color: #ffefc0;
+            border: 1px solid gold;
+            width: 100%;
+            text-align: center;
+        }
+
+        .rgb-box {
+            background: #0a0e1aaa;
+            padding: 8px 16px;
+            border-radius: 40px;
+            font-size: 0.9rem;
+            color: #dddddd;
+        }
+
+        .coords-box {
+            font-size: 0.8rem;
+            color: #b9c2da;
+            background: #00000066;
+            padding: 6px 16px;
+            border-radius: 30px;
+        }
+
+        /* ========== FOOTER ========== */
+        .footer-tip {
+            text-align: center;
+            margin-top: 25px;
+            font-size: 0.7rem;
+            color: #7c88a8;
+            background: #00000055;
+            width: fit-content;
+            margin-left: auto;
+            margin-right: auto;
+            padding: 8px 24px;
+            border-radius: 60px;
+        }
+
+        /* ========== RESPONSIVE ========== */
+        @media (max-width: 780px) {
+            .color-lab {
+                flex-direction: column;
+            }
+            .hex-box {
+                font-size: 1.3rem;
+            }
+            .color-preview {
+                width: 120px;
+                height: 120px;
+            }
+            .music-silver-bar {
+                width: 180px;
+            }
+        }
+
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0e121f;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #ffbc6e;
+        }
+    </style>
+</head>
+
+
+<body>
+<!--
+<a href="colorpicker.html">👽</a>
+<a href="colorpicker.html"><div>👽</div></a>
+<a href="colorpicker.html"><button>👽</button></a>       
+
+<a href="#"><button disabled style="opacity:0.5; cursor:not-allowed;">👽</button></a>
+-->
+<div onclick="location.href='colorpicker.html'" style="cursor: pointer;">👽</div>
+<!-- شريط الموسيقى الفضي أعلى المنتصف (بديل الزر الأيمن) -->
+<div class="music-bar-container"> 
+    <div class="music-silver-bar" id="musicSilverBar" title="تشغيل/إيقاف الموسيقى (jmj.wav)"></div>
+</div>
+
+<div class="main-container">
+    <div class="hero-panel">
+        <h1>🎨 COLOR DETECTION · PIXEL HUNTER</h1>
+        <p>ENG. AHMED HEGAZI | Click on image to extract color | Zoom + Drag</p>
+    </div>
+
+    <div class="color-lab">
+        <!-- IMAGE ZONE -->
+        <div class="image-zone">
+            <div class="action-buttons">
+                <button class="action-btn" id="resetPaletteBtn">🔄 Reset Palette</button>
+                <button class="action-btn" id="openPageBtn">📂 Open Page</button>
+            </div>
+            
+            <div class="zoom-buttons">
+                <button class="zoom-btn" id="zoomInBtn">+</button>
+                <button class="zoom-btn" id="zoomOutBtn">-</button>
+                <div class="zoom-level" id="zoomLevel">🔍 100%</div>
+            </div>
+            
+            <button class="upload-btn" id="uploadBtn">📂 Upload Image</button>
+            <input type="file" id="fileInput" accept="image/jpeg, image/png, image/webp">
+            
+            <div class="canvas-container" id="canvasContainer">
+                <div class="canvas-wrapper" id="canvasWrapper">
+                    <canvas id="imageCanvas" width="700" height="500"></canvas>
+                </div>
+            </div>
+            <div class="image-info">
+                💡 Click to pick color | +/- to zoom | Drag to pan | Supports large images
+            </div>
+        </div>
+
+        <!-- INFO PANEL (بدون زر الموسيقى القديم) -->
+        <div class="info-zone">
+            <div class="color-preview" id="colorPreview" style="background-color: #ff3366;"></div>
+            <div class="hex-box" id="hexValue">#FF3366</div>
+            <div class="rgb-box" id="rgbValue">RGB(255, 51, 102)</div>
+            <div class="coords-box" id="coordsDisplay">📍 Waiting for selection</div>
+        </div>
+    </div>
+    <div class="footer-tip">
+        ✨ Double Click → tools.html &nbsp;&nbsp;|&nbsp;&nbsp;
+        ✨ Triple Click → index.html &nbsp;&nbsp;|&nbsp;&nbsp;
+        🔍 Zoom: +/- buttons | Drag image to pan
+    </div>
+</div>
+
+<script>
+    // ======================== نظام الموسيقى عبر شريط فضي ========================
+    // المسار: المجلد المجاور "media" والصفحة الحالية في مجلد مجاور لـ media
+    // بنية الملفات المفترضة: [المجلد الرئيسي] -> index.html (هذه الصفحة) ومجلد "media" يحتوي على jmj.wav
+    const audioElement = new Audio('../media/jmj.wav');
+    audioElement.loop = true;
+    audioElement.preload = 'auto';
+    let isMusicPlaying = false;
+    const musicBar = document.getElementById('musicSilverBar');
+    
+    // وظيفة تشغيل الموسيقى
+    function startMusic() {
+        audioElement.play().then(() => {
+            isMusicPlaying = true;
+            musicBar.classList.add('playing');
+            // إضافة وميض ذهبي إضافي
+            musicBar.style.animation = 'goldPulse 0.8s ease';
+            setTimeout(() => { musicBar.style.animation = ''; }, 800);
+        }).catch(err => {
+            console.warn("تشغيل الموسيقى يحتاج تفاعل أول:", err);
+            // محاولة ثانية بعد تفاعل المستخدم سيتم التعامل معها عبر المستمع
+            isMusicPlaying = false;
+            musicBar.classList.remove('playing');
+        });
+    }
+    
+    // وظيفة إيقاف الموسيقى
+    function stopMusic() {
+        audioElement.pause();
+        audioElement.currentTime = 0;
+        isMusicPlaying = false;
+        musicBar.classList.remove('playing');
+    }
+    
+    // دالة التبديل
+    function toggleMusicFromBar() {
+        if (isMusicPlaying) {
+            stopMusic();
+        } else {
+            startMusic();
+        }
+    }
+    
+    // إضافة حدث النقر على الشريط الفضي
+    musicBar.addEventListener('click', (e) => {
+        e.stopPropagation();
+        toggleMusicFromBar();
+    });
+    
+    // محاولة تهيئة الصوت تلقائياً عند أول تفاعل مع الصفحة (للتغلب على سياسات المتصفح)
+    function primeAudioOnUserTouch() {
+        // محاولة تشغيل وصمت فوري ثم إيقاف لتجهيز السياق الصوتي
+        audioElement.play().then(() => {
+            audioElement.pause();
+            audioElement.currentTime = 0;
+            console.log("Audio context primed");
+        }).catch(() => {});
+        document.body.removeEventListener('touchstart', primeAudioOnUserTouch);
+        document.body.removeEventListener('click', primeAudioOnUserTouch);
+    }
+    document.body.addEventListener('touchstart', primeAudioOnUserTouch, { once: true });
+    document.body.addEventListener('click', primeAudioOnUserTouch, { once: true });
+    
+    // اختياري: إظهار حالة عند بدء التشغيل عبر الشريط
+    musicBar.addEventListener('mouseenter', () => {
+        if (!isMusicPlaying) musicBar.style.opacity = '0.9';
+        else musicBar.style.opacity = '1';
+    });
+    musicBar.addEventListener('mouseleave', () => {
+        musicBar.style.opacity = '1';
+    });
+    
+    // ======================== DOM ELEMENTS ========================
+    const canvas = document.getElementById('imageCanvas');
+    const ctx = canvas.getContext('2d');
+    const canvasWrapper = document.getElementById('canvasWrapper');
+    const colorPreview = document.getElementById('colorPreview');
+    const hexSpan = document.getElementById('hexValue');
+    const rgbSpan = document.getElementById('rgbValue');
+    const coordsSpan = document.getElementById('coordsDisplay');
+    const uploadBtn = document.getElementById('uploadBtn');
+    const fileInput = document.getElementById('fileInput');
+    const resetPaletteBtn = document.getElementById('resetPaletteBtn');
+    const openPageBtn = document.getElementById('openPageBtn');
+    const zoomInBtn = document.getElementById('zoomInBtn');
+    const zoomOutBtn = document.getElementById('zoomOutBtn');
+    const zoomLevelSpan = document.getElementById('zoomLevel');
+
+    // ======================== ZOOM & PAN VARIABLES ========================
+    let currentZoom = 1;
+    let minZoom = 0.5;
+    let maxZoom = 3;
+    let panX = 0, panY = 0;
+    let isDragging = false;
+    let dragStartX = 0, dragStartY = 0;
+    let originalCanvasWidth = 700;
+    let originalCanvasHeight = 500;
+
+    // ======================== UPDATE ZOOM DISPLAY ========================
+    function updateZoomDisplay() {
+        zoomLevelSpan.innerHTML = `🔍 ${Math.round(currentZoom * 100)}%`;
+        applyZoomAndPan();
+    }
+
+    function applyZoomAndPan() {
+        canvas.style.transform = `translate(${panX}px, ${panY}px) scale(${currentZoom})`;
+    }
+
+    function zoomIn() {
+        if (currentZoom < maxZoom) {
+            currentZoom = Math.min(maxZoom, currentZoom + 0.1);
+            updateZoomDisplay();
+        }
+    }
+
+    function zoomOut() {
+        if (currentZoom > minZoom) {
+            currentZoom = Math.max(minZoom, currentZoom - 0.1);
+            updateZoomDisplay();
+        }
+    }
+
+    function resetZoomAndPan() {
+        currentZoom = 1;
+        panX = 0;
+        panY = 0;
+        updateZoomDisplay();
+    }
+
+    // ======================== PAN (DRAG) HANDLERS ========================
+    const canvasContainer = document.getElementById('canvasContainer');
+    
+    function onPanStart(e) {
+        e.preventDefault();
+        isDragging = true;
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        dragStartX = clientX - panX;
+        dragStartY = clientY - panY;
+        canvasContainer.style.cursor = 'grabbing';
+    }
+
+    function onPanMove(e) {
+        if (!isDragging) return;
+        e.preventDefault();
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        panX = clientX - dragStartX;
+        panY = clientY - dragStartY;
+        const maxPanX = canvas.width * currentZoom / 2;
+        const maxPanY = canvas.height * currentZoom / 2;
+        panX = Math.min(maxPanX, Math.max(-maxPanX, panX));
+        panY = Math.min(maxPanY, Math.max(-maxPanY, panY));
+        applyZoomAndPan();
+    }
+
+    function onPanEnd(e) {
+        isDragging = false;
+        canvasContainer.style.cursor = 'grab';
+    }
+
+    // ======================== EFFECT SOUND (اختياري صوت النقر) ========================
+    let clickSound = null;
+    function initClickSound() {
+        if (!clickSound) {
+            clickSound = new Audio('../media/click.wav');
+            clickSound.preload = 'auto';
+            clickSound.volume = 1;
+        }
+    }
+    function playPickSound() {
+        if (!isMusicPlaying) return;
+        initClickSound();
+        if (clickSound) {
+            clickSound.currentTime = 0;
+            clickSound.play().catch(e => console.log("no click sound"));
+        }
+    }
+
+    // ======================== DEFAULT FULL SPECTRUM PALETTE ========================
+    function drawFullSpectrumPalette() {
+        canvas.width = 700;
+        canvas.height = 450;
+        originalCanvasWidth = canvas.width;
+        originalCanvasHeight = canvas.height;
+        
+        const spectrumGrad = ctx.createLinearGradient(0, 0, canvas.width, 0);
+        spectrumGrad.addColorStop(0, '#ff0000');
+        spectrumGrad.addColorStop(0.16, '#ff8800');
+        spectrumGrad.addColorStop(0.33, '#ffff00');
+        spectrumGrad.addColorStop(0.5, '#00ff00');
+        spectrumGrad.addColorStop(0.66, '#0000ff');
+        spectrumGrad.addColorStop(0.83, '#4b0082');
+        spectrumGrad.addColorStop(1, '#8b00ff');
+        
+        ctx.fillStyle = spectrumGrad;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        const bwGrad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+        bwGrad.addColorStop(0, 'rgba(255,255,255,1)');
+        bwGrad.addColorStop(0.5, 'rgba(255,255,255,0)');
+        bwGrad.addColorStop(1, 'rgba(0,0,0,1)');
+        
+        ctx.fillStyle = bwGrad;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        resetZoomAndPan();
+        coordsSpan.innerText = "✨ Full spectrum palette · Click anywhere ✨";
+    }
+    
+    drawFullSpectrumPalette();
+
+    // ======================== RESET PALETTE ========================
+    resetPaletteBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        drawFullSpectrumPalette();
+        if(isMusicPlaying) playPickSound();
+    });
+
+    // ======================== OPEN ALTERNATIVE PAGE ========================
+    openPageBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        window.location.href = 'alternative.html';
+    });
+
+    // ======================== ZOOM BUTTONS ========================
+    zoomInBtn.addEventListener('click', (e) => { e.stopPropagation(); zoomIn(); });
+    zoomOutBtn.addEventListener('click', (e) => { e.stopPropagation(); zoomOut(); });
+
+    // ======================== UPLOAD IMAGE ========================
+    uploadBtn.addEventListener('click', () => { fileInput.click(); });
+    fileInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            const img = new Image();
+            img.onload = () => {
+                let width = img.width;
+                let height = img.height;
+                const maxWidth = 800;
+                const maxHeight = 550;
+                if (width > maxWidth) {
+                    height = (height * maxWidth) / width;
+                    width = maxWidth;
+                }
+                if (height > maxHeight) {
+                    width = (width * maxHeight) / height;
+                    height = maxHeight;
+                }
+                canvas.width = width;
+                canvas.height = height;
+                originalCanvasWidth = width;
+                originalCanvasHeight = height;
+                ctx.drawImage(img, 0, 0, width, height);
+                resetZoomAndPan();
+                coordsSpan.innerText = "✅ Image loaded · Click on any pixel";
+            };
+            img.src = event.target.result;
+        };
+        reader.readAsDataURL(file);
+    });
+
+    // ======================== COLOR PICKER ========================
+    function getColorFromCanvas(clientX, clientY) {
+        const rect = canvas.getBoundingClientRect();
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+        let x = (clientX - rect.left) * scaleX;
+        let y = (clientY - rect.top) * scaleY;
+        if (x < 0 || y < 0 || x >= canvas.width || y >= canvas.height) return null;
+        const pixel = ctx.getImageData(x, y, 1, 1).data;
+        return { r: pixel[0], g: pixel[1], b: pixel[2], x: Math.floor(x), y: Math.floor(y) };
+    }
+
+    function updateColorUI(r, g, b, x, y) {
+        const hex = `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`;
+        colorPreview.style.backgroundColor = hex;
+        hexSpan.innerText = hex.toUpperCase();
+        rgbSpan.innerText = `RGB(${r}, ${g}, ${b})`;
+        coordsSpan.innerText = `📍 Coordinates: X=${x} Y=${y}`;
+        if(isMusicPlaying) playPickSound();
+    }
+
+    canvas.addEventListener('click', (e) => {
+        const rect = canvas.getBoundingClientRect();
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+        let x = (e.clientX - rect.left) * scaleX;
+        let y = (e.clientY - rect.top) * scaleY;
+        if (x >= 0 && y >= 0 && x <= canvas.width && y <= canvas.height) {
+            const pixel = ctx.getImageData(x, y, 1, 1).data;
+            updateColorUI(pixel[0], pixel[1], pixel[2], Math.floor(x), Math.floor(y));
+        } else {
+            coordsSpan.innerText = "⚠️ Click inside the image area";
+        }
+    });
+
+    canvas.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        const touch = e.touches[0];
+        const rect = canvas.getBoundingClientRect();
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+        let x = (touch.clientX - rect.left) * scaleX;
+        let y = (touch.clientY - rect.top) * scaleY;
+        if (x >= 0 && y >= 0 && x <= canvas.width && y <= canvas.height) {
+            const pixel = ctx.getImageData(x, y, 1, 1).data;
+            updateColorUI(pixel[0], pixel[1], pixel[2], Math.floor(x), Math.floor(y));
+        }
+    });
+
+    // ======================== PAN EVENTS ========================
+    canvasContainer.style.cursor = 'grab';
+    canvasContainer.addEventListener('mousedown', onPanStart);
+    window.addEventListener('mousemove', onPanMove);
+    window.addEventListener('mouseup', onPanEnd);
+    canvasContainer.addEventListener('touchstart', onPanStart, { passive: false });
+    window.addEventListener('touchmove', onPanMove, { passive: false });
+    window.addEventListener('touchend', onPanEnd);
+
+    // ======================== DOUBLE CLICK & TRIPLE CLICK NAVIGATION ========================
+    let clickCount = 0;
+    let clickTimer = null;
+
+    function resetClickCount() {
+        clickCount = 0;
+        if (clickTimer) clearTimeout(clickTimer);
+        clickTimer = null;
+    }
+
+    document.body.addEventListener('click', (e) => {
+        // تجاهل النقر على الشريط أو الأزرار التي قد تسبب تعارض
+        if (e.target.closest && (
+            e.target === musicBar ||
+            e.target.closest('#musicSilverBar') ||
+            e.target === uploadBtn ||
+            e.target.closest('.upload-btn') ||
+            e.target === resetPaletteBtn ||
+            e.target === openPageBtn ||
+            e.target === zoomInBtn ||
+            e.target === zoomOutBtn
+        )) {
+            resetClickCount();
+            return;
+        }
+        clickCount++;
+        if (clickTimer) clearTimeout(clickTimer);
+        clickTimer = setTimeout(() => {
+            if (clickCount === 2) {
+                window.location.href = 'tools.html';
+            } else if (clickCount === 3) {
+                window.location.href = 'index.html';
+            }
+            resetClickCount();
+        }, 250);
+    });
+
+    // منع التمرير الأفقي أثناء السحب
+    document.body.addEventListener('touchstart', (e) => {
+        let startX = e.touches[0].clientX;
+        const onMove = (moveEv) => {
+            let diffX = moveEv.touches[0].clientX - startX;
+            if (Math.abs(diffX) > 12 && !isDragging) moveEv.preventDefault();
+        };
+        const onEnd = () => {
+            document.body.removeEventListener('touchmove', onMove);
+            document.body.removeEventListener('touchend', onEnd);
+        };
+        document.body.addEventListener('touchmove', onMove, { passive: false });
+        document.body.addEventListener('touchend', onEnd);
+    });
+    
+    // إظهار رسالة ترحيب
+    console.log("Pixel Hunter ready | Music bar silver at top | Audio: ../media/jmj.wav");
+</script>
+</body>
+</html>

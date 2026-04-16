@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <title>Eng.AhmedHegazi</title>
+    <style>
+        * { margin: 0; padding: 0; }
+        /* الخلفية بيضاء ناصعة في الـ CSS كقاعدة */
+        body { background: #FFF; overflow: hidden; font-family: sans-serif; }
+        canvas { display: block; position: fixed; top: 0; left: 0; z-index: 1; }
+        
+        #hidden-container {
+            position: absolute; top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 10cm; height: 10cm; z-index: 10;
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+        }
+
+        #hidden-image {
+            width: 100%; height: 100%; object-fit: cover; opacity: 0;
+            transition: opacity 0.8s ease;
+            /* كشاف الضوء في النسخة البيضاء يظهر كظل دافئ */
+            mask-image: radial-gradient(circle 120px at var(--x) var(--y), black 0%, transparent 100%);
+            -webkit-mask-image: radial-gradient(circle 120px at var(--x) var(--y), black 0%, transparent 100%);
+        }
+
+        #hidden-container:hover #hidden-image { opacity: 1; }
+    </style>
+</head>
+<body onclick="toggleRainManual()">
+
+<canvas id="c"></canvas>
+
+<!-- أصوات الخلفية -->
+<audio id="rainAmbient" src="../media/rain.wav" loop></audio>
+<audio id="musicHover" src="../media/music.wav" loop></audio>
+
+<div id="hidden-container" 
+     ondblclick="window.location.href='design.html'"
+     onmouseenter="handleMouseEnter()" 
+     onmouseleave="handleMouseLeave()">
+    <img src="../media/ahmed0.jpg" id="hidden-image" alt="Hidden">
+</div>
+
+<script>
+// --- محرك الصوت الذكي ---
+const rainTrack = document.getElementById("rainAmbient");
+const musicTrack = document.getElementById("musicHover");
+let rainManuallyPaused = false;
+let isHovering = false;
+
+function initAudioOnFirstClick() {
+    if (rainTrack.paused && !rainManuallyPaused && !isHovering) {
+        rainTrack.play();
+        rainTrack.volume = 0.6;
+    }
+}
+
+function toggleRainManual() {
+    if (!isHovering) {
+        if (rainTrack.paused) {
+            rainTrack.play(); rainManuallyPaused = false;
+        } else {
+            rainTrack.pause(); rainManuallyPaused = true;
+        }
+    }
+}
+
+function handleMouseEnter() {
+    isHovering = true;
+    rainTrack.pause();
+    musicTrack.play();
+    musicTrack.volume = 1.0;
+}
+
+function handleMouseLeave() {
+    isHovering = false;
+    musicTrack.pause();
+    musicTrack.currentTime = 0;
+    if (!rainManuallyPaused) rainTrack.play();
+}
+
+// --- محرك المطر الواقعي ---
+const c = document.getElementById("c");
+const ctx = c.getContext("2d");
+
+function resize() {
+    c.width = window.innerWidth;
+    c.height = window.innerHeight;
+}
+window.addEventListener('resize', resize);
+resize();
+
+let raindrops = [];
+const layers = [
+    { count: 400, speedMin: 13, speedMax: 17, lengthMin: 10, lengthMax: 15, opacity: 0.15, width: 1 },
+    { count: 150, speedMin: 18, speedMax: 24, lengthMin: 20, lengthMax: 30, opacity: 0.3, width: 1.5 },
+    { count: 50,  speedMin: 28, speedMax: 35, lengthMin: 35, lengthMax: 50, opacity: 0.5, width: 2.5 }
+];
+
+function createRain() {
+    raindrops = [];
+    layers.forEach(layer => {
+        for (let i = 0; i < layer.count; i++) {
+            raindrops.push({
+                x: Math.random() * c.width,
+                y: Math.random() * c.height,
+                s: (Math.random() * (layer.speedMax - layer.speedMin) + layer.speedMin) * 1.1,
+                l: Math.random() * (layer.lengthMax - layer.lengthMin) + layer.lengthMin,
+                o: layer.opacity,
+                w: layer.width
+            });
+        }
+    });
+}
+createRain();
+
+function draw() {
+    // الخلفية البيضاء مع شفافية لعمل تأثير التلاشي (Motion Blur)
+    ctx.fillStyle = "rgba(255, 255, 255, 0.4)"; 
+    ctx.fillRect(0, 0, c.width, c.height);
+
+    for (let i = 0; i < raindrops.length; i++) {
+        let p = raindrops[i];
+        
+        // لون المطر: رمادي غامق لامع ليتناسب مع الخلفية البيضاء
+        ctx.strokeStyle = `rgba(100, 100, 120, ${p.o + 0.2})`; 
+        ctx.lineWidth = p.w;
+        ctx.lineCap = "round";
+        
+        ctx.beginPath();
+        ctx.moveTo(p.x, p.y);
+        ctx.lineTo(p.x + (p.s * 0.04), p.y + p.l);
+        ctx.stroke();
+
+        p.y += p.s;
+        p.x += p.s * 0.04;
+
+        if (p.y > c.height) {
+            p.y = -p.l;
+            p.x = Math.random() * c.width;
+        }
+    }
+    requestAnimationFrame(draw);
+}
+
+// تحريك الكشاف
+const container = document.getElementById('hidden-container');
+const img = document.getElementById('hidden-image');
+container.addEventListener('mousemove', (e) => {
+    const rect = container.getBoundingClientRect();
+    img.style.setProperty('--x', (e.clientX - rect.left) + 'px');
+    img.style.setProperty('--y', (e.clientY - rect.top) + 'px');
+});
+
+document.body.addEventListener('click', initAudioOnFirstClick, {once: true});
+
+draw();
+</script>
+</body>
+</html>

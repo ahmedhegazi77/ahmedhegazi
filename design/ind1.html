@@ -1,0 +1,119 @@
+<html>
+    <head>
+        <style>
+            /* basic reset */
+            *{
+                margin: 0;
+                padding: 0;
+            }
+            body {
+                background: black;
+                overflow: hidden;
+            }
+            canvas {display:block;}
+
+            /* حاوية الصورة المخفية */
+            #hidden-container {
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                width: 10cm;
+                height: 10cm;
+                z-index: 10; /* فوق المطر */
+                cursor: pointer;
+                overflow: hidden;
+                /* إخفاء الصورة تماماً في الحالة العادية */
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            #hidden-image {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+                /* تأثير الكشاف: الصورة مخفية ويظهر منها فقط دائرة حول الماوس */
+                mask-image: radial-gradient(circle 100px at var(--x) var(--y), black 0%, transparent 100%);
+                -webkit-mask-image: radial-gradient(circle 100px at var(--x) var(--y), black 0%, transparent 100%);
+                opacity: 0; /* مخفية تماماً */
+                transition: opacity 0.3s;
+            }
+
+            /* إظهار الكشاف فقط عند مرور الماوس على الحاوية */
+            #hidden-container:hover #hidden-image {
+                opacity: 1;
+            }
+        </style>
+    </head>
+    <body>
+    
+        <canvas id="c"></canvas>
+
+        <!-- الجزء الخاص بالصورة المخفية -->
+        <div id="hidden-container" ondblclick="window.location.href='design.html'">
+            <img src="../media/ahmed.jpg" id="hidden-image" alt="Hidden">
+        </div>
+        
+        <script>
+        // تحريك الكشاف مع الماوس
+        const container = document.getElementById('hidden-container');
+        const img = document.getElementById('hidden-image');
+        
+        container.addEventListener('mousemove', (e) => {
+            const rect = container.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            img.style.setProperty('--x', x + 'px');
+            img.style.setProperty('--y', y + 'px');
+        });
+
+        // كود المطر الأصلي
+        var c = document.getElementById("c");
+        var ctx = c.getContext("2d");
+
+        c.height = window.innerHeight;
+        c.width = window.innerWidth;
+
+        var matrix = "ABCDEFGHIJKLMNOPQRSTUVWXYZ123456789@#$%^&*()*&^%";
+        matrix = matrix.split("");
+
+        var font_size = 10;
+        var columns = c.width/font_size;
+        var drops = [];
+        for(var x = 0; x < columns; x++)
+            drops[x] = 1; 
+
+        function draw()
+        {
+            ctx.fillStyle = "rgba(0, 0, 0, 0.04)";
+            ctx.fillRect(0, 0, c.width, c.height);
+
+            ctx.font = font_size + "px arial";
+            
+            for(var i = 0; i < drops.length; i++)
+            {
+                var text = matrix[Math.floor(Math.random()*matrix.length)];
+                
+                // الحرف الأول مضيء جداً
+                ctx.fillStyle = "#AFFFFF"; 
+                ctx.shadowBlur = 15;
+                ctx.shadowColor = "#0F0";
+                
+                ctx.fillText(text, i*font_size, drops[i]*font_size);
+
+                // بقية الذيل أخضر عادي
+                ctx.fillStyle = "#0F0";
+                ctx.shadowBlur = 0;
+
+                if(drops[i]*font_size > c.height && Math.random() > 0.975)
+                    drops[i] = 0;
+
+                drops[i]++;
+            }
+        }
+
+        setInterval(draw, 35);
+        </script>
+    </body>
+</html>

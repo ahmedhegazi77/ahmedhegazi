@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>AHMED HEGAZI BOARD</title>
+    <style>
+        :root {
+            --neon: #00f2ff; --panel-bg: rgba(10, 15, 20, 0.98);
+            --g-blue: #4285F4; --g-red: #EA4335; --g-yellow: #FBBC05; --g-green: #34A853;
+        }
+        body { margin: 0; overflow: hidden; background: #050505; font-family: 'Segoe UI', Arial, sans-serif; color: #fff; touch-action: none; display: flex; }
+        
+        #main-container { display: flex; width: 100vw; height: 100vh; }
+        #canvas-zone { position: relative; flex: 1; height: 100%; overflow: hidden; }
+        #viewer-zone { flex: 0; background: #111; border-left: 2px solid #333; transition: 0.5s; overflow: hidden; display: flex; flex-direction: column; position: relative; }
+        #viewer-zone.active { flex: 1; }
+
+        /* Professional Compact Header */
+        #top-panel {
+            position: absolute; top: 0; left: 0; right: 0; z-index: 1000;
+            background: var(--panel-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            padding: 8px 15px; display: flex; align-items: center; justify-content: space-between;
+            border-bottom: 2px solid #222; transition: 0.5s cubic-bezier(0.19, 1, 0.22, 1);
+        }
+        #top-panel.docked { transform: translateY(-100%); }
+
+        .badge { font-size: 12px; font-weight: 900; border: 1px solid #333; padding: 6px 12px; border-radius: 8px; background: #000; cursor: pointer; display: flex; align-items: center; gap: 5px; white-space: nowrap; }
+        
+        .control-group { display: flex; flex-direction: column; gap: 4px; }
+        .label-row { display: flex; justify-content: space-between; font-size: 9px; font-weight: 900; color: #666; text-transform: uppercase; }
+        
+        .btn-group { display: flex; gap: 2px; background: #000; padding: 3px; border-radius: 6px; border: 1px solid #222; }
+        .btn-group button { background: none; border: none; color: #555; padding: 5px 10px; cursor: pointer; font-size: 9px; font-weight: 900; text-transform: uppercase; border-radius: 4px; }
+        .btn-group button.active { color: var(--neon); background: #151515; }
+
+        input[type="range"] { width: 90px; height: 5px; background: #111; border-radius: 5px; outline: none; appearance: none; }
+        input[type="range"]::-webkit-slider-thumb { appearance: none; width: 18px; height: 18px; background: #fff; border: 2px solid var(--neon); border-radius: 50%; cursor: pointer; box-shadow: 0 0 10px var(--neon); }
+
+        .color-circle { border: 1px solid #333; width: 28px; height: 28px; border-radius: 50%; cursor: pointer; background: none; padding: 0; }
+        .main-action { padding: 8px 14px; border: none; border-radius: 6px; cursor: pointer; font-size: 10px; font-weight: 900; text-transform: uppercase; }
+
+        /* Tools & Icons */
+        .tool-icon { font-size: 16px; cursor: pointer; background: #111; border: 1px solid #333; padding: 5px 10px; border-radius: 5px; color: #888; }
+        .tool-icon.active { border-color: var(--neon); color: var(--neon); box-shadow: 0 0 10px rgba(0,242,255,0.2); }
+
+        canvas { position: absolute; top: 0; left: 0; touch-action: none; }
+        #paintCanvas { z-index: 2; } #tempCanvas { z-index: 3; pointer-events: none; }
+
+        #dock-trigger {
+            position: absolute; bottom: -30px; left: 50%; transform: translateX(-50%);
+            width: 70px; height: 30px; background: var(--panel-bg); border-radius: 0 0 15px 15px;
+            cursor: pointer; display: flex; justify-content: center; align-items: center; border: 1px solid #222; border-top: none;
+        }
+        #dock-trigger span { width: 20px; height: 2px; background: var(--neon); border-radius: 5px; }
+
+        /* Viewer Elements */
+        #viewer-zone label { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: var(--neon); cursor: pointer; border: 2px dashed #333; padding: 20px; border-radius: 10px; text-align: center; font-weight: 900; z-index: 10; background: rgba(0,0,0,0.8); }
+        #close-split { position: absolute; top: 10px; left: 10px; z-index: 1001; background: #EA4335; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-weight: 900; }
+
+        /* Flatten Toggle Style */
+        .toggle-wrap { display: flex; align-items: center; gap: 5px; cursor: pointer; }
+        .toggle-box { width: 30px; height: 15px; background: #111; border-radius: 10px; position: relative; transition: 0.3s; border: 1px solid #333; }
+        .toggle-box::after { content: ''; position: absolute; width: 11px; height: 11px; background: #fff; border-radius: 50%; top: 1px; left: 2px; transition: 0.3s; }
+        input:checked + .toggle-box { background: var(--neon); }
+        input:checked + .toggle-box::after { left: 15px; }
+
+        /* حاويات العرض المختلفة */
+        .viewer-content {
+            width: 100%;
+            height: 100%;
+            display: none;
+            position: relative;
+        }
+        .viewer-content.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        #iframe-viewer {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: white;
+        }
+        #image-viewer {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+        .image-container {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: auto;
+        }
+        .pdf-fallback {
+            text-align: center;
+            padding: 30px;
+            background: #1a1f2e;
+            border-radius: 15px;
+            border: 1px solid var(--neon);
+        }
+        .pdf-fallback a {
+            color: var(--neon);
+            text-decoration: none;
+            font-weight: bold;
+            display: inline-block;
+            margin-top: 15px;
+            padding: 10px 20px;
+            background: rgba(0,242,255,0.1);
+            border-radius: 8px;
+        }
+        .pdf-fallback a:hover {
+            background: rgba(0,242,255,0.2);
+        }
+    </style>
+</head>
+<body>
+
+<div id="main-container">
+    <div id="canvas-zone">
+        <div id="top-panel">
+            
+            <div style="display: flex; gap: 10px; align-items: center;">
+                <div class="badge" onclick="toggleSplit()">
+                    <span style="color:var(--g-blue)">E</span><span style="color:var(--g-red)">N</span><span style="color:var(--g-yellow)">G.</span><span style="color:var(--g-blue)">AHMED</span><span style="color:var(--g-green)">H</span>
+                    <span style="color:#555; font-size: 9px; margin-left: 5px;">| SPLIT</span>
+                </div>
+                <div style="display: flex; gap: 3px;">
+                    <button class="tool-icon" onclick="undo()">⟲</button>
+                    <button class="tool-icon" onclick="redo()">⟳</button>
+                </div>
+            </div>
+
+            <!-- Part 2: Brush Core (Angle & Size) -->
+            <div style="display: flex; gap: 12px; align-items: center; background: rgba(0,0,0,0.4); padding: 5px 12px; border-radius: 12px; border: 1px solid #222;">
+                <div class="control-group">
+                    <div class="label-row">Nib <span id="aV" style="color:var(--neon)">30°</span></div>
+                    <input type="range" id="pA" min="0" max="180" value="30" oninput="updateUI()">
+                </div>
+                <div class="control-group">
+                    <div class="label-row">Size <span id="sV" style="color:var(--neon)">45</span></div>
+                    <input type="range" id="pS" min="1" max="250" value="45" oninput="updateUI()">
+                </div>
+                <div class="btn-group">
+                    <button id="mN" onclick="setMode('normal')">●</button>
+                    <button id="mC" class="active" onclick="setMode('chisel')">⬛</button>
+                </div>
+                <div class="control-group">
+                    <div class="label-row">Ink</div>
+                    <input type="color" id="pC" class="color-circle" value="#00f2ff">
+                </div>
+            </div>
+
+            <!-- Part 3: Grid & Background Colors -->
+            <div style="display: flex; gap: 10px; align-items: center;">
+                <div class="control-group">
+                    <div class="label-row">Grid Style</div>
+                    <div class="btn-group">
+                        <button id="pBlank" class="active" onclick="setPaper('blank')">Ø</button>
+                        <button id="pGrid" onclick="setPaper('grid')">#</button>
+                        <button id="pLines" onclick="setPaper('lines')">≡</button>
+                        <button id="pDots" onclick="setPaper('dots')">⁞</button>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 5px;">
+                    <div class="control-group">
+                        <div class="label-row">Back</div>
+                        <input type="color" id="bC" class="color-circle" value="#050505" oninput="updateGrid()">
+                    </div>
+                    <div class="control-group">
+                        <div class="label-row">Line</div>
+                        <input type="color" id="gC" class="color-circle" value="#222222" oninput="updateGrid()">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Part 4: Smart Logic & Save -->
+            <div style="display: flex; gap: 10px; align-items: center;">
+                <button id="shapeToggle" class="tool-icon" onclick="toggleShapeAssist()">🧲</button>
+                
+                <label class="toggle-wrap">
+                    <input type="checkbox" id="saveGrid" style="display:none">
+                    <div class="toggle-box"></div>
+                    <span style="font-size: 8px; font-weight: 900; color: #555;">FLATTEN</span>
+                </label>
+
+                <div style="display: flex; gap: 5px;">
+                    <button class="main-action" style="background: var(--neon); color: #000;" onclick="download()">SAVE</button>
+                    <button class="main-action" style="background: #EA4335; color: #fff;" onclick="clearAll()">CLR</button>
+                </div>
+            </div>
+
+            <div id="dock-trigger" onclick="toggleDock()"><span></span></div>
+        </div>
+
+        <canvas id="gridCanvas"></canvas>
+        <canvas id="paintCanvas"></canvas>
+        <canvas id="tempCanvas"></canvas>
+    </div>
+
+    <div id="viewer-zone">
+        <button id="close-split" onclick="toggleSplit()">CLOSE ×</button>
+        <label for="file-input">📂 UPLOAD PDF / IMAGE / DOC</label>
+        <input type="file" id="file-input" style="display:none" onchange="loadFile(event)">
+        
+        <!-- حاويات العرض المختلفة -->
+        <div id="iframe-container" class="viewer-content">
+            <iframe id="content-frame"></iframe>
+        </div>
+        <div id="image-container" class="viewer-content">
+            <div class="image-container">
+                <img id="image-preview">
+            </div>
+        </div>
+        <div id="fallback-container" class="viewer-content">
+            <div class="pdf-fallback" id="fallback-message">
+                <!-- محتوى الرسالة سيضاف ديناميكياً -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ========== كشف البيئة ==========
+    const isAndroid = /Android/i.test(navigator.userAgent);
+    const isOpera = /Opera|OPR/i.test(navigator.userAgent);
+    const isMobile = /Mobi|Android/i.test(navigator.userAgent);
+    
+    // هل المتصفح يدعم عرض PDF في iframe؟
+    let supportsPDFInline = !isAndroid; // افتراضياً Windows يدعم، Android قد لا يدعم
+    
+    // اختبار إضافي: بعض إصدارات Opera على Android لا تدعم PDF
+    if(isAndroid && isOpera) {
+        supportsPDFInline = false;
+    }
+    
+    console.log(`Environment: Android=${isAndroid}, Opera=${isOpera}, SupportsPDF=${supportsPDFInline}`);
+
+    // ========== العناصر الأساسية ==========
+    const gCanvas = document.getElementById('gridCanvas'), gCtx = gCanvas.getContext('2d');
+    const pCanvas = document.getElementById('paintCanvas'), pCtx = pCanvas.getContext('2d');
+    const tCanvas = document.getElementById('tempCanvas'), tCtx = tCanvas.getContext('2d');
+    
+    let drawing = false, mode = 'chisel', paper = 'blank', lastPos = null;
+    let shapeAssist = false, points = [], history = [], redoStack = [];
+
+    // ========== دوال العرض ==========
+    function showViewer(type) {
+        document.getElementById('iframe-container').classList.remove('active');
+        document.getElementById('image-container').classList.remove('active');
+        document.getElementById('fallback-container').classList.remove('active');
+        
+        if(type === 'iframe') document.getElementById('iframe-container').classList.add('active');
+        else if(type === 'image') document.getElementById('image-container').classList.add('active');
+        else if(type === 'fallback') document.getElementById('fallback-container').classList.add('active');
+    }
+    
+    function hideFileLabel() {
+        const label = document.querySelector('#viewer-zone label');
+        if(label) label.style.display = 'none';
+    }
+    
+    function showFileLabel() {
+        const label = document.querySelector('#viewer-zone label');
+        if(label) label.style.display = 'block';
+    }
+
+    // ========== دالة تحميل الملف المحسنة ==========
+    function loadFile(event) {
+        const file = event.target.files[0];
+        if(!file) return;
+        
+        const fileName = file.name;
+        const fileType = file.type;
+        const fileURL = URL.createObjectURL(file);
+        
+        // إخفاء الـ label
+        hideFileLabel();
+        
+        // الصور
+        if(fileType.startsWith('image/')) {
+            const img = document.getElementById('image-preview');
+            img.onload = () => URL.revokeObjectURL(fileURL);
+            img.src = fileURL;
+            showViewer('image');
+            return;
+        }
+        
+        // PDF
+        if(fileType === 'application/pdf' || fileName.toLowerCase().endsWith('.pdf')) {
+            if(supportsPDFInline) {
+                // على Windows أو المتصفحات التي تدعم PDF
+                const iframe = document.getElementById('content-frame');
+                iframe.src = fileURL;
+                iframe.style.display = 'block';
+                showViewer('iframe');
+                // تنظيف الـ URL بعد فترة
+                setTimeout(() => URL.revokeObjectURL(fileURL), 60000);
+            } else {
+                // على Android/Opera: عرض رابط تحميل فقط
+                const fallbackDiv = document.getElementById('fallback-message');
+                fallbackDiv.innerHTML = `
+                    <p>⚠️ لا يمكن عرض PDF مباشرة في هذا المتصفح (${navigator.userAgent.split('/')[0]})</p>
+                    <p>📄 ${fileName}</p>
+                    <a href="${fileURL}" download="${fileName}" id="pdf-download-link">📥 تحميل الملف</a>
+                    <p style="font-size: 11px; margin-top: 15px;">اضغط مع الاستمرار > حفظ الرابط</p>
+                `;
+                showViewer('fallback');
+                // لا نستطيع revoke فوراً لأن الرابط سيستخدم للتحميل
+            }
+            return;
+        }
+        
+        // الملفات النصية والملفات الأخرى
+        if(fileType.includes('text') || fileName.endsWith('.txt') || fileName.endsWith('.html') || 
+           fileName.endsWith('.css') || fileName.endsWith('.js') || fileName.endsWith('.json')) {
+            const iframe = document.getElementById('content-frame');
+            iframe.src = fileURL;
+            iframe.style.display = 'block';
+            showViewer('iframe');
+            setTimeout(() => URL.revokeObjectURL(fileURL), 60000);
+        } else {
+            // أي ملف آخر
+            const fallbackDiv = document.getElementById('fallback-message');
+            fallbackDiv.innerHTML = `
+                <p>📄 ${fileName}</p>
+                <p>نوع الملف غير مدعوم للعرض المباشر</p>
+                <a href="${fileURL}" download="${fileName}" id="file-download-link">📥 تحميل الملف</a>
+            `;
+            showViewer('fallback');
+        }
+    }
+
+    // ========== الدوال الأساسية للرسم ==========
+    function init() {
+        const w = window.innerWidth;
+        const h = window.innerHeight;
+        pCanvas.width = gCanvas.width = tCanvas.width = w;
+        pCanvas.height = gCanvas.height = tCanvas.height = h;
+        saveState(); 
+        updateGrid();
+    }
+
+    function toggleDock() { document.getElementById('top-panel').classList.toggle('docked'); }
+    
+    function toggleSplit() { 
+        document.getElementById('viewer-zone').classList.toggle('active'); 
+        setTimeout(init, 500);
+        // عند إغلاق الـ split، نعيد إظهار الـ label
+        if(!document.getElementById('viewer-zone').classList.contains('active')) {
+            showFileLabel();
+            // تنظيف المحتوى
+            document.getElementById('content-frame').src = '';
+            document.getElementById('image-preview').src = '';
+            showViewer('iframe'); // إخفاء الكل
+        }
+    }
+    
+    function toggleShapeAssist() {
+        shapeAssist = !shapeAssist;
+        document.getElementById('shapeToggle').classList.toggle('active', shapeAssist);
+    }
+
+    function updateUI() {
+        document.getElementById('sV').innerText = document.getElementById('pS').value;
+        document.getElementById('aV').innerText = document.getElementById('pA').value + '°';
+    }
+
+    function updateGrid() {
+        gCtx.fillStyle = document.getElementById('bC').value;
+        gCtx.fillRect(0, 0, gCanvas.width, gCanvas.height);
+        if (paper !== 'blank') {
+            const size = 60;
+            gCtx.strokeStyle = document.getElementById('gC').value;
+            gCtx.fillStyle = document.getElementById('gC').value;
+            gCtx.lineWidth = 1;
+            gCtx.beginPath();
+            for (let y=0; y<gCanvas.height; y+=size) {
+                for (let x=0; x<gCanvas.width; x+=size) {
+                    if (paper === 'grid') gCtx.strokeRect(x, y, size, size);
+                    else if (paper === 'lines') { gCtx.moveTo(0, y); gCtx.lineTo(gCanvas.width, y); }
+                    else if (paper === 'dots') gCtx.fillRect(x-1, y-1, 2, 2);
+                }
+            }
+            gCtx.stroke();
+        }
+        updateUI();
+    }
+
+    function setPaper(p) {
+        paper = p;
+        ['pBlank','pGrid','pLines','pDots'].forEach(id => document.getElementById(id).classList.remove('active'));
+        document.getElementById('p' + p.charAt(0).toUpperCase() + p.slice(1)).classList.add('active');
+        updateGrid();
+    }
+
+    function setMode(m) {
+        mode = m;
+        document.getElementById('mN').classList.toggle('active', m === 'normal');
+        document.getElementById('mC').classList.toggle('active', m === 'chisel');
+    }
+
+    function paint(ctx, x, y) {
+        const size = parseInt(document.getElementById('pS').value);
+        const angle = -(parseInt(document.getElementById('pA').value) * Math.PI / 180);
+        ctx.fillStyle = document.getElementById('pC').value;
+        if (mode === 'normal') { ctx.beginPath(); ctx.arc(x, y, size/2, 0, Math.PI*2); ctx.fill(); }
+        else {
+            ctx.save(); ctx.translate(x, y); ctx.rotate(angle);
+            ctx.fillRect(-size/2, -2, size, 4); ctx.restore();
+        }
+    }
+
+    function saveState() { if (history.length > 25) history.shift(); history.push(pCanvas.toDataURL()); redoStack = []; }
+    function undo() {
+        if (history.length > 1) {
+            redoStack.push(history.pop());
+            let img = new Image(); img.src = history[history.length-1];
+            img.onload = () => { pCtx.clearRect(0,0,pCanvas.width,pCanvas.height); pCtx.drawImage(img,0,0); };
+        }
+    }
+    function redo() {
+        if (redoStack.length > 0) {
+            let data = redoStack.pop(); history.push(data);
+            let img = new Image(); img.src = data;
+            img.onload = () => { pCtx.clearRect(0,0,pCanvas.width,pCanvas.height); pCtx.drawImage(img,0,0); };
+        }
+    }
+
+    function getPos(e) {
+        const t = e.touches ? e.touches[0] : e;
+        const rect = pCanvas.getBoundingClientRect();
+        return { x: t.clientX - rect.left, y: t.clientY - rect.top };
+    }
+
+    function handleStart(e) { 
+        drawing = true; points = []; 
+        const pos = getPos(e); lastPos = pos;
+        if (!shapeAssist) paint(pCtx, pos.x, pos.y); 
+    }
+
+    function handleMove(e) {
+        if (!drawing) return;
+        const pos = getPos(e);
+        if (shapeAssist) {
+            points.push(pos);
+            tCtx.clearRect(0,0,tCanvas.width,tCanvas.height);
+            tCtx.beginPath(); tCtx.strokeStyle = "#fff"; tCtx.lineWidth = 2;
+            points.forEach((p, i) => i === 0 ? tCtx.moveTo(p.x, p.y) : tCtx.lineTo(p.x, p.y));
+            tCtx.stroke();
+        } else {
+            const dist = Math.hypot(pos.x - lastPos.x, pos.y - lastPos.y);
+            const ang = Math.atan2(pos.y - lastPos.y, pos.x - lastPos.x);
+            for (let i=0; i<dist; i+=0.5) paint(pCtx, lastPos.x + Math.cos(ang)*i, lastPos.y + Math.sin(ang)*i);
+            lastPos = pos;
+        }
+    }
+
+    function handleEnd() { 
+        if (!drawing) return;
+        if (shapeAssist && points.length > 10) detectShape();
+        drawing = false; tCtx.clearRect(0,0,tCanvas.width,tCanvas.height); saveState(); 
+    }
+
+    function detectShape() {
+        const xs = points.map(p => p.x), ys = points.map(p => p.y);
+        const minX = Math.min(...xs), maxX = Math.max(...xs), minY = Math.min(...ys), maxY = Math.max(...ys);
+        const w = maxX - minX, h = maxY - minY;
+        const start = points[0], end = points[points.length-1];
+        
+        pCtx.strokeStyle = document.getElementById('pC').value;
+        pCtx.lineWidth = parseInt(document.getElementById('pS').value) / 5;
+        pCtx.beginPath();
+
+        const distSE = Math.hypot(start.x - end.x, start.y - end.y);
+        const totalLen = points.reduce((acc, p, i) => i === 0 ? 0 : acc + Math.hypot(p.x - points[i-1].x, p.y - points[i-1].y), 0);
+
+        if (distSE > totalLen * 0.7) {
+            pCtx.moveTo(start.x, start.y); pCtx.lineTo(end.x, end.y);
+        } else if (Math.abs(w - h) < 40) {
+            pCtx.arc((minX + maxX)/2, (minY + maxY)/2, (w + h)/4, 0, Math.PI * 2);
+        } else {
+            pCtx.strokeRect(minX, minY, w, h);
+        }
+        pCtx.stroke();
+    }
+
+    function clearAll() { pCtx.clearRect(0,0,pCanvas.width,pCanvas.height); saveState(); }
+    
+    function download() {
+        const out = document.createElement('canvas'); out.width=pCanvas.width; out.height=pCanvas.height;
+        const oCtx = out.getContext('2d');
+        if (document.getElementById('saveGrid').checked) oCtx.drawImage(gCanvas, 0, 0);
+        else { oCtx.fillStyle = document.getElementById('bC').value; oCtx.fillRect(0,0,out.width,out.height); }
+        oCtx.drawImage(pCanvas, 0, 0);
+        const l = document.createElement('a'); l.download=`Hegazi_Master_${Date.now()}.png`; l.href=out.toDataURL(); l.click();
+    }
+
+    // ========== ربط الأحداث ==========
+    pCanvas.addEventListener('mousedown', handleStart);
+    window.addEventListener('mousemove', handleMove);
+    window.addEventListener('mouseup', handleEnd);
+    pCanvas.addEventListener('touchstart', (e) => { e.preventDefault(); handleStart(e); }, {passive:false});
+    window.addEventListener('touchmove', (e) => { if(drawing) { e.preventDefault(); handleMove(e); } }, {passive:false});
+    window.addEventListener('touchend', handleEnd);
+    window.onresize = init; 
+    init();
+
+    // الدبل كليك
+    window.addEventListener('dblclick', () => {
+        window.location.href = 'cboard.html';
+    });
+
+    let lastTap = 0;
+    window.addEventListener('touchend', (e) => {
+        const currentTime = new Date().getTime();
+        const tapLength = currentTime - lastTap;
+        if (tapLength < 300 && tapLength > 0) {
+            window.location.href = 'cboard.html';
+        }
+        lastTap = currentTime;
+    });
+</script>
+</body>
+</html>

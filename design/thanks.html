@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>رسائل الشكر المضيئة - 11 لغة</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(145deg, #0b0f1a 0%, #1b1f30 100%);
+            font-family: 'Segoe UI', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            min-height: 100vh;
+            padding: 40px 25px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #eef3ff;
+        }
+
+        .master-lamp {
+            max-width: 1200px;
+            width: 100%;
+            background: rgba(20, 30, 50, 0.4);
+            backdrop-filter: blur(12px);
+            border-radius: 80px;
+            padding: 50px 45px;
+            box-shadow: 0 40px 70px -20px #000000cc, 0 0 0 2px #ffffff1a inset, 0 0 0 4px #ffd9661a inset;
+            border: 1px solid #ffd96640;
+        }
+
+        .header-area {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        .header-area h1 {
+            font-size: 3.8rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #ffe484, #ffb347, #ff7e5f);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 40px #ffb34780;
+            margin-bottom: 15px;
+        }
+
+        .header-area .by {
+            font-size: 1.6rem;
+            color: #b0c8ff;
+            background: #1e264580;
+            display: inline-block;
+            padding: 10px 40px;
+            border-radius: 60px;
+            border: 1px solid #ffd966;
+            backdrop-filter: blur(4px);
+        }
+
+        .lang-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 35px;
+        }
+
+        .msg-card {
+            display: flex;
+            gap: 30px;
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(8px);
+            border-radius: 70px;
+            padding: 30px 35px;
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            box-shadow: 0 20px 40px -15px #000, 0 0 0 2px #ffd9661a inset;
+            transition: all 0.3s;
+            align-items: center;
+        }
+
+        .msg-card:hover {
+            border-color: #ffb86b;
+            box-shadow: 0 30px 50px -18px #ffb86b80, 0 0 0 3px #ffd96640 inset;
+            transform: translateY(-4px);
+        }
+
+        /* عمود العلم واللمبة */
+        .flag-lamp {
+            flex: 0 0 130px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 18px;
+        }
+
+        .flag-icon {
+            font-size: 4rem;
+            line-height: 1;
+            filter: drop-shadow(0 10px 12px #00000060);
+            transition: transform 0.2s;
+        }
+
+        .flag-icon:hover {
+            transform: scale(1.1);
+        }
+
+        .lamp {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            background: #2a3457;
+            box-shadow: 0 0 20px currentColor, 0 0 40px currentColor;
+            animation: glowPulse 2s infinite alternate;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #000;
+            font-size: 1.8rem;
+            transition: 0.3s;
+            border: 2px solid #ffffffcc;
+        }
+
+        @keyframes glowPulse {
+            from { box-shadow: 0 0 20px currentColor, 0 0 40px currentColor; }
+            to { box-shadow: 0 0 40px currentColor, 0 0 80px currentColor; }
+        }
+
+        /* منطقة الرسالة */
+        .msg-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .lang-name-badge {
+            display: inline-block;
+            background: #1f2a44;
+            color: #ffd966;
+            padding: 6px 20px;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            border: 1px solid #ffb86b;
+        }
+
+        .message-box {
+            background: rgba(255, 255, 255, 0.07);
+            border-radius: 50px;
+            padding: 28px 30px;
+            border: 1px solid rgba(255, 215, 0, 0.4);
+            box-shadow: inset 0 4px 20px #00000080, 0 10px 30px -10px #000000cc;
+            font-size: 1.2rem;
+            line-height: 1.8;
+            color: #f0f5ff;
+            backdrop-filter: blur(4px);
+            margin-bottom: 20px;
+            min-height: 160px;
+            display: flex;
+            align-items: center;
+        }
+
+        .message-box[dir="rtl"] {
+            text-align: right;
+        }
+
+        .message-box[dir="ltr"] {
+            text-align: left;
+        }
+
+        .btn-speak {
+            background: linear-gradient(145deg, #2b3b60, #1f2c47);
+            border: none;
+            color: #ffd966;
+            padding: 14px 25px;
+            border-radius: 60px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            cursor: pointer;
+            transition: 0.2s;
+            border: 1px solid #ffd96680;
+            box-shadow: 0 10px 20px -8px #000, 0 0 15px #ffb86b40;
+            min-width: 150px;
+        }
+
+        .btn-speak:hover {
+            background: linear-gradient(145deg, #324b78, #2b3b60);
+            transform: scale(1.03);
+            box-shadow: 0 15px 30px -10px #ffb86b, 0 0 0 2px #ffd966 inset;
+            color: white;
+        }
+
+        .btn-speak:active {
+            transform: scale(0.98);
+        }
+
+        .footer-thanks {
+            margin-top: 60px;
+            text-align: center;
+            background: #ffffff0d;
+            backdrop-filter: blur(4px);
+            padding: 25px 30px;
+            border-radius: 60px;
+            border: 1px solid #ffd96640;
+            font-size: 1.8rem;
+            color: #ffd966;
+        }
+
+        .footer-thanks span {
+            color: #ffb86b;
+            font-size: 2rem;
+        }
+
+        /* ألوان اللمبات حسب علم الدولة */
+        .lamp-ar { color: #ffd700; background: #006633; }  /* أخضر سعودي/مصري */
+        .lamp-en { color: #ffffff; background: #00247d; }  /* أزرق بريطاني */
+        .lamp-fr { color: #ffffff; background: #0055a4; }  /* أزرق فرنسي */
+        .lamp-he { color: #ffffff; background: #0038b8; }  /* أزرق إسرائيلي */
+        .lamp-zh { color: #ffde00; background: #de2910; }  /* أحمر صيني */
+        .lamp-ja { color: #ff0000; background: #ffffff; border: 2px solid #bc002d; } /* أبيض ياباني */
+        .lamp-ko { color: #000000; background: #ffffff; border: 2px solid #cd2e3a; } /* أبيض كوري */
+        .lamp-it { color: #ffffff; background: #009246; }  /* أخضر إيطالي */
+        .lamp-es { color: #ffffff; background: #aa151b; }  /* أحمر إسباني */
+        .lamp-ru { color: #ffffff; background: #0039a6; }  /* أزرق روسي */
+        .lamp-de { color: #ffcc00; background: #000000; border: 2px solid #dd0000; } /* أسود ألماني */
+
+        /* استجابة للشاشات الصغيرة */
+        @media (max-width: 800px) {
+            .msg-card {
+                flex-direction: column;
+                align-items: stretch;
+                padding: 25px;
+            }
+            .flag-lamp {
+                flex-direction: row;
+                justify-content: space-around;
+                margin-bottom: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="master-lamp">
+        <div class="header-area">
+            <h1>💡 رسائل الشكر المضيئة 💡</h1>
+            <div class="by">مهندس أحمد حجازي – إلى العالم بكل اللغات</div>
+        </div>
+
+        <div class="lang-grid" id="langGrid"></div>
+
+        <div class="footer-thanks">
+            <span>⚡</span> بكل الحب والتقدير .. شكراً لكم من أعماق القلب <span>⚡</span>
+        </div>
+    </div>
+
+    <script>
+        // قائمة اللغات مع البيانات الكاملة (رسائل مطولة لا تقل عن 4 أسطر)
+        const languages = [
+            {
+                name: "العربية",
+                flag: "🇸🇦",
+                langCode: "ar-SA",
+                dir: "rtl",
+                message: "السادة فريق العمل المحترم،\nأود أن أعبر عن عميق امتناني وشكري الجزيل لكم على هذه الخدمة المجانية الرائعة التي تقدمونها. إن ما تقومون به من جهد وعطاء يساهم في نشر المعرفة وتسهيل التواصل بين الثقافات المختلفة. أنا مهندس أحمد حجازي من مصر، وأشعر بالفخر لاستخدام هذه الخدمة المتقنة. أسأل الله أن يبارك فيكم ويكثر من أمثالكم. شكراً لكم من القلب.",
+                lampClass: "lamp-ar"
+            },
+            {
+                name: "English",
+                flag: "🇬🇧",
+                langCode: "en-US",
+                dir: "ltr",
+                message: "Dear respected team,\nI would like to express my deepest gratitude and sincere thanks for this wonderful free service you provide. Your efforts and generosity greatly contribute to spreading knowledge and facilitating communication between different cultures. I am Engineer Ahmed Hegazy from Egypt, and I feel proud to use this excellent service. May God bless you and increase your kind. Thank you from the bottom of my heart.",
+                lampClass: "lamp-en"
+            },
+            {
+                name: "Français",
+                flag: "🇫🇷",
+                langCode: "fr-FR",
+                dir: "ltr",
+                message: "Chers membres de l'équipe,\nJe tiens à exprimer ma profonde gratitude et mes sincères remerciements pour ce merveilleux service gratuit que vous offrez. Vos efforts et votre générosité contribuent grandement à diffuser la connaissance et à faciliter la communication entre les différentes cultures. Je suis l'ingénieur Ahmed Hegazy d'Égypte, et je suis fier d'utiliser ce service exceptionnel. Que Dieu vous bénisse et multiplie vos bienfaits. Merci du fond du cœur.",
+                lampClass: "lamp-fr"
+            },
+            {
+                name: "עברית",
+                flag: "🇮🇱",
+                langCode: "he-IL",
+                dir: "rtl",
+                message: "לצוות הנכבד,\nברצוני להביע את תודתי העמוקה והכרת התודה הכנה שלי על השירות החינמי הנפלא הזה שאתם מספקים. המאמצים והנדיבות שלכם תורמים רבות להפצת ידע ולהקלת התקשורת בין תרבויות שונות. אני המהנדס אחמד חג'אזי ממצרים, ואני גאה להשתמש בשירות המעולה הזה. יברך אתכם אלוהים וירבה את טובכם. תודה מעומק הלב.",
+                lampClass: "lamp-he"
+            },
+            {
+                name: "中文",
+                flag: "🇨🇳",
+                langCode: "zh-CN",
+                dir: "ltr",
+                message: "尊敬的团队，\n我想对你们提供这项精彩的免费服务表示最深切的感谢和诚挚的谢意。你们的努力和慷慨极大地促进了知识的传播和不同文化之间的交流。我是来自埃及的工程师艾哈迈德·赫加齐，我为使用这项卓越的服务感到自豪。愿上帝保佑你们，增加你们的善良。衷心感谢你们。",
+                lampClass: "lamp-zh"
+            },
+            {
+                name: "日本語",
+                flag: "🇯🇵",
+                langCode: "ja-JP",
+                dir: "ltr",
+                message: "尊敬するチームの皆様、\nこの素晴らしい無料サービスを提供してくださり、心から感謝申し上げます。皆様の努力と寛大さは、知識の普及と異文化間のコミュニケーション促進に大きく貢献しています。私はエジプト出身のエンジニア、アハメド・ヘガジです。この卓越したサービスを利用できることを誇りに思います。神のご加護があり、皆様の善良さが増しますように。心より感謝申し上げます。",
+                lampClass: "lamp-ja"
+            },
+            {
+                name: "한국어",
+                flag: "🇰🇷",
+                langCode: "ko-KR",
+                dir: "ltr",
+                message: "존경하는 팀 여러분,\n이 훌륭한 무료 서비스를 제공해 주셔서 깊은 감사를 드립니다. 여러분의 노력과 관대함은 지식 확산과 다양한 문화 간의 의사 소통 촉진에 크게 기여하고 있습니다. 저는 이집트 출신의 엔지니어 Ahmed Hegazy입니다. 이 탁월한 서비스를 사용하게 되어 자랑스럽게 생각합니다. 신의 축복이 있으시고 여러분의 선함이 더해지길 바랍니다. 진심으로 감사드립니다.",
+                lampClass: "lamp-ko"
+            },
+            {
+                name: "Italiano",
+                flag: "🇮🇹",
+                langCode: "it-IT",
+                dir: "ltr",
+                message: "Caro team,\nDesidero esprimere la mia profonda gratitudine e sincero ringraziamento per questo meraviglioso servizio gratuito che offrite. I vostri sforzi e la vostra generosità contribuiscono notevolmente a diffondere la conoscenza e facilitare la comunicazione tra culture diverse. Sono l'ingegnere Ahmed Hegazy dall'Egitto e sono orgoglioso di utilizzare questo servizio eccellente. Che Dio vi benedica e accresca la vostra bontà. Grazie dal profondo del cuore.",
+                lampClass: "lamp-it"
+            },
+            {
+                name: "Español",
+                flag: "🇪🇸",
+                langCode: "es-ES",
+                dir: "ltr",
+                message: "Estimado equipo,\nQuiero expresar mi más profundo agradecimiento y sinceras gracias por este maravilloso servicio gratuito que ofrecen. Sus esfuerzos y generosidad contribuyen en gran medida a difundir el conocimiento y facilitar la comunicación entre diferentes culturas. Soy el ingeniero Ahmed Hegazy de Egipto, y me siento orgulloso de utilizar este excelente servicio. Que Dios los bendiga y aumente su bondad. Gracias desde el fondo de mi corazón.",
+                lampClass: "lamp-es"
+            },
+            {
+                name: "Русский",
+                flag: "🇷🇺",
+                langCode: "ru-RU",
+                dir: "ltr",
+                message: "Уважаемая команда,\nЯ хочу выразить свою глубочайшую благодарность и искреннюю признательность за эту замечательную бесплатную услугу, которую вы предоставляете. Ваши усилия и щедрость вносят огромный вклад в распространение знаний и облегчение общения между разными культурами. Я инженер Ахмед Хегази из Египта, и я горжусь тем, что пользуюсь этим превосходным сервисом. Благослови вас Бог и приумножь вашу доброту. Спасибо от всего сердца.",
+                lampClass: "lamp-ru"
+            },
+            {
+                name: "Deutsch",
+                flag: "🇩🇪",
+                langCode: "de-DE",
+                dir: "ltr",
+                message: "Sehr geehrtes Team,\nich möchte meinen tiefsten Dank und meine aufrichtige Anerkennung für diesen wunderbaren kostenlosen Service aussprechen, den Sie anbieten. Ihre Bemühungen und Großzügigkeit tragen wesentlich zur Verbreitung von Wissen und zur Erleichterung der Kommunikation zwischen verschiedenen Kulturen bei. Ich bin Ingenieur Ahmed Hegazy aus Ägypten und bin stolz, diesen hervorragenden Service nutzen zu können. Möge Gott Sie segnen und Ihre Güte mehren. Vielen Dank aus tiefstem Herzen.",
+                lampClass: "lamp-de"
+            }
+        ];
+
+        const grid = document.getElementById('langGrid');
+
+        // دالة النطق
+        function speak(text, langCode) {
+            if (!window.speechSynthesis) {
+                alert("عذراً، المتصفح لا يدعم النطق.");
+                return;
+            }
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = langCode;
+            utterance.rate = 0.9;
+            utterance.pitch = 1.0;
+            utterance.volume = 1;
+            
+            // محاولة اختيار صوت مناسب
+            const voices = window.speechSynthesis.getVoices();
+            const preferredVoice = voices.find(v => v.lang.startsWith(langCode.split('-')[0]));
+            if (preferredVoice) utterance.voice = preferredVoice;
+
+            window.speechSynthesis.speak(utterance);
+        }
+
+        // بناء البطاقات
+        languages.forEach(lang => {
+            const card = document.createElement('div');
+            card.className = 'msg-card';
+
+            // عمود العلم واللمبة
+            const flagLampDiv = document.createElement('div');
+            flagLampDiv.className = 'flag-lamp';
+
+            const flagSpan = document.createElement('span');
+            flagSpan.className = 'flag-icon';
+            flagSpan.textContent = lang.flag;
+
+            const lampDiv = document.createElement('div');
+            lampDiv.className = `lamp ${lang.lampClass}`;
+            lampDiv.textContent = '💡';
+
+            flagLampDiv.appendChild(flagSpan);
+            flagLampDiv.appendChild(lampDiv);
+
+            // منطقة المحتوى
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'msg-content';
+
+            const badge = document.createElement('span');
+            badge.className = 'lang-name-badge';
+            badge.textContent = lang.name;
+
+            const msgBox = document.createElement('div');
+            msgBox.className = 'message-box';
+            msgBox.setAttribute('dir', lang.dir);
+            // تحويل الأسطر إلى <br>
+            msgBox.innerHTML = lang.message.replace(/\n/g, '<br>');
+
+            const btn = document.createElement('button');
+            btn.className = 'btn-speak';
+            btn.innerHTML = `<span>🔊 اقرأ الرسالة</span> <span>🎤</span>`;
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                speak(lang.message, lang.langCode);
+            });
+
+            contentDiv.appendChild(badge);
+            contentDiv.appendChild(msgBox);
+            contentDiv.appendChild(btn);
+
+            card.appendChild(flagLampDiv);
+            card.appendChild(contentDiv);
+
+            grid.appendChild(card);
+        });
+
+        // تحميل الأصوات مسبقاً
+        if (window.speechSynthesis) {
+            window.speechSynthesis.getVoices();
+            window.speechSynthesis.onvoiceschanged = () => {};
+        }
+        // الدبل كليك (في أي مكان على الشاشة)
+        window.addEventListener('dblclick', () => {
+            window.location.href = 'design.html';
+        });
+
+        // للموبايل: محاكاة الدبل كليك باللمس السريع
+        let lastTap = 0;
+        window.addEventListener('touchend', (e) => {
+            const currentTime = new Date().getTime();
+            const tapLength = currentTime - lastTap;
+            if (tapLength < 300 && tapLength > 0) {
+                window.location.href = 'design.html';
+            }
+            lastTap = currentTime;
+        });
+
+    </script>
+</body>
+</html>
