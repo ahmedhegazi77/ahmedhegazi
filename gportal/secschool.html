@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>الثانوية بنات</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: linear-gradient(145deg, #87CEEB 0%, #5F9EA0 50%, #4682B4 100%);
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+            color: #fff;
+            padding: 10px;
+        }
+
+        /* ===== خلفية متحركة بجلانس ===== */
+        body::before {
+            content: '';
+            position: fixed;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle at 30% 40%, rgba(255,215,0,0.25) 0%, transparent 30%),
+                        radial-gradient(circle at 70% 60%, rgba(255,215,0,0.25) 0%, transparent 30%),
+                        repeating-linear-gradient(45deg, 
+                            transparent 0px, 
+                            transparent 30px, 
+                            rgba(255,215,0,0.1) 30px, 
+                            rgba(255,215,0,0.1) 60px);
+            animation: glisten 15s linear infinite;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        @keyframes glisten {
+            0% { transform: rotate(0deg) scale(1); opacity: 0.5; }
+            50% { transform: rotate(180deg) scale(1.3); opacity: 1; }
+            100% { transform: rotate(360deg) scale(1); opacity: 0.5; }
+        }
+
+        /* ===== جلانس ذهبي متحرك أقوى ===== */
+        body::after {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(90deg, 
+                transparent 0px, 
+                transparent 20px, 
+                rgba(255,215,0,0.15) 20px, 
+                rgba(255,215,0,0.15) 40px);
+            animation: glistenReverse 20s linear infinite;
+            pointer-events: none;
+            z-index: 0;
+            filter: blur(2px);
+        }
+
+        @keyframes glistenReverse {
+            0% { transform: translateX(0) scale(1); opacity: 0.3; }
+            50% { transform: translateX(-100px) scale(1.3); opacity: 0.8; }
+            100% { transform: translateX(0) scale(1); opacity: 0.3; }
+        }
+
+        /* ===== العينان في أعلى اليسار ===== */
+        .eyes-container {
+            position: fixed;
+            top: 15px;
+            left: 15px;
+            display: flex;
+            gap: 15px;
+            z-index: 10000;
+            filter: drop-shadow(0 0 30px #ffd700);
+            animation: eyesFloat 3s infinite alternate;
+        }
+
+        @keyframes eyesFloat {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(-5px); }
+        }
+
+        .eye {
+            position: relative;
+            width: 60px;
+            height: 60px;
+            background: white;
+            border-radius: 50% 50% 45% 45% / 55% 55% 45% 45%;
+            border: 4px solid #ffd700;
+            overflow: hidden;
+            box-shadow: 0 0 30px #ffd700, 0 0 60px #ffaa00;
+            transition: all 0.3s;
+        }
+
+        .eyeball {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #f0f0f0;
+            border-radius: inherit;
+        }
+
+        .pupil {
+            position: absolute;
+            width: 25px;
+            height: 25px;
+            background: radial-gradient(circle at 30% 30%, #ffd700, #b8860b);
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            transition: transform 0.1s;
+            box-shadow: 0 0 20px #ffd700;
+            border: 2px solid white;
+        }
+
+        .pupil::after {
+            content: '';
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            width: 8px;
+            height: 8px;
+            background: white;
+            border-radius: 50%;
+            opacity: 0.9;
+            box-shadow: 0 0 10px white;
+        }
+
+        /* ===== زر الموسيقى الذهبي الوهاج ===== */
+        .music-golden {
+            position: fixed;
+            top: 15px;
+            right: 15px;
+            width: 70px;
+            height: 70px;
+            background: radial-gradient(circle at 30% 30%, #ffd700, #b8860b);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 10000;
+            border: 4px solid white;
+            box-shadow: 0 0 50px #ffd700, 0 0 100px #ffaa00, inset 0 0 20px white;
+            animation: musicGoldenPulse 2s infinite;
+        }
+
+        @keyframes musicGoldenPulse {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 50px #ffd700, 0 0 100px #ffaa00; }
+            50% { transform: scale(1.2); box-shadow: 0 0 80px #ffd700, 0 0 150px #ffaa00, 0 0 200px #ffff00; }
+        }
+
+        .music-golden i {
+            font-size: 35px;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            animation: iconSpin 5s infinite linear;
+        }
+
+        @keyframes iconSpin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* ===== زر الرئيسية الثابت (أسفل اليمين) ===== */
+        .home-button {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 10000;
+            background: linear-gradient(145deg, #ffd700, #b8860b);
+            border-radius: 50px;
+            padding: 12px 24px;
+            box-shadow: 0 0 30px #ffd700, 0 0 60px #ffaa00, inset 0 2px 5px rgba(255,255,255,0.5);
+            border: 3px solid white;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            backdrop-filter: blur(5px);
+        }
+
+        .home-button a {
+            color: white;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-shadow: 0 0 10px rgba(0,0,0,0.3);
+        }
+
+        .home-button:hover {
+            transform: scale(1.1) translateY(-5px);
+            box-shadow: 0 0 50px #ffd700, 0 0 80px #ffaa00, 0 10px 20px rgba(0,0,0,0.3);
+            background: linear-gradient(145deg, #ffd700, #daa520);
+        }
+
+        .home-button:active {
+            transform: scale(0.95);
+        }
+
+        /* تحسين للموبايل */
+        @media (max-width: 480px) {
+            .home-button {
+                bottom: 15px;
+                right: 15px;
+                padding: 10px 18px;
+            }
+            .home-button a {
+                font-size: 16px;
+                gap: 6px;
+            }
+        }
+
+        /* ===== الهيدر ===== */
+        header {
+            position: relative;
+            z-index: 100;
+            text-align: center;
+            padding: 40px 15px;
+            margin-bottom: 20px;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(15px);
+            border-radius: 50px;
+            border: 3px solid #ffd700;
+            box-shadow: 0 15px 35px rgba(255,215,0,0.3);
+        }
+
+        header h1 {
+            font-size: clamp(28px, 6vw, 42px);
+            font-weight: 900;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3), 0 0 30px #ffd700;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            font-size: clamp(16px, 4vw, 22px);
+            color: rgba(255,255,255,0.95);
+            text-shadow: 0 0 15px #ffd700;
+        }
+
+        /* ===== محرك بحث متجاوب ===== */
+        .search-container {
+            position: relative;
+            z-index: 100;
+            max-width: 700px;
+            margin: 0 auto 30px;
+            padding: 0 15px;
+        }
+
+        .search-box {
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(15px);
+            border: 3px solid #ffd700;
+            border-radius: 60px;
+            padding: 5px;
+            display: flex;
+            box-shadow: 0 10px 40px rgba(255,215,0,0.4);
+        }
+
+        .search-box input {
+            flex: 1;
+            padding: 15px 20px;
+            border: none;
+            border-radius: 60px;
+            font-size: clamp(14px, 4vw, 18px);
+            background: transparent;
+            color: white;
+            font-family: 'Cairo', sans-serif;
+            min-width: 0;
+        }
+
+        .search-box input::placeholder {
+            color: rgba(255,255,255,0.8);
+            text-shadow: 0 0 10px #ffd700;
+        }
+
+        .search-box button {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 60px;
+            background: rgba(255,215,0,0.3);
+            color: white;
+            font-size: clamp(14px, 4vw, 18px);
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+            border: 2px solid #ffd700;
+            white-space: nowrap;
+            box-shadow: 0 0 20px #ffd700;
+        }
+
+        .search-box button:hover {
+            background: #ffd700;
+            color: #000;
+            transform: scale(1.05);
+            box-shadow: 0 0 40px #ffd700;
+        }
+
+        /* ===== شبكة الدوائر الفضية ===== */
+        .circles-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 15px;
+            padding: 15px;
+            max-width: 1200px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 100;
+        }
+
+        /* الدائرة الفضية */
+        .silver-circle {
+            position: relative;
+            aspect-ratio: 1/1;
+            background: linear-gradient(145deg, #e0e0e0, #b0b0b0);
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            color: #2c3e50;
+            font-weight: bold;
+            font-size: clamp(12px, 3vw, 14px);
+            box-shadow: 
+                0 10px 20px rgba(0,0,0,0.2),
+                inset 0 -3px 5px rgba(0,0,0,0.2),
+                inset 0 3px 5px rgba(255,255,255,0.9);
+            transition: all 0.3s;
+            border: 4px solid rgba(255,215,0,0.5);
+            padding: 15px 10px;
+            text-align: center;
+            cursor: pointer;
+        }
+
+        /* التأثير الذهبي الوهاج عند التحويم */
+        .silver-circle:hover {
+            background: linear-gradient(145deg, #ffd700, #b8860b);
+            color: white;
+            transform: translateY(-8px) scale(1.05);
+            box-shadow: 
+                0 20px 40px rgba(255,215,0,0.6),
+                0 0 60px #ffd700,
+                inset 0 -3px 5px rgba(0,0,0,0.2),
+                inset 0 3px 5px rgba(255,255,255,0.9);
+            border-color: white;
+        }
+
+        /* تأثير النقر */
+        .silver-circle:active {
+            transform: scale(0.92);
+            box-shadow: 
+                0 5px 20px rgba(255,215,0,0.8),
+                inset 0 -2px 3px rgba(0,0,0,0.3),
+                inset 0 2px 3px rgba(255,255,255,0.9);
+        }
+
+        /* الأيقونة داخل الدائرة */
+        .silver-circle span {
+            font-size: clamp(24px, 6vw, 32px);
+            margin-bottom: 8px;
+            filter: drop-shadow(0 2px 5px rgba(0,0,0,0.2));
+        }
+
+        /* التأثير المتوهج الذهبي */
+        .silver-circle::before {
+            content: '';
+            position: absolute;
+            top: -5px;
+            left: -5px;
+            right: -5px;
+            bottom: -5px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #ffd700, #ffff00, #ffd700, #ffff00);
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: -1;
+            filter: blur(5px);
+        }
+
+        .silver-circle:hover::before {
+            opacity: 1;
+            animation: glowRotate 2s linear infinite;
+        }
+
+        @keyframes glowRotate {
+            0% { transform: rotate(0deg); filter: blur(5px); }
+            100% { transform: rotate(360deg); filter: blur(8px); }
+        }
+
+        /* تأثير حركي مع الكليك */
+        .silver-circle.click-effect {
+            animation: clickWave 0.4s ease-out;
+        }
+
+        @keyframes clickWave {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.25); box-shadow: 0 0 80px #ffd700; }
+            100% { transform: scale(1); }
+        }
+
+        /* ===== الفوتر ===== */
+        footer {
+            position: relative;
+            z-index: 100;
+            text-align: center;
+            padding: 20px 15px;
+            margin-top: 30px;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(15px);
+            border-radius: 50px;
+            border: 3px solid #ffd700;
+            color: white;
+            font-size: clamp(14px, 4vw, 16px);
+            box-shadow: 0 0 30px #ffd700;
+        }
+
+        /* ===== تحسينات للموبايل ===== */
+        @media (max-width: 480px) {
+            .circles-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 12px;
+                padding: 12px;
+            }
+
+            .eye {
+                width: 45px;
+                height: 45px;
+            }
+
+            .music-golden {
+                width: 55px;
+                height: 55px;
+            }
+
+            .music-golden i {
+                font-size: 28px;
+            }
+
+            .search-box {
+                flex-direction: column;
+                gap: 10px;
+                background: transparent;
+                border: none;
+                box-shadow: none;
+            }
+
+            .search-box input {
+                background: rgba(255,255,255,0.2);
+                border: 3px solid #ffd700;
+                text-align: center;
+            }
+
+            .search-box button {
+                width: 100%;
+            }
+        }
+
+        @media (max-width: 360px) {
+            .circles-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* ===== جزيئات ضوئية ذهبية ===== */
+        .light-particle {
+            position: fixed;
+            width: 8px;
+            height: 8px;
+            background: #ffd700;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9999;
+            animation: particleFloat 1.5s forwards;
+            box-shadow: 0 0 20px #ffd700;
+        }
+
+        @keyframes particleFloat {
+            0% { transform: scale(1); opacity: 1; }
+            100% { transform: scale(4) translateY(-80px); opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- العينان في أعلى اليسار - مش حتشال إلا لما تقول! -->
+<div class="eyes-container" id="eyesContainer">
+    <div class="eye eye-left">
+        <div class="eyeball">
+            <div class="pupil" id="leftPupil"></div>
+        </div>
+    </div>
+    <div class="eye eye-right">
+        <div class="eyeball">
+            <div class="pupil" id="rightPupil"></div>
+        </div>
+    </div>
+</div>
+
+<!-- زر الموسيقى الذهبي الوهاج - مش حتشال إلا لما تقول! -->
+<div class="music-golden" id="musicBtn">
+    <i id="musicIcon">🔊</i>
+</div>
+
+<!-- زر العودة للرئيسية - مضاف أسفل اليمين -->
+<div class="home-button" id="homeButton">
+    <a href="../ahmed.html">
+        <span>🏠</span>
+        <span>الرئيسية</span>
+    </a>
+</div>
+
+<!-- موسيقى خلفية -->
+<audio id="bgMusic" loop>
+    <source src="music.wav" type="audio/mpeg">
+</audio>
+
+<header>
+    <h1>✨بوابة الثانوية بنات✨</h1>
+</header>
+
+<!-- محرك بحث -->
+<div class="search-container">
+    <div class="search-box">
+        <input type="text" placeholder="ابحث في جوجل..." id="searchInput">
+        <button onclick="searchGoogle()">🔍 بحث</button>
+    </div>
+</div>
+
+<!-- شبكة الدوائر الفضية -->
+<div class="circles-grid" id="circlesGrid"></div>
+
+<footer>
+    <p>ENG.AHMED HEGAZI</p>
+    <p style="font-size: 12px; margin-top: 5px;">✨ أطيب الأمانى ✨</p>
+</footer>
+
+<script>
+// ===== قائمة الروابط =====
+const links = [
+    { icon: "📖", text: "القرآن", url: "quran.html" },
+    { icon: "📖", text: "الصلاة", url: "prayer-times.html" },
+    { icon: "📖", text: "إمساكية", url: "ramadan.html" },
+    { icon: "🧮", text: "حاسبة", url: "calc.html" },
+    { icon: "📖", text: "قاموس", url: "dictionary.html" },
+    { icon: "🏫", text: "وزارة", url: "moe.html" },
+    { icon: "🌐", text: "خدمية", url: "link.html" },
+    { icon: "🌐", text: "تنويه", url: "ads.html" },
+    { icon: "🌐", text: "مواعيدالحصص", url: "schedule.html" },
+    { icon: "📊", text: "النتيجة", url: "result.html" },
+    { icon: "📘", text: "كيريو", url: "qureo.html" },
+    { icon: "📘", text: "باسورد", url: "searchpw.html" },
+    { icon: "📚", text: "تدريب توفاس", url: "tofas.html" },
+    { icon: "📊", text: "المحرر", url: "editor.html" },
+    { icon: "🤖", text: "الذكاء", url: "ai.html" },
+    { icon: "💬", text: "ChatGPT", url: "https://chat.openai.com", target: "_blank" },
+    { icon: "🤖", text: " Aiمولد الاوامر", url: "AIPrompt.html" },
+    { icon: "🤖", text: "MLتعلم الآلة", url: "machine.html" },
+    { icon: "❓", text: "مسابقات", url: "q.html" },
+];
+
+// ===== العين تتبع الماوس =====
+const leftPupil = document.getElementById('leftPupil');
+const rightPupil = document.getElementById('rightPupil');
+const pupils = [leftPupil, rightPupil];
+
+document.addEventListener('mousemove', function(e) {
+    pupils.forEach(pupil => {
+        const eye = pupil.closest('.eye');
+        const eyeRect = eye.getBoundingClientRect();
+        const eyeCenterX = eyeRect.left + eyeRect.width / 2;
+        const eyeCenterY = eyeRect.top + eyeRect.height / 2;
+        
+        const deltaX = e.clientX - eyeCenterX;
+        const deltaY = e.clientY - eyeCenterY;
+        
+        const angle = Math.atan2(deltaY, deltaX);
+        const distance = Math.min(12, Math.sqrt(deltaX * deltaX + deltaY * deltaY) / 15);
+        
+        const moveX = Math.cos(angle) * distance;
+        const moveY = Math.sin(angle) * distance;
+        
+        pupil.style.transform = `translate(calc(-50% + ${moveX}px), calc(-50% + ${moveY}px))`;
+    });
+});
+
+// ===== نظام الموسيقى =====
+let music = document.getElementById('bgMusic');
+let musicBtn = document.getElementById('musicBtn');
+let musicIcon = document.getElementById('musicIcon');
+let isPlaying = false;
+
+music.play().catch(() => {
+    isPlaying = false;
+    musicIcon.textContent = '🔇';
+});
+
+musicBtn.addEventListener('click', function() {
+    if (isPlaying) {
+        music.pause();
+        musicIcon.textContent = '🔇';
+    } else {
+        music.play();
+        musicIcon.textContent = '🔊';
+    }
+    isPlaying = !isPlaying;
+    
+    // تأثير ذهبي عند النقر
+    this.style.transform = 'scale(1.3)';
+    setTimeout(() => {
+        this.style.transform = 'scale(1)';
+    }, 200);
+});
+
+// ===== إنشاء الدوائر الفضية =====
+function createCircles() {
+    const grid = document.getElementById('circlesGrid');
+    links.forEach((linkData, index) => {
+        const circle = document.createElement('a');
+        circle.className = 'silver-circle';
+        circle.href = linkData.url;
+        if (linkData.target) circle.target = linkData.target;
+        
+        circle.innerHTML = `
+            <span>${linkData.icon}</span>
+            <div>${linkData.text}</div>
+        `;
+        
+        // تأثير النقر
+        circle.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            this.classList.add('click-effect');
+            
+            // جزيئات ذهبية
+            for (let i = 0; i < 8; i++) {
+                setTimeout(() => {
+                    createLightParticle(e.clientX, e.clientY);
+                }, i * 30);
+            }
+            
+            setTimeout(() => {
+                window.location.href = this.href;
+            }, 300);
+        });
+        
+        grid.appendChild(circle);
+    });
+}
+
+// ===== جزيئات ضوئية ذهبية =====
+function createLightParticle(x, y) {
+    const particle = document.createElement('div');
+    particle.className = 'light-particle';
+    particle.style.left = x + (Math.random() - 0.5) * 80 + 'px';
+    particle.style.top = y + (Math.random() - 0.5) * 80 + 'px';
+    document.body.appendChild(particle);
+    
+    setTimeout(() => {
+        particle.remove();
+    }, 1500);
+}
+
+// ===== دالة البحث =====
+function searchGoogle() {
+    const query = document.getElementById('searchInput').value;
+    if (query.trim()) {
+        window.open(`https://www.google.com/search?q=${encodeURIComponent(query)}`, '_blank');
+    }
+}
+
+// ===== جزيئات ذهبية مع حركة الماوس =====
+document.addEventListener('mousemove', function(e) {
+    if (Math.random() > 0.9) {
+        createLightParticle(e.clientX, e.clientY);
+    }
+});
+
+// ===== تهيئة الصفحة =====
+createCircles();
+
+// ===== رسالة ترحيب =====
+console.log('%c✨ سبحان اللـه و بحمده ✨', 'color: #ffd700; font-size: 16px; font-weight: bold;');
+</script>
+
+</body>
+</html>

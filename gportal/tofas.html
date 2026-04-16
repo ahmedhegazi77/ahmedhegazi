@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>TOFAS Style Exam · Girls' High</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: linear-gradient(145deg, #87CEEB 0%, #5F9EA0 50%, #4682B4 100%);
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+            color: #fff;
+            padding: 10px;
+        }
+
+        /* ===== animated glisten background ===== */
+        body::before {
+            content: '';
+            position: fixed;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle at 30% 40%, rgba(255,215,0,0.25) 0%, transparent 30%),
+                        radial-gradient(circle at 70% 60%, rgba(255,215,0,0.25) 0%, transparent 30%),
+                        repeating-linear-gradient(45deg, 
+                            transparent 0px, 
+                            transparent 30px, 
+                            rgba(255,215,0,0.1) 30px, 
+                            rgba(255,215,0,0.1) 60px);
+            animation: glisten 15s linear infinite;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        @keyframes glisten {
+            0% { transform: rotate(0deg) scale(1); opacity: 0.5; }
+            50% { transform: rotate(180deg) scale(1.3); opacity: 1; }
+            100% { transform: rotate(360deg) scale(1); opacity: 0.5; }
+        }
+
+        body::after {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(90deg, 
+                transparent 0px, 
+                transparent 20px, 
+                rgba(255,215,0,0.15) 20px, 
+                rgba(255,215,0,0.15) 40px);
+            animation: glistenReverse 20s linear infinite;
+            pointer-events: none;
+            z-index: 0;
+            filter: blur(2px);
+        }
+
+        @keyframes glistenReverse {
+            0% { transform: translateX(0) scale(1); opacity: 0.3; }
+            50% { transform: translateX(-100px) scale(1.3); opacity: 0.8; }
+            100% { transform: translateX(0) scale(1); opacity: 0.3; }
+        }
+
+        /* ===== eyes (top left) ===== */
+        .eyes-container {
+            position: fixed;
+            top: 15px;
+            left: 15px;
+            display: flex;
+            gap: 15px;
+            z-index: 10000;
+            filter: drop-shadow(0 0 30px #ffd700);
+            animation: eyesFloat 3s infinite alternate;
+        }
+
+        @keyframes eyesFloat {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(-5px); }
+        }
+
+        .eye {
+            position: relative;
+            width: 60px;
+            height: 60px;
+            background: white;
+            border-radius: 50% 50% 45% 45% / 55% 55% 45% 45%;
+            border: 4px solid #ffd700;
+            overflow: hidden;
+            box-shadow: 0 0 30px #ffd700, 0 0 60px #ffaa00;
+            transition: all 0.3s;
+        }
+
+        .eyeball {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #f0f0f0;
+            border-radius: inherit;
+        }
+
+        .pupil {
+            position: absolute;
+            width: 25px;
+            height: 25px;
+            background: radial-gradient(circle at 30% 30%, #ffd700, #b8860b);
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            transition: transform 0.1s;
+            box-shadow: 0 0 20px #ffd700;
+            border: 2px solid white;
+        }
+
+        .pupil::after {
+            content: '';
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            width: 8px;
+            height: 8px;
+            background: white;
+            border-radius: 50%;
+            opacity: 0.9;
+            box-shadow: 0 0 10px white;
+        }
+
+        /* ===== music button ===== */
+        .music-golden {
+            position: fixed;
+            top: 15px;
+            right: 15px;
+            width: 70px;
+            height: 70px;
+            background: radial-gradient(circle at 30% 30%, #ffd700, #b8860b);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 10000;
+            border: 4px solid white;
+            box-shadow: 0 0 50px #ffd700, 0 0 100px #ffaa00, inset 0 0 20px white;
+            animation: musicGoldenPulse 2s infinite;
+        }
+
+        @keyframes musicGoldenPulse {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 50px #ffd700, 0 0 100px #ffaa00; }
+            50% { transform: scale(1.2); box-shadow: 0 0 80px #ffd700, 0 0 150px #ffaa00, 0 0 200px #ffff00; }
+        }
+
+        .music-golden i {
+            font-size: 35px;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            animation: iconSpin 5s infinite linear;
+        }
+
+        @keyframes iconSpin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* ===== home button (bottom right) ===== */
+        .home-button {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 10000;
+            background: linear-gradient(145deg, #ffd700, #b8860b);
+            border-radius: 50px;
+            padding: 12px 24px;
+            box-shadow: 0 0 30px #ffd700, 0 0 60px #ffaa00, inset 0 2px 5px rgba(255,255,255,0.5);
+            border: 3px solid white;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            backdrop-filter: blur(5px);
+        }
+
+        .home-button a {
+            color: white;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-shadow: 0 0 10px rgba(0,0,0,0.3);
+        }
+
+        .home-button:hover {
+            transform: scale(1.1) translateY(-5px);
+            box-shadow: 0 0 50px #ffd700, 0 0 80px #ffaa00, 0 10px 20px rgba(0,0,0,0.3);
+            background: linear-gradient(145deg, #ffd700, #daa520);
+        }
+
+        .home-button:active {
+            transform: scale(0.95);
+        }
+
+        /* ===== main exam container ===== */
+        .main-container {
+            position: relative;
+            z-index: 100;
+            display: flex;
+            gap: 20px;
+            max-width: 1400px;
+            margin: 70px auto 30px;
+            padding: 0 10px;
+        }
+
+        /* side panel for question status */
+        .question-panel {
+            flex: 0 0 110px;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(15px);
+            border: 3px solid #ffd700;
+            border-radius: 40px;
+            padding: 20px 10px;
+            box-shadow: 0 15px 35px rgba(255,215,0,0.3);
+            height: fit-content;
+            max-height: 80vh;
+            overflow-y: auto;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .question-panel::-webkit-scrollbar {
+            width: 6px;
+        }
+        .question-panel::-webkit-scrollbar-thumb {
+            background: #ffd700;
+            border-radius: 10px;
+        }
+
+        .q-circle {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.2);
+            border: 2px solid #ffd700;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+            box-shadow: 0 0 10px rgba(255,215,0,0.3);
+            font-size: 16px;
+        }
+
+        .q-circle.answered {
+            background: #ffd700;
+            color: #1a2f3f;
+            border-color: white;
+            box-shadow: 0 0 25px #ffd700;
+        }
+
+        .q-circle:hover {
+            transform: scale(1.15);
+            background: rgba(255,215,0,0.7);
+        }
+
+        .exam-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(15px);
+            border: 3px solid #ffd700;
+            border-radius: 50px;
+            box-shadow: 0 15px 35px rgba(255,215,0,0.3);
+            padding: 30px;
+            color: white;
+        }
+
+        #start.container h2, #start.container p {
+            text-shadow: 0 0 15px #ffd700;
+        }
+
+        button {
+            background: rgba(255,215,0,0.3);
+            border: 2px solid #ffd700;
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+            padding: 12px 30px;
+            border-radius: 60px;
+            cursor: pointer;
+            transition: 0.3s;
+            box-shadow: 0 0 20px #ffd700;
+            font-family: 'Cairo', sans-serif;
+            margin: 5px;
+        }
+
+        button:hover {
+            background: #ffd700;
+            color: #000;
+            transform: scale(1.05);
+            box-shadow: 0 0 40px #ffd700;
+        }
+
+        .timer {
+            font-size: 24px;
+            color: #ffd700;
+            text-shadow: 0 0 15px #ffaa00;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .progress-bar {
+            height: 20px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 10px;
+            margin-bottom: 20px;
+            overflow: hidden;
+            border: 1px solid #ffd700;
+        }
+
+        .progress {
+            height: 100%;
+            background: linear-gradient(90deg, #ffd700, #ffaa00);
+            width: 0%;
+            border-radius: 10px;
+            box-shadow: 0 0 15px #ffd700;
+        }
+
+        .exam-box {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            min-height: 250px;
+        }
+
+        .question {
+            flex: 1 1 45%;
+            font-size: 22px;
+            text-align: left;
+            border-right: 2px solid #ffd700;
+            padding: 20px;
+            background: rgba(0,0,0,0.1);
+            border-radius: 30px;
+            min-width: 280px;
+            direction: ltr;
+        }
+
+        .options {
+            flex: 1 1 45%;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            min-width: 280px;
+        }
+
+        .options label {
+            display: flex;
+            align-items: center;
+            padding: 12px 20px;
+            margin: 8px 0;
+            border: 2px solid rgba(255,215,0,0.5);
+            border-radius: 60px;
+            cursor: pointer;
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(5px);
+            transition: all 0.3s;
+            color: white;
+            font-size: 18px;
+            direction: ltr;
+        }
+
+        .options input {
+            margin-left: 15px;
+            accent-color: #ffd700;
+            width: 20px;
+            height: 20px;
+            order: 1;
+        }
+
+        .options span {
+            order: 0;
+            flex: 1;
+        }
+
+        .options label.selected {
+            background: rgba(255,215,0,0.4);
+            border-color: #ffd700;
+            box-shadow: 0 0 30px #ffd700;
+        }
+
+        .options label:hover {
+            background: rgba(255,215,0,0.2);
+            border-color: #ffd700;
+            transform: translateX(-5px);
+        }
+
+        .nav {
+            text-align: center;
+            margin-top: 25px;
+        }
+
+        #result {
+            font-size: 24px;
+            color: white;
+            text-align: center;
+            margin-top: 20px;
+            text-shadow: 0 0 20px #ffd700;
+        }
+
+        .light-particle {
+            position: fixed;
+            width: 8px;
+            height: 8px;
+            background: #ffd700;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9999;
+            animation: particleFloat 1.5s forwards;
+            box-shadow: 0 0 20px #ffd700;
+        }
+
+        @keyframes particleFloat {
+            0% { transform: scale(1); opacity: 1; }
+            100% { transform: scale(4) translateY(-80px); opacity: 0; }
+        }
+
+        /* mobile adjustments */
+        @media (max-width: 800px) {
+            .main-container {
+                flex-direction: column;
+            }
+            .question-panel {
+                flex: auto;
+                width: 100%;
+                justify-content: flex-start;
+                overflow-x: auto;
+                padding: 15px;
+            }
+            .q-circle {
+                width: 40px;
+                height: 40px;
+                font-size: 14px;
+            }
+        }
+        @media (max-width: 480px) {
+            .eyes-container { scale: 0.8; }
+            .music-golden { width: 55px; height: 55px; }
+            .music-golden i { font-size: 28px; }
+            .home-button { padding: 8px 15px; }
+            .home-button a { font-size: 14px; gap: 5px; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- eyes -->
+<div class="eyes-container" id="eyesContainer">
+    <div class="eye eye-left">
+        <div class="eyeball">
+            <div class="pupil" id="leftPupil"></div>
+        </div>
+    </div>
+    <div class="eye eye-right">
+        <div class="eyeball">
+            <div class="pupil" id="rightPupil"></div>
+        </div>
+    </div>
+</div>
+
+<!-- music button -->
+<div class="music-golden" id="musicBtn">
+    <i id="musicIcon">🔊</i>
+</div>
+
+<!-- home button -->
+<div class="home-button" id="homeButton">
+    <a href="secschool.html">
+        <span>🏠</span>
+        <span>Home</span>
+    </a>
+</div>
+
+<!-- background music -->
+<audio id="bgMusic" loop>
+    <source src="music.wav" type="audio/mpeg">
+</audio>
+
+<!-- start screen -->
+<div class="main-container" id="startScreen" style="justify-content: center;">
+    <div class="container" style="max-width: 600px; text-align: center;">
+        <h2>📝 Programming Exam · TOEFL Style</h2>
+        <p>Number of questions: 50</p>
+        <p>⏳ Duration: 1 hour</p>
+        <button onclick="startExam()">✨ Start Exam ✨</button>
+    </div>
+</div>
+
+<!-- exam screen (hidden initially) -->
+<div class="main-container" id="examScreen" style="display: none;">
+    <!-- side panel with question circles -->
+    <div class="question-panel" id="questionPanel"></div>
+
+    <!-- main exam content -->
+    <div class="exam-content">
+        <div class="container">
+            <div class="timer">⏰ Time left: <span id="time">60:00</span></div>
+            <div class="progress-bar"><div class="progress" id="progress"></div></div>
+            <div class="exam-box">
+                <div class="options" id="options"></div>
+                <div class="question" id="question"></div>
+            </div>
+            <div class="nav">
+                <button onclick="prev()">◀ Previous</button>
+                <button onclick="next()">Next ▶</button>
+                <button onclick="submitExam()">📥 Submit Exam</button>
+            </div>
+            <div id="result"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ========== QUESTIONS (improved format, all options now 4) ==========
+    const questions = [
+        { q: "What is the output of this code? score = 75", o: ["Perfect", "So close", "Pass", "None"], a: 2 },
+        { q: "Convert 100 to a string", o: ["String(100)", "Number(100)", "typeof 100", "typeof '100'"], a: 0 },
+        { q: "How to check data type of 500?", o: ["console.log(typeof 500)", "typeof 500", "console.log('typeof 500')", "console.log(500)"], a: 0 },
+        { q: "Sum of [1,2,3]", o: ["1", "2", "3", "6"], a: 3 },
+        { q: "num = 100", o: ["correct", "miss", "none", "none"], a: 0 },
+        { q: "num = 10 → num == 5", o: ["10", "true", "5", "false"], a: 3 },
+        { q: "console.log(typeof \"7\")", o: ["7", "string", "number", "error"], a: 1 },
+        { q: "Print length of an array", o: ["console.log(num)", "console.log(num.length)", "console.log('num')", "num"], a: 1 },
+        { q: "num = 10 → num == 10", o: ["10", "true", "5", "false"], a: 1 },
+        { q: "console.log(100 === 500)", o: ["false", "true", "100", "500"], a: 0 },
+        { q: "Correct program to calculate 7+6", o: ["console.log(6+7)", "console.log('6+7')", "console.log('6'+'7')", "console.log('6'+7)"], a: 0 },
+        { q: "function calc(num){return num*5;} calc(7)", o: ["5", "7", "12", "35"], a: 3 },
+        { q: "Which program prints 'The answer is 15'?", o: ["console.log('The answer is '+(3*5))", "console.log('The answer is '+ (3*5))", "console.log('The answer is ' (3*5))", "No correct answer"], a: 1 },
+        { q: "num is greater than or equal to 15", o: ["num <=15", "num >15", "num <15", "num >=15"], a: 3 },
+        { q: "console.log(Number('num'))", o: ["num", "NaN", "true", "false"], a: 1 },
+        { q: "for(let i=0;i<2;i++){console.log('Hello');}", o: ["Hello", "Hello Hello", "Hello Hello Hello", "No output"], a: 1 },
+        { q: "for(let i=0;i<15;i++){console.log('Process');}", o: ["for(i=0;i++;i<15)", "for(i=0;i<15;i++;)","for(i=0;i<15;i++)","for(i=0;i<16;i++)"], a: 2 },
+        { q: "science=90; if(science==91){console.log('win')}else{console.log('lose')}", o: ["lose","win","90","91"], a: 0 },
+        { q: "Which program outputs a string?", o: ["console.log(String '50')","console.log(typeof '50')","console.log(Number '50')","console.log(typeof 50)"], a: 1 },
+        { q: "Correct way to get a random value", o: ["console.log(Math.min())","console.log(random())","console.log(Math.random())","console.log(Math.max())"], a: 2 },
+        { q: "people=4; if(people==2){console.log('off')}else if(people>=3){console.log('on')}else{console.log('high price')}", o: ["high price","off","on","No correct answer"], a: 2 },
+        { q: "let num = 10; if(num <= 4 || num >= 9){console.log('A')}else{console.log('B')}", o: ["A","B","4","7"], a: 0 },
+        { q: "let num = 10; if(num <= 4 || num >= 12){console.log('A')}else{console.log('B')}", o: ["A","B","4","7"], a: 1 },
+        { q: "let num = 10; if(num <= 4 && num >= 9){console.log('A')}else{console.log('B')}", o: ["A","B","4","7"], a: 1 },
+        { q: "console.log(10 === '10')", o: ["10","false","true","No correct answer"], a: 1 },
+        { q: "console.log(10 == '10')", o: ["10","false","true","No correct answer"], a: 2 },
+        { q: "console.log('Today is the ' + (17-5) + 'th from this month')", o: ["correct","wrong","wrong","wrong"], a: 0 },
+        { q: "function Ronaldo(total){return total/3;} Ronaldo(27)", o: ["3","27","9","1"], a: 2 },
+        { q: "let num=[2,4,6]; sum=0; for(i=0;i<3;i++){sum+=num[i]} console.log(sum)", o: ["12","2","4","6"], a: 0 },
+        { q: "let tempList=[10,15,13,16,14,12,17]; console.log(tempList[3])", o: ["15","13","16","14"], a: 2 },
+        { q: "Compute 5 ÷ 15", o: ["console.log(15÷5)","console.log(15/5)","console.log(15\\5)","console.log('15/5')"], a: 1 },
+        { q: "Correct multiplication symbol", o: ["*","x","/","&&"], a: 0 },
+        { q: "500 + 100", o: ["console.log('500 + 100')","console.log(500+100)","console.log('500'+'100')","none"], a: 1 },
+        { q: "let egg=5; if(egg==0){console.log('No stock')}else if(egg<=3){console.log('Low stock')}else{console.log('In stock')}", o: ["No stock","Low stock","In stock","none"], a: 2 },
+        { q: "let egg=5; if(egg==5){console.log('No stock')}else if(egg<=3){console.log('Low stock')}else{console.log('In stock')}", o: ["No stock","Low stock","In stock","none"], a: 2 },
+        { q: "console.log(Math.floor(15.8))", o: ["15.8","15","16","16.8"], a: 1 },
+        { q: "console.log(Math.round(15.8))", o: ["15.8","15","16","16.8"], a: 2 },
+        { q: "Correct comment syntax", o: ["this is a comment//","/this is a comment","//this is a comment","/this is a comment"], a: 2 },
+        { q: "Less than or equal 10 and greater than or equal 5", o: ["A>=5 || B<=10","A>=5 && B<=10","A<=5 || B>=10","A<=5 && B>=10"], a: 0 },
+        { q: "Print all values of array [2,4,6,8,10]", o: ["console.log('num')","console.log(5)","console.log(num)","num"], a: 2 },
+        { q: "Average of [2,8,7,10,6,9]", o: ["6","7","8","10"], a: 2 },
+        { q: "number=5; number=number+15; console.log(number)", o: ["5","20","15","none"], a: 1 },
+        { q: "fish=2; fish=fish+8; fish=fish+12; console.log(fish)", o: ["10","12","14","none"], a: 3 },
+        { q: "num=10; if(num>=20){console.log('New bicycle')} else if(num<=15){console.log('Old bicycle')} else{console.log('Stickers')}", o: ["New bicycle","Old bicycle","Stickers","none"], a: 1 },
+        { q: "num=10; if(num>=20||num==15){console.log('New bicycle')} else if(num<=5&&num>15){console.log('Old bicycle')} else{console.log('Stickers')}", o: ["New bicycle","Old bicycle","Stickers","none"], a: 2 },
+        { q: "console.log(Math.max(300,100,200))", o: ["100","200","300","none"], a: 2 },
+        { q: "let num=[5,10,15,20,25]; console.log(num[2])", o: ["5","10","15","20"], a: 2 },
+        { q: "for(i=1;i<3;i++){console.log('good')}", o: ["once","twice","three times","none"], a: 1 }
+    ];
+
+    // ===== variables =====
+    let current = 0;
+    let answers = new Array(questions.length).fill(undefined);
+    let timerInterval;
+    let time = 3600; // seconds
+    let music = document.getElementById('bgMusic');
+    let musicBtn = document.getElementById('musicBtn');
+    let musicIcon = document.getElementById('musicIcon');
+    let isPlaying = false;
+
+    // ===== eye tracking =====
+    const leftPupil = document.getElementById('leftPupil');
+    const rightPupil = document.getElementById('rightPupil');
+    const pupils = [leftPupil, rightPupil];
+    document.addEventListener('mousemove', function(e) {
+        pupils.forEach(pupil => {
+            const eye = pupil.closest('.eye');
+            const eyeRect = eye.getBoundingClientRect();
+            const eyeCenterX = eyeRect.left + eyeRect.width / 2;
+            const eyeCenterY = eyeRect.top + eyeRect.height / 2;
+            const deltaX = e.clientX - eyeCenterX;
+            const deltaY = e.clientY - eyeCenterY;
+            const angle = Math.atan2(deltaY, deltaX);
+            const distance = Math.min(12, Math.sqrt(deltaX*deltaX + deltaY*deltaY) / 15);
+            const moveX = Math.cos(angle) * distance;
+            const moveY = Math.sin(angle) * distance;
+            pupil.style.transform = `translate(calc(-50% + ${moveX}px), calc(-50% + ${moveY}px))`;
+        });
+    });
+
+    // ===== music control =====
+    music.play().catch(() => { isPlaying = false; musicIcon.textContent = '🔇'; });
+    musicBtn.addEventListener('click', function() {
+        if (isPlaying) { music.pause(); musicIcon.textContent = '🔇'; }
+        else { music.play(); musicIcon.textContent = '🔊'; }
+        isPlaying = !isPlaying;
+        this.style.transform = 'scale(1.3)';
+        setTimeout(() => this.style.transform = 'scale(1)', 200);
+    });
+
+    // ===== golden particles =====
+    function createLightParticle(x, y) {
+        const particle = document.createElement('div');
+        particle.className = 'light-particle';
+        particle.style.left = x + (Math.random() - 0.5) * 80 + 'px';
+        particle.style.top = y + (Math.random() - 0.5) * 80 + 'px';
+        document.body.appendChild(particle);
+        setTimeout(() => particle.remove(), 1500);
+    }
+    document.addEventListener('mousemove', function(e) {
+        if (Math.random() > 0.95) createLightParticle(e.clientX, e.clientY);
+    });
+
+    // ===== build side panel circles =====
+    function buildQuestionPanel() {
+        const panel = document.getElementById('questionPanel');
+        panel.innerHTML = '';
+        for (let i = 0; i < questions.length; i++) {
+            const circle = document.createElement('div');
+            circle.className = 'q-circle';
+            circle.dataset.index = i;
+            circle.textContent = i + 1;
+            circle.addEventListener('click', () => {
+                current = i;
+                loadQuestion();
+            });
+            panel.appendChild(circle);
+        }
+        updatePanelStatus();
+    }
+
+    function updatePanelStatus() {
+        document.querySelectorAll('.q-circle').forEach((circle, idx) => {
+            if (answers[idx] !== undefined) circle.classList.add('answered');
+            else circle.classList.remove('answered');
+        });
+    }
+
+    // ===== exam functions =====
+    function startExam() {
+        document.getElementById('startScreen').style.display = 'none';
+        document.getElementById('examScreen').style.display = 'flex';
+        buildQuestionPanel();
+        loadQuestion();
+        startTimer();
+    }
+
+    function loadQuestion() {
+        let q = questions[current];
+        document.getElementById('question').innerHTML = `<b>Question ${current+1}:</b> ${q.q}`;
+        let html = '';
+        q.o.forEach((opt, i) => {
+            html += `<label id='label${i}'><span>${opt}</span><input type='radio' name='q' value='${i}' ${answers[current]==i ? 'checked' : ''} onclick='answers[${current}]=${i}; updateSelection(${i}); updatePanelStatus();'></label>`;
+        });
+        document.getElementById('options').innerHTML = html;
+        updateProgress();
+        highlightSelection();
+    }
+
+    function updateSelection(selected) {
+        for (let i = 0; i < questions[current].o.length; i++) {
+            document.getElementById(`label${i}`)?.classList.remove('selected');
+        }
+        if (selected !== undefined) document.getElementById(`label${selected}`)?.classList.add('selected');
+        updatePanelStatus();
+    }
+
+    function highlightSelection() {
+        if (answers[current] !== undefined) updateSelection(answers[current]);
+    }
+
+    function next() {
+        if (current < questions.length - 1) { current++; loadQuestion(); }
+    }
+    function prev() {
+        if (current > 0) { current--; loadQuestion(); }
+    }
+
+    function submitExam() {
+        let score = 0;
+        questions.forEach((q, i) => { if (answers[i] == q.a) score++; });
+        document.getElementById('result').innerHTML = '✨ Your score: ' + score + ' / ' + questions.length + ' ✨';
+        if (timerInterval) clearInterval(timerInterval);
+    }
+
+    function startTimer() {
+        timerInterval = setInterval(() => {
+            let m = Math.floor(time / 60);
+            let s = time % 60;
+            document.getElementById('time').innerText = m + ':' + (s < 10 ? '0' + s : s);
+            time--;
+            if (time < 0) { submitExam(); clearInterval(timerInterval); }
+        }, 1000);
+    }
+
+    function updateProgress() {
+        let percent = ((current + 1) / questions.length) * 100;
+        document.getElementById('progress').style.width = percent + '%';
+    }
+
+    // ===== ensure all questions have 4 options (already done above) =====
+    // ===== any missing answers? we set answers array with undefined =====
+
+    console.log('%c✨ Exam ready ✨', 'color:#ffd700;font-size:16px;');
+</script>
+</body>
+</html>

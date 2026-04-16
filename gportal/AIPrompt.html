@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>دليل مولدات الأوامر الذكية | شبراخيث</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: linear-gradient(145deg, #87CEEB 0%, #5F9EA0 50%, #4682B4 100%);
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* ===== خلفية متحركة بجلانس فضي وذهبي ===== */
+        body::before {
+            content: '';
+            position: fixed;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle at 30% 40%, rgba(255,215,0,0.25) 0%, transparent 30%),
+                        radial-gradient(circle at 70% 60%, rgba(192,192,192,0.25) 0%, transparent 30%),
+                        repeating-linear-gradient(45deg, 
+                            transparent 0px, 
+                            transparent 30px, 
+                            rgba(255,215,0,0.1) 30px, 
+                            rgba(192,192,192,0.1) 60px);
+            animation: glisten 15s linear infinite;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        @keyframes glisten {
+            0% { transform: rotate(0deg) scale(1); opacity: 0.5; }
+            50% { transform: rotate(180deg) scale(1.3); opacity: 1; }
+            100% { transform: rotate(360deg) scale(1); opacity: 0.5; }
+        }
+
+        body::after {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(90deg, 
+                transparent 0px, 
+                transparent 20px, 
+                rgba(255,215,0,0.15) 20px, 
+                rgba(192,192,192,0.15) 40px);
+            animation: glistenReverse 20s linear infinite;
+            pointer-events: none;
+            z-index: 0;
+            filter: blur(2px);
+        }
+
+        @keyframes glistenReverse {
+            0% { transform: translateX(0) scale(1); opacity: 0.3; }
+            50% { transform: translateX(-100px) scale(1.3); opacity: 0.8; }
+            100% { transform: translateX(0) scale(1); opacity: 0.3; }
+        }
+
+        /* ===== زر الموسيقى (أسفل اليمين) ===== */
+        .music-control-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 70px;
+            height: 70px;
+            background: radial-gradient(circle at 30% 30%, #ffd700, #c0c0c0);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 10000;
+            border: 4px solid white;
+            box-shadow: 0 0 30px #ffd700, 0 0 60px #c0c0c0, inset 0 0 10px white;
+            transition: all 0.3s;
+            text-decoration: none;
+        }
+
+        .music-control-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 50px #ffd700, 0 0 100px #c0c0c0;
+        }
+
+        .music-control-btn i {
+            font-size: 35px;
+            color: #2c3e50;
+            transition: all 0.3s;
+        }
+
+        .music-control-btn:hover i {
+            color: white;
+        }
+
+        .music-control-btn.playing {
+            background: radial-gradient(circle at 30% 30%, #c0c0c0, #ffd700);
+        }
+
+        .music-control-btn.playing i {
+            color: white;
+        }
+
+        /* ===== العينان في الشمال فوق ===== */
+        .eyes-container {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            display: flex;
+            gap: 20px;
+            z-index: 10000;
+            filter: drop-shadow(0 0 30px #ffd700);
+            animation: eyesFloat 3s infinite alternate;
+            pointer-events: none;
+        }
+
+        @keyframes eyesFloat {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(-5px); }
+        }
+
+        .eye {
+            position: relative;
+            width: 70px;
+            height: 70px;
+            background: white;
+            border-radius: 50% 50% 45% 45% / 55% 55% 45% 45%;
+            border: 4px solid #ffd700;
+            overflow: hidden;
+            box-shadow: 0 0 30px #ffd700, 0 0 60px #c0c0c0;
+            transition: all 0.3s;
+        }
+
+        .eyeball {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #f0f0f0;
+            border-radius: inherit;
+        }
+
+        .pupil {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background: radial-gradient(circle at 30% 30%, #c0c0c0, #ffd700);
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            transition: transform 0.1s;
+            box-shadow: 0 0 20px #ffd700;
+            border: 2px solid white;
+        }
+
+        .pupil::after {
+            content: '';
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            width: 10px;
+            height: 10px;
+            background: white;
+            border-radius: 50%;
+            opacity: 0.9;
+            box-shadow: 0 0 10px white;
+        }
+
+        /* تأثير النقر المتوسع */
+        .ripple-effect {
+            position: fixed;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255,215,0,0.8), rgba(192,192,192,0.8));
+            pointer-events: none;
+            z-index: 9999;
+            animation: ripple 0.6s ease-out forwards;
+        }
+
+        @keyframes ripple {
+            0% { width: 0; height: 0; opacity: 0.8; }
+            100% { width: 500px; height: 500px; opacity: 0; transform: translate(-50%, -50%) scale(2); }
+        }
+
+        /* جزيئات ضوئية */
+        .light-particle {
+            position: fixed;
+            width: 8px;
+            height: 8px;
+            background: radial-gradient(circle, #ffd700, #c0c0c0);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9998;
+            animation: particleFloat 1.5s forwards;
+            box-shadow: 0 0 20px #ffd700;
+        }
+
+        @keyframes particleFloat {
+            0% { transform: scale(1); opacity: 1; }
+            100% { transform: scale(4) translateY(-80px); opacity: 0; }
+        }
+
+        /* شريط علوي */
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 25px;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* زر الموسيقى العلوي */
+        .music-top-btn {
+            background: linear-gradient(145deg, #ffd700, #c0c0c0);
+            border: 3px solid white;
+            color: #2c3e50;
+            padding: 10px 25px;
+            border-radius: 60px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(255,215,0,0.3);
+            transition: all 0.3s;
+            font-size: 16px;
+        }
+
+        .music-top-btn:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 8px 25px rgba(255,215,0,0.5);
+        }
+
+        /* زر العودة */
+        .back-btn {
+            background: linear-gradient(145deg, #c0c0c0, #a0a0a0);
+            border: 3px solid #ffd700;
+            color: #2c3e50;
+            padding: 10px 25px;
+            border-radius: 60px;
+            font-weight: bold;
+            text-decoration: none;
+            transition: all 0.3s;
+            box-shadow: 0 5px 15px rgba(255,215,0,0.2);
+        }
+
+        .back-btn:hover {
+            background: linear-gradient(145deg, #ffd700, #c0c0c0);
+            transform: translateY(-3px) scale(1.05);
+            border-color: white;
+            box-shadow: 0 8px 25px rgba(255,215,0,0.5);
+        }
+
+        /* الهيدر */
+        header {
+            max-width: 900px;
+            margin: 20px auto 30px;
+            text-align: center;
+            background: linear-gradient(145deg, #c0c0c0, #a0a0a0);
+            color: #2c3e50;
+            padding: 40px;
+            border-radius: 80px;
+            border: 4px solid #ffd700;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+            position: relative;
+            z-index: 10;
+            overflow: hidden;
+        }
+
+        header::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -150%;
+            width: 200%;
+            height: 100%;
+            background: linear-gradient(120deg, 
+                transparent 0%, 
+                transparent 30%, 
+                rgba(255, 215, 0, 0.2) 45%,
+                rgba(255, 255, 255, 0.4) 50%,
+                rgba(255, 215, 0, 0.2) 55%,
+                transparent 70%,
+                transparent 100%);
+            transform: skewX(-20deg);
+            animation: shine 8s infinite;
+            pointer-events: none;
+        }
+
+        header h1 {
+            font-size: 38px;
+            font-weight: 800;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(255,215,0,0.3);
+        }
+
+        header p {
+            font-size: 18px;
+            opacity: 0.9;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 25px;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* الاكورديون */
+        .accordion-item {
+            background: linear-gradient(145deg, #c0c0c0, #a0a0a0);
+            margin-bottom: 20px;
+            border-radius: 60px;
+            overflow: hidden;
+            border: 3px solid #ffd700;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            transition: all 0.3s;
+        }
+
+        .accordion-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 35px rgba(255,215,0,0.3);
+        }
+
+        .accordion-header {
+            padding: 20px 25px;
+            cursor: pointer;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: #2c3e50;
+            font-size: 20px;
+            background: rgba(255,255,255,0.1);
+            transition: all 0.3s;
+        }
+
+        .accordion-header:hover {
+            background: rgba(255,215,0,0.2);
+        }
+
+        .accordion-header span {
+            transition: transform 0.3s;
+        }
+
+        .accordion-item.active .accordion-header span {
+            transform: rotate(180deg);
+        }
+
+        .accordion-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease;
+            padding: 0 25px;
+            line-height: 1.8;
+            color: #2c3e50;
+        }
+
+        .accordion-item.active .accordion-content {
+            max-height: 1500px;
+            padding: 20px 25px;
+        }
+
+        /* شبكة الروابط */
+        .links-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            margin-top: 20px;
+        }
+
+        /* زر الرابط */
+        .tool-link {
+            background: linear-gradient(145deg, #c0c0c0, #a0a0a0);
+            color: #2c3e50;
+            text-decoration: none;
+            padding: 18px 15px;
+            border-radius: 50px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: all 0.3s;
+            border: 3px solid #ffd700;
+        }
+
+        .tool-link:hover {
+            background: linear-gradient(145deg, #ffd700, #c0c0c0);
+            transform: translateY(-4px) scale(1.05);
+            border-color: white;
+            box-shadow: 0 10px 25px rgba(255,215,0,0.4);
+            color: white;
+        }
+
+        /* حركة الضوء */
+        .tool-link::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: rgba(255,255,255,0.3);
+            transition: 0.5s;
+        }
+
+        .tool-link:hover::after {
+            left: 100%;
+        }
+
+        /* الفوتر */
+        footer {
+            margin-top: 40px;
+            text-align: center;
+            padding: 25px;
+            background: linear-gradient(145deg, #c0c0c0, #a0a0a0);
+            color: #2c3e50;
+            font-weight: bold;
+            border-top: 4px solid #ffd700;
+            position: relative;
+            z-index: 10;
+        }
+
+        @media (max-width: 768px) {
+            header h1 { font-size: 28px; }
+            .links-grid { grid-template-columns: 1fr; }
+            .music-control-btn { width: 55px; height: 55px; }
+            .eye { width: 55px; height: 55px; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- موسيقى خلفية -->
+<audio id="bgMusic" loop>
+    <source src="music.wav" type="audio/mpeg">
+</audio>
+
+<!-- زر الموسيقى (أسفل اليمين) -->
+<div class="music-control-btn" id="musicControlBtn" onclick="toggleMusic(event)">
+    <i id="musicIcon">🔊</i>
+</div>
+
+<!-- العيون في الشمال فوق -->
+<div class="eyes-container">
+    <div class="eye eye-left">
+        <div class="eyeball">
+            <div class="pupil" id="leftPupil"></div>
+        </div>
+    </div>
+    <div class="eye eye-right">
+        <div class="eyeball">
+            <div class="pupil" id="rightPupil"></div>
+        </div>
+    </div>
+</div>
+
+<div class="top-bar">
+    <a href="secschool.html" class="back-btn" onclick="createRipple(event); playMusic(event)">⬅ العودة للبوابة</a>
+</div>
+
+<header>
+    <h1>✨ Free AI Prompt Generator</h1>
+    <p>بوابتك لاحتراف كتابة الأوامر للذكاء الاصطناعي</p>
+</header>
+
+<div class="container">
+    <!-- القسم 1 -->
+    <div class="accordion-item">
+        <div class="accordion-header" onclick="toggleAccordion(this)">
+            ما هو مولد الأوامر (Prompt Generator)؟
+            <span>▼</span>
+        </div>
+        <div class="accordion-content">
+            <p>
+                هو محرك ذكي يساعدك على تحويل فكرتك البسيطة<br>
+                إلى أمر احترافي يمكن للذكاء الاصطناعي فهمه بدقة.
+            </p>
+            <div style="background: rgba(255,215,0,0.2); padding: 15px; border-radius: 40px; margin-top: 15px;">
+                <p><b>مثال:</b> بدلاً من كتابة "اكتب مقالاً"، يمكن للمولد أن يقترح:</p>
+                <p style="background: white; padding: 15px; border-radius: 30px; margin-top: 10px; color: #2c3e50;">
+                    "اكتب مقالاً من 500 كلمة عن فوائد القراءة بأسلوب شيق ومبسط مناسب للشباب، مع مقدمة وخاتمة قوية وعنوان جذاب."
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- القسم 2 -->
+    <div class="accordion-item">
+        <div class="accordion-header" onclick="toggleAccordion(this)">
+            أدوات توليد أوامر النصوص
+            <span>▼</span>
+        </div>
+        <div class="accordion-content">
+            <div class="links-grid">
+                <a href="https://quillbot.com" target="_blank" class="tool-link" onclick="playMusic(event); createRipple(event)">QuillBot</a>
+                <a href="https://www.taskade.com" target="_blank" class="tool-link" onclick="playMusic(event); createRipple(event)">Taskade AI</a>
+                <a href="https://generateprompt.ai" target="_blank" class="tool-link" onclick="playMusic(event); createRipple(event)">GeneratePrompt</a>
+                <a href="https://www.aiprm.com" target="_blank" class="tool-link" onclick="playMusic(event); createRipple(event)">AIPRM</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- القسم 3 -->
+    <div class="accordion-item">
+        <div class="accordion-header" onclick="toggleAccordion(this)">
+            أدوات توليد أوامر الصور
+            <span>▼</span>
+        </div>
+        <div class="accordion-content">
+            <div class="links-grid">
+                <a href="https://prompthero.com" target="_blank" class="tool-link" onclick="playMusic(event); createRipple(event)">PromptHero</a>
+                <a href="https://www.midjourney-prompt-helper.com" target="_blank" class="tool-link" onclick="playMusic(event); createRipple(event)">MJ Helper</a>
+                <a href="https://leonardo.ai" target="_blank" class="tool-link" onclick="playMusic(event); createRipple(event)">Leonardo AI</a>
+                <a href="https://promptfolder.com" target="_blank" class="tool-link" onclick="playMusic(event); createRipple(event)">Prompt Folder</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- القسم 4 -->
+    <div class="accordion-item">
+        <div class="accordion-header" onclick="toggleAccordion(this)">
+            نصائح لكتابة Prompt احترافي
+            <span>▼</span>
+        </div>
+        <div class="accordion-content">
+            <ul style="padding-right: 20px;">
+                <li><b>حدد دور الذكاء الاصطناعي</b> - مثلاً: "أنت خبير تسويق"</li>
+                <li><b>اشرح السياق بدقة</b> - ما الموضوع؟ لمن تتحدث؟</li>
+                <li><b>حدد شكل المخرجات</b> - مقال، قائمة، كود، جدول</li>
+                <li><b>ضع القيود المطلوبة</b> - عدد الكلمات، النبرة، المصطلحات الممنوعة</li>
+            </ul>
+            <div style="background: rgba(255,215,0,0.2); padding: 15px; border-radius: 40px; margin-top: 15px;">
+                <p><b>مثال تطبيقي:</b></p>
+                <pre style="background: white; padding: 15px; border-radius: 30px; direction: ltr; text-align: left; color: #2c3e50;">
+"أنت مدرب لياقة بدنية محترف. اكتب خطة تمارين منزلية لمدة 30 دقيقة لشخص مبتدئ يريد إنقاص الوزن. قدم الخطة على شكل جدول بثلاثة أيام في الأسبوع، مع شرح كل تمرين بجملة واحدة."
+                </pre>
+            </div>
+        </div>
+    </div>
+</div>
+
+<footer>
+    بوابة المدرسة الرقمية<br>
+    مهندس / أحمد حجازي
+</footer>
+
+<script>
+    // ===== نظام الموسيقى =====
+    let music = document.getElementById('bgMusic');
+    let musicBtn = document.getElementById('musicControlBtn');
+    let musicIcon = document.getElementById('musicIcon');
+    let isPlaying = false;
+
+    music.load();
+
+    window.toggleMusic = function(event) {
+        event.stopPropagation();
+        if (isPlaying) {
+            music.pause();
+            musicIcon.textContent = '🔇';
+            musicBtn.classList.remove('playing');
+        } else {
+            music.play().then(() => {
+                musicIcon.textContent = '🔊';
+                musicBtn.classList.add('playing');
+            }).catch(e => console.log('ممنوع تشغيل الموسيقى'));
+        }
+        isPlaying = !isPlaying;
+        createLightParticle(event?.clientX || window.innerWidth/2, event?.clientY || window.innerHeight/2);
+    }
+
+    window.playMusic = function(event) {
+        if (!isPlaying && event) {
+            music.play().then(() => {
+                isPlaying = true;
+                musicIcon.textContent = '🔊';
+                musicBtn.classList.add('playing');
+            }).catch(e => console.log('ممنوع تشغيل الموسيقى تلقائياً'));
+        }
+    }
+
+    // ===== العيون تتبع الماوس =====
+    const leftPupil = document.querySelector('.eye-left .pupil');
+    const rightPupil = document.querySelector('.eye-right .pupil');
+    const pupils = [leftPupil, rightPupil];
+
+    document.addEventListener('mousemove', function(e) {
+        pupils.forEach(pupil => {
+            const eye = pupil.closest('.eye');
+            const eyeRect = eye.getBoundingClientRect();
+            const eyeCenterX = eyeRect.left + eyeRect.width / 2;
+            const eyeCenterY = eyeRect.top + eyeRect.height / 2;
+            
+            const deltaX = e.clientX - eyeCenterX;
+            const deltaY = e.clientY - eyeCenterY;
+            
+            const angle = Math.atan2(deltaY, deltaX);
+            const distance = Math.min(12, Math.sqrt(deltaX * deltaX + deltaY * deltaY) / 15);
+            
+            const moveX = Math.cos(angle) * distance;
+            const moveY = Math.sin(angle) * distance;
+            
+            pupil.style.transform = `translate(calc(-50% + ${moveX}px), calc(-50% + ${moveY}px))`;
+        });
+    });
+
+    // ===== تأثير النقر المتوسع =====
+    window.createRipple = function(event) {
+        const ripple = document.createElement('div');
+        ripple.className = 'ripple-effect';
+        
+        const x = event.clientX;
+        const y = event.clientY;
+        
+        ripple.style.left = x + 'px';
+        ripple.style.top = y + 'px';
+        ripple.style.transform = 'translate(-50%, -50%)';
+        
+        document.body.appendChild(ripple);
+        
+        for (let i = 0; i < 5; i++) {
+            setTimeout(() => {
+                createLightParticle(x, y);
+            }, i * 50);
+        }
+        
+        setTimeout(() => {
+            ripple.remove();
+        }, 600);
+    }
+
+    function createLightParticle(x, y) {
+        const particle = document.createElement('div');
+        particle.className = 'light-particle';
+        particle.style.left = (x || window.innerWidth/2) + (Math.random() - 0.5) * 100 + 'px';
+        particle.style.top = (y || window.innerHeight/2) + (Math.random() - 0.5) * 100 + 'px';
+        document.body.appendChild(particle);
+        
+        setTimeout(() => {
+            particle.remove();
+        }, 1500);
+    }
+
+    document.addEventListener('mousemove', function(e) {
+        if (Math.random() > 0.95) {
+            createLightParticle(e.clientX, e.clientY);
+        }
+    });
+
+    window.addEventListener('load', () => {
+        for (let i = 0; i < 20; i++) {
+            setTimeout(() => {
+                createLightParticle(Math.random() * window.innerWidth, Math.random() * window.innerHeight);
+            }, i * 100);
+        }
+    });
+
+    // ===== دوال الاكورديون =====
+    window.toggleAccordion = function(header) {
+        const item = header.parentElement;
+        const wasActive = item.classList.contains('active');
+        
+        // إغلاق كل العناصر المفتوحة
+        document.querySelectorAll('.accordion-item').forEach(i => {
+            i.classList.remove('active');
+        });
+        
+        // إذا لم يكن نشطاً، نفتحه
+        if (!wasActive) {
+            item.classList.add('active');
+            // إضافة تأثير النقر
+            createRipple(event);
+            playMusic(event);
+        }
+    }
+</script>
+
+</body>
+</html>

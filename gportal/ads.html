@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>إعلانات مدرسة شبراخيت</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Cairo', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(145deg, #87CEEB 0%, #5F9EA0 50%, #4682B4 100%);
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+            text-align: center;
+        }
+
+        /* ===== خلفية متحركة بجلانس فضي وذهبي ===== */
+        body::before {
+            content: '';
+            position: fixed;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle at 30% 40%, rgba(255,215,0,0.25) 0%, transparent 30%),
+                        radial-gradient(circle at 70% 60%, rgba(192,192,192,0.25) 0%, transparent 30%),
+                        repeating-linear-gradient(45deg, 
+                            transparent 0px, 
+                            transparent 30px, 
+                            rgba(255,215,0,0.1) 30px, 
+                            rgba(192,192,192,0.1) 60px);
+            animation: glisten 15s linear infinite;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        @keyframes glisten {
+            0% { transform: rotate(0deg) scale(1); opacity: 0.5; }
+            50% { transform: rotate(180deg) scale(1.3); opacity: 1; }
+            100% { transform: rotate(360deg) scale(1); opacity: 0.5; }
+        }
+
+        body::after {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(90deg, 
+                transparent 0px, 
+                transparent 20px, 
+                rgba(255,215,0,0.15) 20px, 
+                rgba(192,192,192,0.15) 40px);
+            animation: glistenReverse 20s linear infinite;
+            pointer-events: none;
+            z-index: 0;
+            filter: blur(2px);
+        }
+
+        @keyframes glistenReverse {
+            0% { transform: translateX(0) scale(1); opacity: 0.3; }
+            50% { transform: translateX(-100px) scale(1.3); opacity: 0.8; }
+            100% { transform: translateX(0) scale(1); opacity: 0.3; }
+        }
+
+        /* ===== زر الموسيقى (أسفل اليمين) ===== */
+        .music-control-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 70px;
+            height: 70px;
+            background: radial-gradient(circle at 30% 30%, #ffd700, #c0c0c0);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 10000;
+            border: 4px solid white;
+            box-shadow: 0 0 30px #ffd700, 0 0 60px #c0c0c0, inset 0 0 10px white;
+            transition: all 0.3s;
+            text-decoration: none;
+        }
+
+        .music-control-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 50px #ffd700, 0 0 100px #c0c0c0;
+        }
+
+        .music-control-btn i {
+            font-size: 35px;
+            color: #2c3e50;
+            transition: all 0.3s;
+        }
+
+        .music-control-btn:hover i {
+            color: white;
+        }
+
+        .music-control-btn.playing {
+            background: radial-gradient(circle at 30% 30%, #c0c0c0, #ffd700);
+        }
+
+        .music-control-btn.playing i {
+            color: white;
+        }
+
+        /* ===== العينان في الشمال فوق ===== */
+        .eyes-container {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            display: flex;
+            gap: 20px;
+            z-index: 10000;
+            filter: drop-shadow(0 0 30px #ffd700);
+            animation: eyesFloat 3s infinite alternate;
+        }
+
+        @keyframes eyesFloat {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(-5px); }
+        }
+
+        .eye {
+            position: relative;
+            width: 70px;
+            height: 70px;
+            background: white;
+            border-radius: 50% 50% 45% 45% / 55% 55% 45% 45%;
+            border: 4px solid #ffd700;
+            overflow: hidden;
+            box-shadow: 0 0 30px #ffd700, 0 0 60px #c0c0c0;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .eye:hover {
+            transform: scale(1.1);
+        }
+
+        .eyeball {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #f0f0f0;
+            border-radius: inherit;
+        }
+
+        .pupil {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background: radial-gradient(circle at 30% 30%, #c0c0c0, #ffd700);
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            transition: transform 0.1s;
+            box-shadow: 0 0 20px #ffd700;
+            border: 2px solid white;
+        }
+
+        .pupil::after {
+            content: '';
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            width: 10px;
+            height: 10px;
+            background: white;
+            border-radius: 50%;
+            opacity: 0.9;
+            box-shadow: 0 0 10px white;
+        }
+
+        /* تأثير النقر المتوسع */
+        .ripple-effect {
+            position: fixed;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255,215,0,0.8), rgba(192,192,192,0.8));
+            pointer-events: none;
+            z-index: 9999;
+            animation: ripple 0.6s ease-out forwards;
+        }
+
+        @keyframes ripple {
+            0% { width: 0; height: 0; opacity: 0.8; }
+            100% { width: 500px; height: 500px; opacity: 0; transform: translate(-50%, -50%) scale(2); }
+        }
+
+        /* جزيئات ضوئية */
+        .light-particle {
+            position: fixed;
+            width: 8px;
+            height: 8px;
+            background: radial-gradient(circle, #ffd700, #c0c0c0);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9998;
+            animation: particleFloat 1.5s forwards;
+            box-shadow: 0 0 20px #ffd700;
+        }
+
+        @keyframes particleFloat {
+            0% { transform: scale(1); opacity: 1; }
+            100% { transform: scale(4) translateY(-80px); opacity: 0; }
+        }
+
+        /* الهيدر المطور */
+        header {
+            background: linear-gradient(145deg, #c0c0c0, #a0a0a0);
+            color: #2c3e50;
+            padding: 40px 20px;
+            border-radius: 0 0 60px 60px;
+            margin-bottom: 30px;
+            position: relative;
+            z-index: 10;
+            border-bottom: 4px solid #ffd700;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        header h1 {
+            font-size: 42px;
+            font-weight: 800;
+            text-shadow: 2px 2px 4px rgba(255,215,0,0.3);
+        }
+
+        header p {
+            font-size: 20px;
+            color: #2c3e50;
+            opacity: 0.9;
+        }
+
+        /* أزرار التحكم */
+        .buttons-container {
+            margin: 20px;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            position: relative;
+            z-index: 10;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            color: #2c3e50;
+            border: 3px solid white;
+            border-radius: 60px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(255,215,0,0.3);
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            font-family: 'Cairo', sans-serif;
+            background: linear-gradient(145deg, #ffd700, #c0c0c0);
+        }
+
+        .btn:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 8px 25px rgba(255,215,0,0.5);
+        }
+
+        .btn:active {
+            animation: clickRipple 0.4s ease-out;
+        }
+
+        .addBtn {
+            background: linear-gradient(145deg, #ffd700, #c0c0c0);
+        }
+
+        .backBtn {
+            background: linear-gradient(145deg, #c0c0c0, #a0a0a0);
+        }
+
+        /* لوحة الإعلانات */
+        .adsPanel {
+            width: 90%;
+            max-width: 900px;
+            margin: 30px auto;
+            padding-bottom: 50px;
+            position: relative;
+            z-index: 10;
+        }
+
+        .ad {
+            background: linear-gradient(145deg, #c0c0c0, #a0a0a0);
+            border-radius: 60px;
+            padding: 30px;
+            margin: 25px 0;
+            text-align: right;
+            border: 3px solid #ffd700;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            position: relative;
+            animation: fadeIn 0.5s ease;
+            overflow: hidden;
+        }
+
+        /* جلانس متحرك داخل الإعلان */
+        .ad::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -150%;
+            width: 200%;
+            height: 100%;
+            background: linear-gradient(120deg, 
+                transparent 0%, 
+                transparent 30%, 
+                rgba(255, 215, 0, 0.2) 45%,
+                rgba(255, 255, 255, 0.4) 50%,
+                rgba(255, 215, 0, 0.2) 55%,
+                transparent 70%,
+                transparent 100%);
+            transform: skewX(-20deg);
+            animation: shine 6s infinite;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        @keyframes shine {
+            0% { left: -150%; }
+            100% { left: 150%; }
+        }
+
+        .ad:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(255,215,0,0.4);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .adTitle {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            position: relative;
+            z-index: 5;
+        }
+
+        .date {
+            font-size: 14px;
+            color: #6b4f3a;
+            margin-bottom: 15px;
+            background: rgba(255,255,255,0.3);
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 30px;
+            border: 1px solid #ffd700;
+            position: relative;
+            z-index: 5;
+        }
+
+        .adText {
+            font-size: 18px;
+            line-height: 1.8;
+            color: #2c3e50;
+            background: rgba(255,255,255,0.2);
+            backdrop-filter: blur(5px);
+            padding: 20px;
+            border-radius: 40px;
+            border: 1px solid #ffd700;
+            position: relative;
+            z-index: 5;
+        }
+
+        /* زر الحذف */
+        .deleteIcon {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(255,255,255,0.3);
+            color: #b8860b;
+            border: 2px solid #ffd700;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            font-size: 22px;
+            z-index: 10;
+            backdrop-filter: blur(5px);
+        }
+
+        .deleteIcon:hover {
+            background: #ffd700;
+            color: #2c3e50;
+            transform: rotate(180deg) scale(1.1);
+            box-shadow: 0 0 30px #ffd700;
+        }
+
+        /* النوافذ المنبثقة */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(8px);
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+        }
+
+        .modalBox {
+            background: linear-gradient(145deg, #c0c0c0, #a0a0a0);
+            padding: 40px;
+            border-radius: 70px;
+            width: 90%;
+            max-width: 450px;
+            border: 4px solid #ffd700;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .modalBox::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -150%;
+            width: 200%;
+            height: 100%;
+            background: linear-gradient(120deg, 
+                transparent 0%, 
+                transparent 30%, 
+                rgba(255, 215, 0, 0.2) 45%,
+                rgba(255, 255, 255, 0.4) 50%,
+                rgba(255, 215, 0, 0.2) 55%,
+                transparent 70%,
+                transparent 100%);
+            transform: skewX(-20deg);
+            animation: shine 6s infinite;
+            pointer-events: none;
+        }
+
+        .modalBox h3 {
+            color: #2c3e50;
+            font-size: 28px;
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 5;
+        }
+
+        .modalBox p {
+            color: #2c3e50;
+            font-size: 18px;
+            margin-bottom: 25px;
+            position: relative;
+            z-index: 5;
+        }
+
+        textarea {
+            width: 100%;
+            height: 150px;
+            border-radius: 40px;
+            border: 3px solid #ffd700;
+            padding: 20px;
+            font-family: 'Cairo', sans-serif;
+            font-size: 16px;
+            background: rgba(255,255,255,0.2);
+            backdrop-filter: blur(5px);
+            color: #2c3e50;
+            margin-bottom: 20px;
+            resize: none;
+            position: relative;
+            z-index: 5;
+        }
+
+        textarea::placeholder {
+            color: #6b4f3a;
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            position: relative;
+            z-index: 5;
+        }
+
+        .confirmDeleteBtn, .cancelBtn {
+            padding: 12px 30px;
+            border: 3px solid white;
+            border-radius: 60px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: 'Cairo', sans-serif;
+        }
+
+        .confirmDeleteBtn {
+            background: linear-gradient(145deg, #ff6b6b, #f44336);
+            color: white;
+        }
+
+        .confirmDeleteBtn:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 0 30px #ff6b6b;
+        }
+
+        .cancelBtn {
+            background: linear-gradient(145deg, #c0c0c0, #a0a0a0);
+            color: #2c3e50;
+        }
+
+        .cancelBtn:hover {
+            transform: translateY(-3px) scale(1.05);
+            background: #ffd700;
+        }
+
+        /* رسالة عدم وجود إعلانات */
+        .no-ads {
+            color: #2c3e50;
+            font-size: 22px;
+            margin-top: 50px;
+            background: rgba(255,255,255,0.2);
+            backdrop-filter: blur(5px);
+            padding: 30px;
+            border-radius: 60px;
+            border: 2px solid #ffd700;
+        }
+
+        @media (max-width: 768px) {
+            header h1 { font-size: 32px; }
+            .ad { padding: 20px; }
+            .adTitle { font-size: 20px; }
+            .adText { font-size: 16px; }
+            .music-control-btn { width: 55px; height: 55px; }
+            .eye { width: 55px; height: 55px; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- موسيقى خلفية -->
+<audio id="bgMusic" loop>
+    <source src="music.wav" type="audio/mpeg">
+</audio>
+
+<!-- زر الموسيقى -->
+<div class="music-control-btn" id="musicControlBtn" onclick="toggleMusic(event)">
+    <i id="musicIcon">🔊</i>
+</div>
+
+<!-- العيون في الشمال فوق -->
+<div class="eyes-container">
+    <div class="eye eye-left">
+        <div class="eyeball">
+            <div class="pupil" id="leftPupil"></div>
+        </div>
+    </div>
+    <div class="eye eye-right">
+        <div class="eyeball">
+            <div class="pupil" id="rightPupil"></div>
+        </div>
+    </div>
+</div>
+
+<header>
+    <h1>📢 لوحة إعلانات مدرسة شبراخيت الثانوية بنات </h1>
+    <p>آخر التنبيهات والإعلانات الرسمية للمدرسة</p>
+</header>
+
+<div class="buttons-container">
+    <a href="secschool.html" class="btn backBtn" onclick="createRipple(event); playMusic(event)">🏠 العودة للبوابة</a>
+    <button class="btn addBtn" onclick="openModal('addModal'); createRipple(event); playMusic(event)">➕ إضافة إعلان جديد</button>
+</div>
+
+<div class="adsPanel" id="adsPanel"></div>
+
+<!-- نافذة إضافة إعلان -->
+<div class="modal" id="addModal">
+    <div class="modalBox">
+        <h3>📝 إضافة إعلان جديد</h3>
+        <textarea id="adText" placeholder="اكتب تفاصيل الإعلان هنا..."></textarea>
+        <div class="modal-actions">
+            <button class="btn addBtn" style="padding:8px 20px" onclick="addAd(); createRipple(event); playMusic(event)">حفظ ونشر</button>
+            <button class="cancelBtn" onclick="closeModal('addModal'); createRipple(event)">إلغاء</button>
+        </div>
+    </div>
+</div>
+
+<!-- نافذة تأكيد الحذف المخصصة -->
+<div class="modal" id="deleteModal">
+    <div class="modalBox">
+        <h3>⚠️ تأكيد الحذف</h3>
+        <p>هل أنتِ متأكدة من رغبتك في مسح هذا الإعلان نهائياً؟</p>
+        <div class="modal-actions">
+            <button class="confirmDeleteBtn" id="confirmDeleteBtn" onclick="confirmDelete(); createRipple(event); playMusic(event)">نعم، احذف</button>
+            <button class="cancelBtn" onclick="closeModal('deleteModal'); createRipple(event)">تراجع</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ===== نظام الموسيقى =====
+    let music = document.getElementById('bgMusic');
+    let musicBtn = document.getElementById('musicControlBtn');
+    let musicIcon = document.getElementById('musicIcon');
+    let isPlaying = false;
+
+    music.load();
+
+    window.toggleMusic = function(event) {
+        event.stopPropagation();
+        if (isPlaying) {
+            music.pause();
+            musicIcon.textContent = '🔇';
+            musicBtn.classList.remove('playing');
+        } else {
+            music.play().then(() => {
+                musicIcon.textContent = '🔊';
+                musicBtn.classList.add('playing');
+            }).catch(e => console.log('ممنوع تشغيل الموسيقى'));
+        }
+        isPlaying = !isPlaying;
+        createLightParticle(event?.clientX || window.innerWidth/2, event?.clientY || window.innerHeight/2);
+    }
+
+    window.playMusic = function(event) {
+        if (!isPlaying && event) {
+            music.play().then(() => {
+                isPlaying = true;
+                musicIcon.textContent = '🔊';
+                musicBtn.classList.add('playing');
+            }).catch(e => console.log('ممنوع تشغيل الموسيقى تلقائياً'));
+        }
+    }
+
+    // ===== العيون تتبع الماوس =====
+    const leftPupil = document.querySelector('.eye-left .pupil');
+    const rightPupil = document.querySelector('.eye-right .pupil');
+    const pupils = [leftPupil, rightPupil];
+
+    document.addEventListener('mousemove', function(e) {
+        pupils.forEach(pupil => {
+            const eye = pupil.closest('.eye');
+            const eyeRect = eye.getBoundingClientRect();
+            const eyeCenterX = eyeRect.left + eyeRect.width / 2;
+            const eyeCenterY = eyeRect.top + eyeRect.height / 2;
+            
+            const deltaX = e.clientX - eyeCenterX;
+            const deltaY = e.clientY - eyeCenterY;
+            
+            const angle = Math.atan2(deltaY, deltaX);
+            const distance = Math.min(12, Math.sqrt(deltaX * deltaX + deltaY * deltaY) / 15);
+            
+            const moveX = Math.cos(angle) * distance;
+            const moveY = Math.sin(angle) * distance;
+            
+            pupil.style.transform = `translate(calc(-50% + ${moveX}px), calc(-50% + ${moveY}px))`;
+        });
+    });
+
+    // ===== تأثير النقر المتوسع =====
+    window.createRipple = function(event) {
+        const ripple = document.createElement('div');
+        ripple.className = 'ripple-effect';
+        
+        const x = event.clientX;
+        const y = event.clientY;
+        
+        ripple.style.left = x + 'px';
+        ripple.style.top = y + 'px';
+        ripple.style.transform = 'translate(-50%, -50%)';
+        
+        document.body.appendChild(ripple);
+        
+        for (let i = 0; i < 5; i++) {
+            setTimeout(() => {
+                createLightParticle(x, y);
+            }, i * 50);
+        }
+        
+        setTimeout(() => {
+            ripple.remove();
+        }, 600);
+    }
+
+    function createLightParticle(x, y) {
+        const particle = document.createElement('div');
+        particle.className = 'light-particle';
+        particle.style.left = (x || window.innerWidth/2) + (Math.random() - 0.5) * 100 + 'px';
+        particle.style.top = (y || window.innerHeight/2) + (Math.random() - 0.5) * 100 + 'px';
+        document.body.appendChild(particle);
+        
+        setTimeout(() => {
+            particle.remove();
+        }, 1500);
+    }
+
+    document.addEventListener('mousemove', function(e) {
+        if (Math.random() > 0.95) {
+            createLightParticle(e.clientX, e.clientY);
+        }
+    });
+
+    window.addEventListener('load', () => {
+        for (let i = 0; i < 20; i++) {
+            setTimeout(() => {
+                createLightParticle(Math.random() * window.innerWidth, Math.random() * window.innerHeight);
+            }, i * 100);
+        }
+        loadAds();
+    });
+
+    // ===== نظام الإعلانات =====
+    let currentDeleteIndex = null;
+
+    function openModal(id) {
+        document.getElementById(id).style.display = "flex";
+    }
+    
+    function closeModal(id) {
+        document.getElementById(id).style.display = "none";
+    }
+
+    function loadAds() {
+        let ads = JSON.parse(localStorage.getItem("schoolAds")) || [];
+        let panel = document.getElementById("adsPanel");
+        
+        if (ads.length === 0) {
+            panel.innerHTML = '<div class="no-ads">📭 لا توجد إعلانات حالياً</div>';
+            return;
+        }
+        
+        panel.innerHTML = "";
+        
+        ads.forEach((ad, index) => {
+            panel.innerHTML += `
+            <div class="ad">
+                <div class="deleteIcon" onclick="askDelete(${index}); createRipple(event); playMusic(event)">🗑️</div>
+                <div class="adTitle">📢 إعلان هام</div>
+                <div class="date">${ad.date}</div>
+                <div class="adText">${ad.text}</div>
+            </div>
+            `;
+        });
+    }
+
+    function addAd() {
+        let text = document.getElementById("adText").value;
+        if (text.trim() === "") return;
+        
+        let ads = JSON.parse(localStorage.getItem("schoolAds")) || [];
+        let date = new Date().toLocaleDateString('ar-EG', { 
+            weekday: 'long', 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric' 
+        });
+        
+        ads.unshift({ text: text, date: date });
+        localStorage.setItem("schoolAds", JSON.stringify(ads));
+        
+        document.getElementById("adText").value = "";
+        closeModal('addModal');
+        loadAds();
+    }
+
+    function askDelete(index) {
+        currentDeleteIndex = index;
+        openModal('deleteModal');
+    }
+
+    function confirmDelete() {
+        if (currentDeleteIndex !== null) {
+            let ads = JSON.parse(localStorage.getItem("schoolAds")) || [];
+            ads.splice(currentDeleteIndex, 1);
+            localStorage.setItem("schoolAds", JSON.stringify(ads));
+            closeModal('deleteModal');
+            loadAds();
+        }
+    }
+</script>
+
+</body>
+</html>

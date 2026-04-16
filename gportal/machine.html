@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>موسوعة تعلم الآلة | شبراخيث</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&family=Amiri:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: linear-gradient(145deg, #87CEEB 0%, #5F9EA0 50%, #4682B4 100%);
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* ===== خلفية متحركة بجلانس فضي وذهبي ===== */
+        body::before {
+            content: '';
+            position: fixed;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle at 30% 40%, rgba(255,215,0,0.25) 0%, transparent 30%),
+                        radial-gradient(circle at 70% 60%, rgba(192,192,192,0.25) 0%, transparent 30%),
+                        repeating-linear-gradient(45deg, 
+                            transparent 0px, 
+                            transparent 30px, 
+                            rgba(255,215,0,0.1) 30px, 
+                            rgba(192,192,192,0.1) 60px);
+            animation: glisten 15s linear infinite;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        @keyframes glisten {
+            0% { transform: rotate(0deg) scale(1); opacity: 0.5; }
+            50% { transform: rotate(180deg) scale(1.3); opacity: 1; }
+            100% { transform: rotate(360deg) scale(1); opacity: 0.5; }
+        }
+
+        body::after {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(90deg, 
+                transparent 0px, 
+                transparent 20px, 
+                rgba(255,215,0,0.15) 20px, 
+                rgba(192,192,192,0.15) 40px);
+            animation: glistenReverse 20s linear infinite;
+            pointer-events: none;
+            z-index: 0;
+            filter: blur(2px);
+        }
+
+        @keyframes glistenReverse {
+            0% { transform: translateX(0) scale(1); opacity: 0.3; }
+            50% { transform: translateX(-100px) scale(1.3); opacity: 0.8; }
+            100% { transform: translateX(0) scale(1); opacity: 0.3; }
+        }
+
+        /* ===== زر الموسيقى (أسفل اليمين) ===== */
+        .music-control-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 70px;
+            height: 70px;
+            background: radial-gradient(circle at 30% 30%, #ffd700, #c0c0c0);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 10000;
+            border: 4px solid white;
+            box-shadow: 0 0 30px #ffd700, 0 0 60px #c0c0c0, inset 0 0 10px white;
+            transition: all 0.3s;
+            text-decoration: none;
+        }
+
+        .music-control-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 50px #ffd700, 0 0 100px #c0c0c0;
+        }
+
+        .music-control-btn i {
+            font-size: 35px;
+            color: #2c3e50;
+            transition: all 0.3s;
+        }
+
+        .music-control-btn:hover i {
+            color: white;
+        }
+
+        .music-control-btn.playing {
+            background: radial-gradient(circle at 30% 30%, #c0c0c0, #ffd700);
+        }
+
+        .music-control-btn.playing i {
+            color: white;
+        }
+
+        /* ===== العينان في الشمال فوق ===== */
+        .eyes-container {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            display: flex;
+            gap: 20px;
+            z-index: 10000;
+            filter: drop-shadow(0 0 30px #ffd700);
+            animation: eyesFloat 3s infinite alternate;
+            pointer-events: none;
+        }
+
+        @keyframes eyesFloat {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(-5px); }
+        }
+
+        .eye {
+            position: relative;
+            width: 70px;
+            height: 70px;
+            background: white;
+            border-radius: 50% 50% 45% 45% / 55% 55% 45% 45%;
+            border: 4px solid #ffd700;
+            overflow: hidden;
+            box-shadow: 0 0 30px #ffd700, 0 0 60px #c0c0c0;
+            transition: all 0.3s;
+        }
+
+        .eyeball {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #f0f0f0;
+            border-radius: inherit;
+        }
+
+        .pupil {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background: radial-gradient(circle at 30% 30%, #c0c0c0, #ffd700);
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            transition: transform 0.1s;
+            box-shadow: 0 0 20px #ffd700;
+            border: 2px solid white;
+        }
+
+        .pupil::after {
+            content: '';
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            width: 10px;
+            height: 10px;
+            background: white;
+            border-radius: 50%;
+            opacity: 0.9;
+            box-shadow: 0 0 10px white;
+        }
+
+        /* تأثير النقر المتوسع */
+        .ripple-effect {
+            position: fixed;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255,215,0,0.8), rgba(192,192,192,0.8));
+            pointer-events: none;
+            z-index: 9999;
+            animation: ripple 0.6s ease-out forwards;
+        }
+
+        @keyframes ripple {
+            0% { width: 0; height: 0; opacity: 0.8; }
+            100% { width: 500px; height: 500px; opacity: 0; transform: translate(-50%, -50%) scale(2); }
+        }
+
+        /* جزيئات ضوئية */
+        .light-particle {
+            position: fixed;
+            width: 8px;
+            height: 8px;
+            background: radial-gradient(circle, #ffd700, #c0c0c0);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9998;
+            animation: particleFloat 1.5s forwards;
+            box-shadow: 0 0 20px #ffd700;
+        }
+
+        @keyframes particleFloat {
+            0% { transform: scale(1); opacity: 1; }
+            100% { transform: scale(4) translateY(-80px); opacity: 0; }
+        }
+
+        /* الهيدر */
+        header {
+            background: linear-gradient(145deg, #c0c0c0, #a0a0a0);
+            color: #2c3e50;
+            padding: 40px 20px;
+            border-radius: 0 0 60px 60px;
+            margin-bottom: 30px;
+            position: relative;
+            z-index: 10;
+            border-bottom: 4px solid #ffd700;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 42px;
+            font-weight: 800;
+            text-shadow: 2px 2px 4px rgba(255,215,0,0.3);
+            margin-bottom: 10px;
+        }
+
+        header p {
+            font-size: 18px;
+            color: #2c3e50;
+            max-width: 700px;
+            margin: 0 auto;
+            opacity: 0.9;
+        }
+
+        /* أزرار الهيدر */
+        .header-buttons {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .back-btn {
+            background: linear-gradient(145deg, #ffd700, #c0c0c0);
+            color: #2c3e50;
+            padding: 12px 25px;
+            border-radius: 60px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 16px;
+            border: 3px solid white;
+            transition: all 0.3s;
+            box-shadow: 0 5px 15px rgba(255,215,0,0.3);
+        }
+
+        .back-btn:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 8px 25px rgba(255,215,0,0.5);
+        }
+
+        /* المحتوى */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* التبويبات المتوازية */
+        .tabs-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .tab {
+            background: linear-gradient(145deg, #c0c0c0, #a0a0a0);
+            border: 3px solid #ffd700;
+            border-radius: 60px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+            text-align: center;
+        }
+
+        .tab::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -150%;
+            width: 200%;
+            height: 100%;
+            background: linear-gradient(120deg, 
+                transparent 0%, 
+                transparent 30%, 
+                rgba(255, 215, 0, 0.2) 45%,
+                rgba(255, 255, 255, 0.4) 50%,
+                rgba(255, 215, 0, 0.2) 55%,
+                transparent 70%,
+                transparent 100%);
+            transform: skewX(-20deg);
+            animation: shine 8s infinite;
+            pointer-events: none;
+        }
+
+        @keyframes shine {
+            0% { left: -150%; }
+            100% { left: 150%; }
+        }
+
+        .tab:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(255,215,0,0.4);
+        }
+
+        .tab.active {
+            background: linear-gradient(145deg, #ffd700, #c0c0c0);
+            border-color: white;
+            box-shadow: 0 15px 30px rgba(255,215,0,0.5);
+        }
+
+        .tab h3 {
+            color: #2c3e50;
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .tab p {
+            color: #2c3e50;
+            font-size: 14px;
+            opacity: 0.8;
+        }
+
+        /* محتوى التبويبات */
+        .tab-content {
+            background: linear-gradient(145deg, #c0c0c0, #a0a0a0);
+            border: 3px solid #ffd700;
+            border-radius: 60px;
+            padding: 30px;
+            margin-top: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            position: relative;
+            overflow: hidden;
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .content-text {
+            color: #2c3e50;
+            font-size: 18px;
+            line-height: 1.8;
+            margin-bottom: 20px;
+        }
+
+        .content-text ul {
+            padding-right: 30px;
+            margin-top: 10px;
+        }
+
+        .content-text li {
+            margin-bottom: 10px;
+        }
+
+        .example-box {
+            background: rgba(255,255,255,0.2);
+            backdrop-filter: blur(5px);
+            border: 2px solid #ffd700;
+            border-radius: 40px;
+            padding: 25px;
+            margin: 20px 0;
+        }
+
+        .example-title {
+            color: #2c3e50;
+            font-size: 22px;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .steps {
+            background: rgba(255,255,255,0.1);
+            padding: 20px;
+            border-radius: 40px;
+            margin: 15px 0;
+        }
+
+        .steps ol {
+            padding-right: 25px;
+        }
+
+        .steps li {
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+
+        .result-card {
+            background: linear-gradient(145deg, #ffd700, #c0c0c0);
+            border-radius: 40px;
+            padding: 20px;
+            margin-top: 15px;
+            border: 3px solid white;
+        }
+
+        .result-card h4 {
+            color: #2c3e50;
+            font-size: 20px;
+            margin-bottom: 10px;
+        }
+
+        .result-card pre {
+            background: rgba(255,255,255,0.2);
+            padding: 15px;
+            border-radius: 30px;
+            font-family: 'Cairo', monospace;
+            direction: ltr;
+            text-align: left;
+            overflow-x: auto;
+            color: #2c3e50;
+            border: 1px solid #ffd700;
+        }
+
+        .links-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .link-card {
+            background: linear-gradient(145deg, #c0c0c0, #a0a0a0);
+            border: 3px solid #ffd700;
+            border-radius: 50px;
+            padding: 18px 15px;
+            text-align: center;
+            font-weight: bold;
+            text-decoration: none;
+            color: #2c3e50;
+            transition: all 0.3s;
+            box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+            font-size: 16px;
+        }
+
+        .link-card:hover {
+            background: linear-gradient(145deg, #ffd700, #c0c0c0);
+            transform: translateY(-5px) scale(1.05);
+            border-color: white;
+            box-shadow: 0 15px 30px rgba(255,215,0,0.4);
+            color: white;
+        }
+
+        footer {
+            background: linear-gradient(145deg, #c0c0c0, #a0a0a0);
+            color: #2c3e50;
+            padding: 25px;
+            text-align: center;
+            border-top: 4px solid #ffd700;
+            margin-top: 40px;
+            position: relative;
+            z-index: 10;
+        }
+
+        @media (max-width: 768px) {
+            .tabs-container {
+                grid-template-columns: 1fr;
+            }
+            header h1 { font-size: 32px; }
+            .music-control-btn { width: 55px; height: 55px; }
+            .eye { width: 55px; height: 55px; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- موسيقى خلفية -->
+<audio id="bgMusic" loop>
+    <source src="music.mp3" type="audio/mpeg">
+</audio>
+
+<!-- زر الموسيقى -->
+<div class="music-control-btn" id="musicControlBtn" onclick="toggleMusic(event)">
+    <i id="musicIcon">🔊</i>
+</div>
+
+<!-- العيون في الشمال فوق -->
+<div class="eyes-container">
+    <div class="eye eye-left">
+        <div class="eyeball">
+            <div class="pupil" id="leftPupil"></div>
+        </div>
+    </div>
+    <div class="eye eye-right">
+        <div class="eyeball">
+            <div class="pupil" id="rightPupil"></div>
+        </div>
+    </div>
+</div>
+
+<header>
+    <div class="header-buttons">
+        <a href="secschool.html" class="back-btn" onclick="createRipple(event); playMusic(event)">🏠 العودة للبوابة</a>
+    </div>
+    <h1>🤖 موسوعة تعلم الآلة</h1>
+    <p>بوابة معرفية مبسطة لفهم علم تعلم الآلة والذكاء الاصطناعي واستكشاف أهم الأدوات والمصادر العالمية</p>
+</header>
+
+<div class="container">
+    <!-- التبويبات المتوازية -->
+    <div class="tabs-container">
+        <div class="tab active" onclick="switchTab(0, event)">
+            <h3>📚 ما هو تعلم الآلة؟</h3>
+            <p>مفهوم مبسط وأساسيات</p>
+        </div>
+        <div class="tab" onclick="switchTab(1, event)">
+            <h3>🎯 أنواع تعلم الآلة</h3>
+            <p>التعلم الموجّه، غير الموجّه، التعزيزي</p>
+        </div>
+        <div class="tab" onclick="switchTab(2, event)">
+            <h3>🔗 أشهر المنصات</h3>
+            <p>مواقع وأدوات عملية</p>
+        </div>
+    </div>
+
+    <!-- محتوى التبويب الأول: ما هو تعلم الآلة؟ -->
+    <div class="tab-content active" id="tab0">
+        <div class="content-text">
+            <p>🤔 <b>تعلم الآلة</b> هو أحد فروع الذكاء الاصطناعي الذي يهدف إلى جعل الحاسوب يتعلم من البيانات بدلاً من كتابة الأوامر بشكل مباشر.</p>
+            <p>📊 بدلاً من برمجة كل القواعد يدوياً، نقوم بتزويد الحاسوب ببيانات كثيرة ليكتشف الأنماط ويستنتج القواعد بنفسه.</p>
+            
+            <div class="example-box">
+                <div class="example-title">💡 مثال عملي: تصنيف البريد العشوائي</div>
+                <div class="steps">
+                    <ol>
+                        <li><b>البيانات:</b> 10,000 رسالة بريد إلكتروني، نصفها عشوائي ونصفها عادي</li>
+                        <li><b>التدريب:</b> نستخدم 80% من البيانات لتدريب نموذج تعلم الآلة (مثال: خوارزمية Naive Bayes)</li>
+                        <li><b>الاختبار:</b> نستخدم 20% المتبقية لاختبار دقة النموذج</li>
+                        <li><b>النتيجة:</b> نموذج قادر على تصنيف البريد العشوائي بدقة تصل إلى 98%</li>
+                    </ol>
+                </div>
+                <div class="result-card">
+                    <h4>📝 استخدام النتيجة في برنامج</h4>
+                    <p>بعد تدريب النموذج، يمكننا استخدامه في برنامج بسيط:</p>
+                    <pre>def تصنيف_البريد(نص_الرسالة):
+    # نموذج مدرب مسبقاً
+    if نموذج.توقع(نص_الرسالة) == "عشوائي":
+        return "⚠️ هذه الرسالة عشوائي - احذفيها"
+    else:
+        return "✅ بريد عادي - آمن للقراءة"
+
+# مثال استخدام
+بريد_جديد = "عرض خاص: اربحي 10000 دولار!"
+print(تصنيف_البريد(بريد_جديد))</pre>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- محتوى التبويب الثاني: أنواع تعلم الآلة -->
+    <div class="tab-content" id="tab1">
+        <div class="content-text">
+            <p>📌 هناك ثلاثة أنواع رئيسية لتعلم الآلة، ولكل نوع استخداماته المميزة:</p>
+            
+            <div class="example-box">
+                <div class="example-title">📊 التعلم الموجه (Supervised Learning)</div>
+                <p>تعلم يعتمد على بيانات معروفة النتائج (مثل: تصنيف الصور، توقع الأسعار)</p>
+                <div class="steps">
+                    <b>مثال:</b> تصنيف الفواكه (تفاح/برتقال) بناءً على اللون والحجم
+                </div>
+            </div>
+
+            <div class="example-box">
+                <div class="example-title">🔍 التعلم غير الموجه (Unsupervised Learning)</div>
+                <p>تحليل البيانات واكتشاف الأنماط بدون إجابات مسبقة (مثل: تجزئة العملاء)</p>
+                <div class="steps">
+                    <b>مثال:</b> تقسيم عملاء متجر إلكتروني إلى مجموعات متشابهة لاستهدافهم بعروض مخصصة
+                </div>
+                <div class="result-card">
+                    <h4>💻 برنامج تجزئة العملاء (مثال مبسط)</h4>
+                    <pre># استخدام مكتبة scikit-learn
+from sklearn.cluster import KMeans
+import pandas as pd
+
+# بيانات العملاء (المشتريات، التكرار، ...)
+بيانات = pd.read_csv("عملاء.csv")
+نموذج = KMeans(n_clusters=3)
+نموذج.fit(بيانات)
+
+# إظهار المجموعات
+print("المجموعات:", نموذج.labels_)
+# يمكن الآن تخصيص عروض لكل مجموعة</pre>
+                </div>
+            </div>
+
+            <div class="example-box">
+                <div class="example-title">🎮 التعلم التعزيزي (Reinforcement Learning)</div>
+                <p>النموذج يتعلم من خلال المكافأة والعقاب (مثل: تعليم الذكاء الاصطناعي لعب الألعاب)</p>
+                <div class="steps">
+                    <b>مثال:</b> تعليم وكيل ذكي لعب لعبة الشطرنج - يكسب نقاطاً عندما يفوز ويخسر نقاطاً عندما يخسر
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- محتوى التبويب الثالث: أشهر المنصات -->
+    <div class="tab-content" id="tab2">
+        <div class="content-text">
+            <p>🌐 إليك أشهر المنصات والأدوات لتعلم وتطبيق تعلم الآلة:</p>
+
+            <div class="links-grid">
+                <a href="https://www.kaggle.com" target="_blank" class="link-card" onclick="playMusic(event); createRipple(event)">
+                    Kaggle
+                </a>
+                <a href="https://www.coursera.org" target="_blank" class="link-card" onclick="playMusic(event); createRipple(event)">
+                    Coursera
+                </a>
+                <a href="https://scikit-learn.org" target="_blank" class="link-card" onclick="playMusic(event); createRipple(event)">
+                    Scikit Learn
+                </a>
+                <a href="https://www.tensorflow.org" target="_blank" class="link-card" onclick="playMusic(event); createRipple(event)">
+                    TensorFlow
+                </a>
+                <a href="https://colab.research.google.com" target="_blank" class="link-card" onclick="playMusic(event); createRipple(event)">
+                    Google Colab
+                </a>
+                <a href="https://github.com" target="_blank" class="link-card" onclick="playMusic(event); createRipple(event)">
+                    GitHub
+                </a>
+                <a href="https://huggingface.co" target="_blank" class="link-card" onclick="playMusic(event); createRipple(event)">
+                    Hugging Face
+                </a>
+                <a href="https://pytorch.org" target="_blank" class="link-card" onclick="playMusic(event); createRipple(event)">
+                    PyTorch
+                </a>
+                <a href="https://www.fast.ai" target="_blank" class="link-card" onclick="playMusic(event); createRipple(event)">
+                    fast.ai
+                </a>
+            </div>
+
+            <div class="example-box" style="margin-top: 30px;">
+                <div class="example-title">⚡ مثال عملي: استخدام Google Colab</div>
+                <div class="steps">
+                    <ol>
+                        <li><b>ادخلي إلى</b> <a href="https://colab.research.google.com" target="_blank">Google Colab</a></li>
+                        <li><b>أنشئي دفتر ملاحظات جديد (New Notebook)</b></li>
+                        <li><b>اكتبي الكود التالي:</b></li>
+                    </ol>
+                    <pre>import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+
+# إنشاء بيانات بسيطة
+x = np.linspace(0, 10, 100)
+y = 2 * x + 1 + np.random.randn(100) * 2
+
+# رسم البيانات
+plt.scatter(x, y)
+plt.title("مثال على بيانات خطية مع تشويش")
+plt.xlabel("x")
+plt.ylabel("y")
+plt.show()</pre>
+                </div>
+                <div class="result-card">
+                    <h4>📊 النتيجة:</h4>
+                    <p>رسم بياني يظهر نقاط بيانات خطية مع تشويش. يمكن استخدام هذا المثال لفهم الانحدار الخطي.</p>
+                    <p><b>كيف نستخدم النتيجة في برنامج؟</b> بعد فهم العلاقة، يمكننا بناء نموذج انحدار خطي للتنبؤ بقيم جديدة:</p>
+                    <pre>from sklearn.linear_model import LinearRegression
+model = LinearRegression()
+model.fit(x.reshape(-1,1), y)
+print(f"توقع عند x=5: {model.predict([[5]])[0]:.2f}")</pre>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<footer>
+    <p>تم تطوير الصفحة ضمن بوابة المدرسة التعليمية - فريق البرمجة</p>
+    <p style="font-size: 14px; opacity: 0.8;">✨ الموسوعة الذهبية لتعلم الآلة ✨</p>
+</footer>
+
+<script>
+    let currentTab = 0;
+
+    // ===== نظام الموسيقى =====
+    let music = document.getElementById('bgMusic');
+    let musicBtn = document.getElementById('musicControlBtn');
+    let musicIcon = document.getElementById('musicIcon');
+    let isPlaying = false;
+
+    music.load();
+
+    window.toggleMusic = function(event) {
+        event.stopPropagation();
+        if (isPlaying) {
+            music.pause();
+            musicIcon.textContent = '🔇';
+            musicBtn.classList.remove('playing');
+        } else {
+            music.play().then(() => {
+                musicIcon.textContent = '🔊';
+                musicBtn.classList.add('playing');
+            }).catch(e => console.log('ممنوع تشغيل الموسيقى'));
+        }
+        isPlaying = !isPlaying;
+        createLightParticle(event?.clientX || window.innerWidth/2, event?.clientY || window.innerHeight/2);
+    }
+
+    window.playMusic = function(event) {
+        if (!isPlaying && event) {
+            music.play().then(() => {
+                isPlaying = true;
+                musicIcon.textContent = '🔊';
+                musicBtn.classList.add('playing');
+            }).catch(e => console.log('ممنوع تشغيل الموسيقى تلقائياً'));
+        }
+    }
+
+    // ===== العيون تتبع الماوس =====
+    const leftPupil = document.querySelector('.eye-left .pupil');
+    const rightPupil = document.querySelector('.eye-right .pupil');
+    const pupils = [leftPupil, rightPupil];
+
+    document.addEventListener('mousemove', function(e) {
+        pupils.forEach(pupil => {
+            const eye = pupil.closest('.eye');
+            const eyeRect = eye.getBoundingClientRect();
+            const eyeCenterX = eyeRect.left + eyeRect.width / 2;
+            const eyeCenterY = eyeRect.top + eyeRect.height / 2;
+            
+            const deltaX = e.clientX - eyeCenterX;
+            const deltaY = e.clientY - eyeCenterY;
+            
+            const angle = Math.atan2(deltaY, deltaX);
+            const distance = Math.min(12, Math.sqrt(deltaX * deltaX + deltaY * deltaY) / 15);
+            
+            const moveX = Math.cos(angle) * distance;
+            const moveY = Math.sin(angle) * distance;
+            
+            pupil.style.transform = `translate(calc(-50% + ${moveX}px), calc(-50% + ${moveY}px))`;
+        });
+    });
+
+    // ===== تأثير النقر المتوسع =====
+    window.createRipple = function(event) {
+        const ripple = document.createElement('div');
+        ripple.className = 'ripple-effect';
+        
+        const x = event.clientX;
+        const y = event.clientY;
+        
+        ripple.style.left = x + 'px';
+        ripple.style.top = y + 'px';
+        ripple.style.transform = 'translate(-50%, -50%)';
+        
+        document.body.appendChild(ripple);
+        
+        for (let i = 0; i < 5; i++) {
+            setTimeout(() => {
+                createLightParticle(x, y);
+            }, i * 50);
+        }
+        
+        setTimeout(() => {
+            ripple.remove();
+        }, 600);
+    }
+
+    function createLightParticle(x, y) {
+        const particle = document.createElement('div');
+        particle.className = 'light-particle';
+        particle.style.left = (x || window.innerWidth/2) + (Math.random() - 0.5) * 100 + 'px';
+        particle.style.top = (y || window.innerHeight/2) + (Math.random() - 0.5) * 100 + 'px';
+        document.body.appendChild(particle);
+        
+        setTimeout(() => {
+            particle.remove();
+        }, 1500);
+    }
+
+    document.addEventListener('mousemove', function(e) {
+        if (Math.random() > 0.95) {
+            createLightParticle(e.clientX, e.clientY);
+        }
+    });
+
+    window.addEventListener('load', () => {
+        for (let i = 0; i < 20; i++) {
+            setTimeout(() => {
+                createLightParticle(Math.random() * window.innerWidth, Math.random() * window.innerHeight);
+            }, i * 100);
+        }
+    });
+
+    // ===== دالة تبديل التبويبات =====
+    window.switchTab = function(index, event) {
+        if (event) {
+            createRipple(event);
+            playMusic(event);
+        }
+
+        // تحديث التبويبات
+        let tabs = document.querySelectorAll('.tab');
+        tabs.forEach(tab => tab.classList.remove('active'));
+        tabs[index].classList.add('active');
+
+        // تحديث المحتوى
+        let contents = document.querySelectorAll('.tab-content');
+        contents.forEach(content => content.classList.remove('active'));
+        document.getElementById(`tab${index}`).classList.add('active');
+        
+        currentTab = index;
+    }
+</script>
+
+</body>
+</html>

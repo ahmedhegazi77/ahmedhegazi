@@ -1,0 +1,607 @@
+
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🏆 Programming Team Pro - 300 سؤال</title>
+    <style>
+        /* نفس التصميم السابق - احتفظ به كما هو */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #0a0f1e 0%, #1a1f35 50%, #0d1b2a 100%);
+            min-height: 100vh;
+            direction: rtl;
+            padding: 20px;
+        }
+        .team-badge {
+            position: fixed; top: 20px; left: 20px;
+            background: linear-gradient(135deg, #000, #1a1a1a);
+            color: #ffd700; padding: 15px 30px; border-radius: 50px;
+            border: 2px solid #ffd700; box-shadow: 0 0 20px rgba(255,215,0,0.5);
+            animation: glowPulse 2s infinite; z-index: 1000;
+        }
+        @keyframes glowPulse {
+            0%,100% { box-shadow: 0 0 20px #ffd700; }
+            50% { box-shadow: 0 0 40px #ffd700, 0 0 60px #ffaa00; }
+        }
+        .container { max-width: 1200px; margin: 0 auto; }
+        h1 {
+            color: #ffd700; font-size: 3.5em; margin: 60px 0 40px;
+            text-shadow: 0 0 20px rgba(255,215,0,0.5); text-align: center;
+            animation: titleGlow 3s infinite;
+        }
+        @keyframes titleGlow {
+            0%,100% { text-shadow: 0 0 20px #ffd700; }
+            50% { text-shadow: 0 0 40px #ffd700, 0 0 60px #ffaa00; }
+        }
+        .nav-links { display: flex; justify-content: center; gap: 20px; margin: 30px 0; flex-wrap: wrap; }
+        .nav-btn {
+            padding: 15px 40px; background: linear-gradient(135deg, #2a2a2a, #1a1a1a);
+            color: #ffd700; border: 2px solid #ffd700; border-radius: 50px;
+            font-size: 18px; font-weight: bold; cursor: pointer;
+            transition: all 0.3s; box-shadow: 0 0 15px rgba(255,215,0,0.3);
+            position: relative; overflow: hidden;
+        }
+        .nav-btn:hover { transform: translateY(-5px); box-shadow: 0 0 30px #ffd700; }
+        .categories-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px; margin: 40px 0;
+        }
+        .category-card {
+            background: rgba(26, 26, 26, 0.9); border: 2px solid #ffd700;
+            border-radius: 20px; padding: 30px 20px; color: #ffd700;
+            font-size: 18px; font-weight: bold; cursor: pointer;
+            transition: all 0.3s; box-shadow: 0 0 20px rgba(255,215,0,0.2);
+            backdrop-filter: blur(5px); text-align: center;
+            animation: cardFloat 3s infinite;
+        }
+        @keyframes cardFloat { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+        .category-card:hover { transform: scale(1.05); box-shadow: 0 0 40px #ffd700; }
+        .category-card i { font-size: 40px; display: block; margin-bottom: 15px; }
+        .quiz-panel {
+            background: rgba(10, 10, 20, 0.95); border: 3px solid #ffd700;
+            border-radius: 40px; padding: 40px; margin: 40px auto;
+            max-width: 800px; box-shadow: 0 0 50px rgba(255,215,0,0.3);
+            backdrop-filter: blur(10px); position: relative; overflow: hidden;
+        }
+        .progress-bar {
+            width: 100%; height: 20px; background: #2a2a2a;
+            border-radius: 10px; margin: 20px 0; overflow: hidden;
+            border: 2px solid #ffd700;
+        }
+        .progress-fill {
+            height: 100%; background: linear-gradient(90deg, #ffd700, #ffaa00);
+            transition: width 0.5s; position: relative;
+        }
+        .question-text {
+            font-size: 28px; color: #ffd700; margin: 30px 0; padding: 30px;
+            background: rgba(255,215,0,0.1); border-radius: 30px;
+            border: 2px solid #ffd700; text-align: center;
+        }
+        .options-container { display: grid; gap: 20px; margin: 30px 0; }
+        .option-btn {
+            padding: 20px 30px; background: rgba(20, 20, 30, 0.9);
+            border: 2px solid #ffd700; border-radius: 60px; color: #ffd700;
+            font-size: 20px; font-weight: bold; cursor: pointer;
+            transition: all 0.3s; text-align: right;
+        }
+        .option-btn:hover { transform: translateX(-10px); box-shadow: 0 0 30px #ffd700; }
+        .option-btn.correct { background: linear-gradient(135deg, #006400, #008000); }
+        .option-btn.wrong { background: linear-gradient(135deg, #8b0000, #b22222); }
+        .feedback-area {
+            margin: 30px 0; padding: 25px; border-radius: 60px;
+            font-size: 24px; font-weight: bold; text-align: center;
+            border: 2px solid #ffd700; background: rgba(0,0,0,0.5);
+            color: #ffd700;
+        }
+        .control-buttons { display: flex; justify-content: center; gap: 20px; margin-top: 30px; }
+        .control-btn {
+            padding: 15px 40px; background: linear-gradient(135deg, #2a2a2a, #1a1a1a);
+            border: 2px solid #ffd700; border-radius: 50px; color: #ffd700;
+            font-size: 20px; font-weight: bold; cursor: pointer; min-width: 200px;
+        }
+        .control-btn:hover { transform: scale(1.1); box-shadow: 0 0 30px #ffd700; }
+        .score-display {
+            font-size: 28px; color: #ffd700; margin: 20px 0; padding: 20px;
+            border: 2px solid #ffd700; border-radius: 60px; background: rgba(0,0,0,0.5);
+        }
+        .stats-panel {
+            display: flex; justify-content: space-between; margin: 20px 0; padding: 20px;
+            border: 2px solid #ffd700; border-radius: 60px; background: rgba(0,0,0,0.5);
+        }
+        .stat-item { color: #ffd700; font-size: 18px; font-weight: bold; }
+        .footer {
+            margin-top: 60px; padding: 30px; text-align: center;
+            color: #ffd700; border-top: 2px solid #ffd700; font-size: 18px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="team-badge">⚡ Programming Team ⚡</div>
+
+<div class="container">
+    <h1>🏆 منصة الاختبارات الذهبية 🏆</h1>
+
+    <div class="nav-links">
+        <button class="nav-btn" onclick="goToPortal()"><span>🚪</span> بوابة الموقع</button>
+        <button class="nav-btn" onclick="resetToHome()"><span>🏠</span> الصفحة الرئيسية</button>
+    </div>
+
+    <div id="categoryScreen">
+        <div class="categories-grid">
+            <div class="category-card" onclick="loadCategory('islamic')"><i>📖</i><div>إسلامي</div><div style="font-size:14px;">30 سؤال</div></div>
+            <div class="category-card" onclick="loadCategory('quran')"><i>📚</i><div>علوم قرآن</div><div style="font-size:14px;">30 سؤال</div></div>
+            <div class="category-card" onclick="loadCategory('science')"><i>🔬</i><div>علوم</div><div style="font-size:14px;">30 سؤال</div></div>
+            <div class="category-card" onclick="loadCategory('geography')"><i>🌍</i><div>جغرافيا</div><div style="font-size:14px;">30 سؤال</div></div>
+            <div class="category-card" onclick="loadCategory('history')"><i>📜</i><div>تاريخ</div><div style="font-size:14px;">30 سؤال</div></div>
+            <div class="category-card" onclick="loadCategory('math')"><i>🧮</i><div>رياضيات</div><div style="font-size:14px;">30 سؤال</div></div>
+            <div class="category-card" onclick="loadCategory('tech')"><i>💻</i><div>تكنولوجيا</div><div style="font-size:14px;">30 سؤال</div></div>
+            <div class="category-card" onclick="loadCategory('webdev')"><i>🌐</i><div>برمجة ويب</div><div style="font-size:14px;">30 سؤال</div></div>
+            <div class="category-card" onclick="loadCategory('philosophy')"><i>🤔</i><div>فلسفة</div><div style="font-size:14px;">30 سؤال</div></div>
+            <div class="category-card" onclick="loadCategory('iq')"><i>🧠</i><div>اختبارات ذكاء</div><div style="font-size:14px;">30 سؤال</div></div>
+        </div>
+    </div>
+
+    <div id="quizPanel" class="quiz-panel" style="display: none;">
+        <div id="categoryNotice" class="feedback-area"></div>
+        <div class="stats-panel">
+            <span class="stat-item" id="questionNumber"></span>
+            <span class="stat-item" id="currentCategory"></span>
+        </div>
+        <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width: 0%"></div></div>
+        <div id="questionText" class="question-text"></div>
+        <div class="options-container">
+            <button class="option-btn" id="option0" onclick="checkAnswer(0)"></button>
+            <button class="option-btn" id="option1" onclick="checkAnswer(1)"></button>
+            <button class="option-btn" id="option2" onclick="checkAnswer(2)"></button>
+        </div>
+        <div id="feedback" class="feedback-area"></div>
+        <div class="score-display" id="score">النتيجة: 0 / 0</div>
+        <div class="control-buttons">
+            <button class="control-btn" id="nextBtn" onclick="nextQuestion()" style="display: none;">▶ السؤال التالي</button>
+            <button class="control-btn" id="restartBtn" onclick="restartCategory()" style="display: none;">🔄 إعادة المجال</button>
+        </div>
+    </div>
+
+    <div class="footer"><p>✨ 300 سؤال ذهبي للمتفوقين | Programming Team ✨</p></div>
+</div>
+
+<script>
+const allQuestions = [
+    {question: "ما هي السورة التي تسمى سنام القرآن؟", options: ["البقرة", "آل عمران", "النساء"], answer: 0, category: "📖 إسلامي"},
+    {question: "كم عدد السجدات في القرآن الكريم؟", options: ["15", "14", "13"], answer: 0, category: "📖 إسلامي"},
+    {question: "ما هي أعظم آية في القرآن؟", options: ["آية الكرسي", "آخر البقرة", "الفاتحة"], answer: 0, category: "📖 إسلامي"},
+    {question: "من هو الصحابي الذي اهتز لموته عرش الرحمن؟", options: ["سعد بن معاذ", "حمزة", "عمر"], answer: 0, category: "📖 إسلامي"},
+    {question: "كم عدد غزوات الرسول ﷺ؟", options: ["27", "25", "29"], answer: 0, category: "📖 إسلامي"},
+    {question: "ما هي السورة التي تسمى قلب القرآن؟", options: ["يس", "الواقعة", "الملك"], answer: 0, category: "📖 إسلامي"},
+    {question: "من أول من جهر بالقرآن في مكة؟", options: ["عبدالله بن مسعود", "عمار بن ياسر", "بلال"], answer: 0, category: "📖 إسلامي"},
+    {question: "كم عدد أحرف القرآن؟", options: ["323670", "300000", "350000"], answer: 0, category: "📖 إسلامي"},
+    {question: "ما هي السورة التي تسمى عروس القرآن؟", options: ["الرحمن", "يس", "الدخان"], answer: 0, category: "📖 إسلامي"},
+    {question: "من هو الصحابي الملقب بالفاروق؟", options: ["عمر بن الخطاب", "علي بن أبي طالب", "أبو بكر"], answer: 0, category: "📖 إسلامي"},
+    {question: "كم عدد آيات سورة البقرة؟", options: ["286", "276", "296"], answer: 0, category: "📖 إسلامي"},
+    {question: "ما هي السورة التي تسمى سورة النساء الصغرى؟", options: ["الطلاق", "المجادلة", "التحريم"], answer: 1, category: "📖 إسلامي"},
+    {question: "من هو النبي الذي سماه الله روح الله؟", options: ["عيسى", "يحيى", "موسى"], answer: 0, category: "📖 إسلامي"},
+    {question: "كم مرة ذكر اسم محمد في القرآن؟", options: ["4", "3", "5"], answer: 0, category: "📖 إسلامي"},
+    {question: "ما هي السورة التي تسمى سورة التوبة؟", options: ["براءة", "التوبة", "الأنفال"], answer: 1, category: "📖 إسلامي"},
+    {question: "من هو الصحابي الملقب بأسد الله؟", options: ["حمزة", "علي", "خالد"], answer: 0, category: "📖 إسلامي"},
+    {question: "كم عدد الرسل أولو العزم؟", options: ["5", "4", "6"], answer: 0, category: "📖 إسلامي"},
+    {question: "ما هي السورة التي تسمى سورة بني إسرائيل؟", options: ["الإسراء", "إسرائيل", "بني إسرائيل"], answer: 0, category: "📖 إسلامي"},
+    {question: "من هو النبي الذي ابتلعه الحوت؟", options: ["يونس", "يوسف", "إبراهيم"], answer: 0, category: "📖 إسلامي"},
+    {question: "كم عدد أبواب الجنة؟", options: ["8", "7", "9"], answer: 0, category: "📖 إسلامي"},
+    {question: "ما هي السورة التي تسمى أم الكتاب؟", options: ["الفاتحة", "البقرة", "الإخلاص"], answer: 0, category: "📖 إسلامي"},
+    {question: "من هو أول الأنبياء؟", options: ["آدم", "نوح", "إدريس"], answer: 0, category: "📖 إسلامي"},
+    {question: "كم عدد التكبيرات في صلاة العيد؟", options: ["7 في الأولى و5 في الثانية", "6 و4", "8 و6"], answer: 0, category: "📖 إسلامي"},
+    {question: "ما هي السورة التي تسمى سورة الملك؟", options: ["تبارك", "الملك", "الواقعة"], answer: 0, category: "📖 إسلامي"},
+    {question: "من هو الصحابي الملقب بترجمان القرآن؟", options: ["ابن عباس", "ابن مسعود", "علي"], answer: 0, category: "📖 إسلامي"},
+    {question: "كم عدد السنن الرواتب؟", options: ["12", "10", "14"], answer: 0, category: "📖 إسلامي"},
+    {question: "ما هي السورة التي تسمى سورة الواقية؟", options: ["الواقعة", "الملك", "يس"], answer: 0, category: "📖 إسلامي"},
+    {question: "من هو النبي الذي سمي كليم الله؟", options: ["موسى", "إبراهيم", "عيسى"], answer: 0, category: "📖 إسلامي"},
+    {question: "كم عدد آيات سورة يس؟", options: ["83", "85", "80"], answer: 0, category: "📖 إسلامي"},
+    {question: "ما هي السورة التي تسمى سورة العقود؟", options: ["المائدة", "البقرة", "آل عمران"], answer: 0, category: "📖 إسلامي"},
+    {question: "ما هي وحدة قياس الشحنة الكهربائية؟", options: ["الكولوم", "الأمبير", "الفولت"], answer: 0, category: "🔬 علوم"},
+    {question: "كم عدد الكروموسومات في الإنسان؟", options: ["46", "44", "48"], answer: 0, category: "🔬 علوم"},
+    {question: "ما هو العنصر الأكثر وفرة في القشرة الأرضية؟", options: ["الأكسجين", "السيليكون", "الألومنيوم"], answer: 0, category: "🔬 علوم"},
+    {question: "ما هي سرعة الضوء في الفراغ؟", options: ["300,000 كم/ث", "150,000 كم/ث", "400,000 كم/ث"], answer: 0, category: "🔬 علوم"},
+    {question: "ما هو أكبر عضو في جسم الإنسان؟", options: ["الجلد", "الكبد", "الأمعاء"], answer: 0, category: "🔬 علوم"},
+    {question: "كم درجة غليان الماء على مقياس كلفن؟", options: ["373", "273", "173"], answer: 0, category: "🔬 علوم"},
+    {question: "ما هو أثقل غاز نبيل؟", options: ["الرادون", "الزينون", "الكريبتون"], answer: 0, category: "🔬 علوم"},
+    {question: "كم عدد عظام الجمجمة؟", options: ["22", "20", "24"], answer: 0, category: "🔬 علوم"},
+    {question: "ما هو الرقم الذري للكربون؟", options: ["6", "8", "4"], answer: 0, category: "🔬 علوم"},
+    {question: "ما هي أقوى عضلة في جسم الإنسان؟", options: ["اللسان", "القلب", "الفك"], answer: 2, category: "🔬 علوم"},
+    {question: "كم لتر من الدم في جسم الإنسان؟", options: ["5-6", "4-5", "6-7"], answer: 0, category: "🔬 علوم"},
+    {question: "ما هو أسرع كوكب في المجموعة الشمسية؟", options: ["عطارد", "الزهرة", "المشتري"], answer: 0, category: "🔬 علوم"},
+    {question: "كم عدد فصائل الدم الرئيسية؟", options: ["4", "3", "5"], answer: 0, category: "🔬 علوم"},
+    {question: "ما هو أنشط المعادن كيميائياً؟", options: ["السيزيوم", "الصوديوم", "البوتاسيوم"], answer: 0, category: "🔬 علوم"},
+    {question: "كم عدد الخلايا العصبية في الدماغ؟", options: ["100 مليار", "50 مليار", "200 مليار"], answer: 0, category: "🔬 علوم"},
+    {question: "ما هي أقوى مادة طبيعية؟", options: ["الألماس", "الجرافين", "الفولاذ"], answer: 0, category: "🔬 علوم"},
+    {question: "كم درجة تجمد الماء بالفهرنهايت؟", options: ["32", "0", "100"], answer: 0, category: "🔬 علوم"},
+    {question: "ما هو أخف المعادن؟", options: ["الليثيوم", "الصوديوم", "المغنيسيوم"], answer: 0, category: "🔬 علوم"},
+    {question: "كم عدد الغدد اللمفاوية في الجسم؟", options: ["500-600", "300-400", "700-800"], answer: 0, category: "🔬 علوم"},
+    {question: "ما هو العنصر المشع المستخدم في العلاج؟", options: ["الكوبالت", "اليورانيوم", "الراديوم"], answer: 0, category: "🔬 علوم"},
+    {question: "كم نسبة الماء في الدماغ؟", options: ["85%", "75%", "65%"], answer: 0, category: "🔬 علوم"},
+    {question: "ما هي أصغر عظمة في الجسم؟", options: ["الركاب", "السندان", "المطرقة"], answer: 0, category: "🔬 علوم"},
+    {question: "كم عدد عضلات الوجه؟", options: ["43", "35", "50"], answer: 0, category: "🔬 علوم"},
+    {question: "ما هو أندر العناصر على الأرض؟", options: ["الأستاتين", "الفرانسيوم", "البروميثيوم"], answer: 0, category: "🔬 علوم"},
+    {question: "كم عدد أزواج الأعصاب القحفية؟", options: ["12", "10", "14"], answer: 0, category: "🔬 علوم"},
+    {question: "ما هو أقسى معدن؟", options: ["التنغستن", "الكروم", "التيتانيوم"], answer: 0, category: "🔬 علوم"},
+    {question: "كم عدد فقرات العمود الفقري؟", options: ["33", "30", "36"], answer: 0, category: "🔬 علوم"},
+    {question: "ما هو أطول عمر للخلية في الجسم؟", options: ["الخلية العصبية", "خلية الجلد", "خلية الكبد"], answer: 0, category: "🔬 علوم"},
+    {question: "كم عدد الأسنان اللبنية؟", options: ["20", "18", "22"], answer: 0, category: "🔬 علوم"},
+    {question: "ما هي أكبر غدة في الجسم؟", options: ["الكبد", "البنكرياس", "الغدة الدرقية"], answer: 0, category: "🔬 علوم"},
+    {question: "ما هي عاصمة البرازيل؟", options: ["برازيليا", "ريو دي جانيرو", "ساو باولو"], answer: 0, category: "🌍 جغرافيا"},
+    {question: "كم عدد الدول المطلة على البحر المتوسط؟", options: ["21", "18", "24"], answer: 0, category: "🌍 جغرافيا"},
+    {question: "ما هي أقدم عاصمة في العالم؟", options: ["دمشق", "أثينا", "روما"], answer: 0, category: "🌍 جغرافيا"},
+    {question: "أين يقع مضيق هرمز؟", options: ["بين عمان وإيران", "بين اليمن وجيبوتي", "بين مصر والسعودية"], answer: 0, category: "🌍 جغرافيا"},
+    {question: "ما هي أكبر جزيرة في البحر المتوسط؟", options: ["صقلية", "سردينيا", "قبرص"], answer: 0, category: "🌍 جغرافيا"},
+    {question: "كم عدد أقاليم كندا؟", options: ["10 أقاليم و3 مقاطعات", "13", "12"], answer: 0, category: "🌍 جغرافيا"},
+    {question: "ما هي أعلى عاصمة في العالم؟", options: ["لاباز", "كيوتو", "كاتماندو"], answer: 0, category: "🌍 جغرافيا"},
+    {question: "أين يقع البحر الميت؟", options: ["بين الأردن وفلسطين", "بين السعودية ومصر", "بين سوريا ولبنان"], answer: 0, category: "🌍 جغرافيا"},
+    {question: "ما هي أعمق نقطة في المحيطات؟", options: ["تشالنجر ديب", "ماريانا", "بورتوريكو"], answer: 0, category: "🌍 جغرافيا"},
+    {question: "كم عدد دول أمريكا الجنوبية؟", options: ["12", "10", "14"], answer: 0, category: "🌍 جغرافيا"},
+    {question: "ما هي أكبر مدينة في أفريقيا؟", options: ["لاغوس", "القاهرة", "كينشاسا"], answer: 0, category: "🌍 جغرافيا"},
+    {question: "أين تقع هضبة التبت؟", options: ["الصين", "الهند", "نيبال"], answer: 0, category: "🌍 جغرافيا"},
+    {question: "ما هي أطول سلسلة جبال في العالم؟", options: ["الأنديز", "الهيمالايا", "الروكي"], answer: 0, category: "🌍 جغرافيا"},
+    {question: "كم عدد الجزر الإندونيسية؟", options: ["17,000", "13,000", "20,000"], answer: 0, category: "🌍 جغرافيا"},
+    {question: "ما هي أكبر بحيرة في أفريقيا؟", options: ["فيكتوريا", "تنجانيقا", "مالاوي"], answer: 0, category: "🌍 جغرافيا"},
+    {question: "أين يقع وادي الموت؟", options: ["كاليفورنيا", "أريزونا", "نيفادا"], answer: 0, category: "🌍 جغرافيا"},
+    {question: "ما هي عاصمة ميانمار؟", options: ["نايبيداو", "يانجون", "ماندالاي"], answer: 0, category: "🌍 جغرافيا"},
+    {question: "كم عدد المناطق الزمنية في روسيا؟", options: ["11", "9", "13"], answer: 0, category: "🌍 جغرافيا"},
+    {question: "ما هو أكبر خليج في العالم؟", options: ["خليج البنغال", "خليج المكسيك", "خليج هدسون"], answer: 0, category: "🌍 جغرافيا"},
+    {question: "أين تقع صحراء أتاكاما؟", options: ["تشيلي", "بيرو", "الأرجنتين"], answer: 0, category: "🌍 جغرافيا"},
+    {question: "ما هي عاصمة كازاخستان؟", options: ["أستانا", "ألماتي", "شيمكنت"], answer: 0, category: "🌍 جغرافيا"},
+    {question: "كم عدد دول الاتحاد الأوروبي؟", options: ["27", "25", "28"], answer: 0, category: "🌍 جغرافيا"},
+    {question: "ما هي أبرد عاصمة في العالم؟", options: ["أولان باتور", "موسكو", "هلسنكي"], answer: 0, category: "🌍 جغرافيا"},
+    {question: "أين يقع نهر الأمازون؟", options: ["البرازيل", "بيرو", "كولومبيا"], answer: 0, category: "🌍 جغرافيا"},
+    {question: "ما هي أكبر هضبة في العالم؟", options: ["هضبة التبت", "هضبة الأناضول", "هضبة إيران"], answer: 0, category: "🌍 جغرافيا"},
+    {question: "كم عدد الجزر اليابانية؟", options: ["6,852", "5,000", "8,000"], answer: 0, category: "🌍 جغرافيا"},
+    {question: "ما هي عاصمة سويسرا؟", options: ["برن", "زيورخ", "جنيف"], answer: 0, category: "🌍 جغرافيا"},
+    {question: "أين تقع بحيرة بايكال؟", options: ["روسيا", "منغوليا", "الصين"], answer: 0, category: "🌍 جغرافيا"},
+    {question: "ما هي أطول حدود برية في العالم؟", options: ["كندا-الولايات المتحدة", "روسيا-الصين", "الأرجنتين-تشيلي"], answer: 0, category: "🌍 جغرافيا"},
+    {question: "كم عدد سكان الهند؟", options: ["1.4 مليار", "1.3 مليار", "1.2 مليار"], answer: 0, category: "🌍 جغرافيا"},
+    {question: "في أي عام سقطت الخلافة العباسية؟", options: ["1258", "1248", "1268"], answer: 0, category: "📜 تاريخ"},
+    {question: "من هو مؤسس الدولة الفاطمية؟", options: ["عبيد الله المهدي", "المعز لدين الله", "العزيز بالله"], answer: 0, category: "📜 تاريخ"},
+    {question: "كم دامت حرب المئة عام؟", options: ["116 سنة", "100 سنة", "120 سنة"], answer: 0, category: "📜 تاريخ"},
+    {question: "من هو القائد الذي هزم الصليبيين في حطين؟", options: ["صلاح الدين", "نور الدين", "قطز"], answer: 0, category: "📜 تاريخ"},
+    {question: "في أي عام فتحت القسطنطينية؟", options: ["1453", "1443", "1463"], answer: 0, category: "📜 تاريخ"},
+    {question: "من هو آخر سلاطين المماليك؟", options: ["طومان باي", "قانصوه الغوري", "برسباي"], answer: 0, category: "📜 تاريخ"},
+    {question: "كم عدد ملوك الدولة السعودية؟", options: ["7", "6", "8"], answer: 0, category: "📜 تاريخ"},
+    {question: "من هو مؤسس الدولة الأموية في الأندلس؟", options: ["عبد الرحمن الداخل", "عبد الرحمن الناصر", "الحكم بن هشام"], answer: 0, category: "📜 تاريخ"},
+    {question: "في أي عام كانت الثورة الفرنسية؟", options: ["1789", "1799", "1769"], answer: 0, category: "📜 تاريخ"},
+    {question: "من هو أول رئيس للولايات المتحدة؟", options: ["جورج واشنطن", "توماس جيفرسون", "أبراهام لينكولن"], answer: 0, category: "📜 تاريخ"},
+    {question: "كم دامت خلافة عمر بن الخطاب؟", options: ["10 سنوات", "12 سنة", "8 سنوات"], answer: 0, category: "📜 تاريخ"},
+    {question: "من هو القائد المغولي الذي أحرق بغداد؟", options: ["هولاكو", "جنكيز خان", "تيمورلنك"], answer: 0, category: "📜 تاريخ"},
+    {question: "في أي عام وقعت معركة عين جالوت؟", options: ["1260", "1250", "1270"], answer: 0, category: "📜 تاريخ"},
+    {question: "من هو مؤسس دولة المرابطين؟", options: ["يوسف بن تاشفين", "عبدالله بن ياسين", "أبو بكر اللمتوني"], answer: 1, category: "📜 تاريخ"},
+    {question: "كم عدد سنوات حكم صلاح الدين؟", options: ["24 سنة", "20 سنة", "28 سنة"], answer: 0, category: "📜 تاريخ"},
+    {question: "من هو آخر خلفاء الدولة العثمانية؟", options: ["عبد المجيد الثاني", "محمد السادس", "عبد الحميد الثاني"], answer: 0, category: "📜 تاريخ"},
+    {question: "في أي عام اكتشفت أمريكا؟", options: ["1492", "1482", "1502"], answer: 0, category: "📜 تاريخ"},
+    {question: "من هو مؤسس الدولة الأيوبية؟", options: ["صلاح الدين", "نور الدين", "أسد الدين شيركوه"], answer: 2, category: "📜 تاريخ"},
+    {question: "كم دامت الحرب العالمية الثانية؟", options: ["6 سنوات", "5 سنوات", "7 سنوات"], answer: 0, category: "📜 تاريخ"},
+    {question: "من هو القائد الفارسي الذي هزم في القادسية؟", options: ["رستم", "هرمز", "كسرى"], answer: 0, category: "📜 تاريخ"},
+    {question: "في أي عام توفي النبي محمد ﷺ؟", options: ["632", "630", "634"], answer: 0, category: "📜 تاريخ"},
+    {question: "من هو مؤسس الدولة الحمدانية؟", options: ["سيف الدولة", "ناصر الدولة", "عضد الدولة"], answer: 0, category: "📜 تاريخ"},
+    {question: "كم عدد سنوات حكم هارون الرشيد؟", options: ["23 سنة", "20 سنة", "25 سنة"], answer: 0, category: "📜 تاريخ"},
+    {question: "من هو القائد الذي فتح الأندلس؟", options: ["طارق بن زياد", "موسى بن نصير", "عبد العزيز بن موسى"], answer: 0, category: "📜 تاريخ"},
+    {question: "في أي عام وقعت معركة اليرموك؟", options: ["636", "634", "638"], answer: 0, category: "📜 تاريخ"},
+    {question: "من هو آخر ملوك الأندلس؟", options: ["أبو عبد الله الصغير", "المعتصم بالله", "المتوكل على الله"], answer: 0, category: "📜 تاريخ"},
+    {question: "كم دامت الدولة العباسية؟", options: ["524 سنة", "500 سنة", "550 سنة"], answer: 0, category: "📜 تاريخ"},
+    {question: "من هو القائد الروماني الذي هزم في معركة زامة؟", options: ["حنبعل", "شيبيو", "بومبي"], answer: 0, category: "📜 تاريخ"},
+    {question: "في أي عام وقعت حرب الخليج الأولى؟", options: ["1980-1988", "1982-1988", "1979-1988"], answer: 0, category: "📜 تاريخ"},
+    {question: "من هو مؤسس دولة السلاجقة؟", options: ["طغرل بك", "ألب أرسلان", "ملك شاه"], answer: 0, category: "📜 تاريخ"},
+    {question: "ما هو تكامل 2x dx؟", options: ["x² + C", "2x² + C", "x²/2 + C"], answer: 0, category: "🧮 رياضيات"},
+    {question: "كم قيمة sin 90؟", options: ["1", "0", "0.5"], answer: 0, category: "🧮 رياضيات"},
+    {question: "ما هو لوغاريتم 100 للأساس 10؟", options: ["2", "10", "100"], answer: 0, category: "🧮 رياضيات"},
+    {question: "كم قيمة i² في الأعداد المركبة؟", options: ["-1", "1", "i"], answer: 0, category: "🧮 رياضيات"},
+    {question: "ما هو المشتقة الأولى لـ x³؟", options: ["3x²", "x²", "3x"], answer: 0, category: "🧮 رياضيات"},
+    {question: "كم عدد الأعداد الأولية أقل من 10؟", options: ["4", "3", "5"], answer: 0, category: "🧮 رياضيات"},
+    {question: "ما هو ناتج 5! (5 عاملي)؟", options: ["120", "60", "100"], answer: 0, category: "🧮 رياضيات"},
+    {question: "كم قيمة cos 60؟", options: ["0.5", "0.866", "0"], answer: 0, category: "🧮 رياضيات"},
+    {question: "ما هو محيط الدائرة التي نصف قطرها 5؟", options: ["10π", "25π", "5π"], answer: 0, category: "🧮 رياضيات"},
+    {question: "كم قيمة tan 45؟", options: ["1", "0", "∞"], answer: 0, category: "🧮 رياضيات"},
+    {question: "ما هو ناتج 2⁶؟", options: ["64", "32", "128"], answer: 0, category: "🧮 رياضيات"},
+    {question: "كم عدد درجات المثلث؟", options: ["180", "360", "90"], answer: 0, category: "🧮 رياضيات"},
+    {question: "ما هو الجذر التكعيبي لـ 27؟", options: ["3", "9", "6"], answer: 0, category: "🧮 رياضيات"},
+    {question: "كم قيمة sec 0؟", options: ["1", "0", "∞"], answer: 0, category: "🧮 رياضيات"},
+    {question: "ما هو ناتج 16 × 3/4؟", options: ["12", "8", "10"], answer: 0, category: "🧮 رياضيات"},
+    {question: "كم عدد الأوجه في المكعب؟", options: ["6", "8", "12"], answer: 0, category: "🧮 رياضيات"},
+    {question: "ما هو ناتج 144 ÷ 12؟", options: ["12", "10", "14"], answer: 0, category: "🧮 رياضيات"},
+    {question: "كم قيمة cosec 30؟", options: ["2", "1", "0.5"], answer: 0, category: "🧮 رياضيات"},
+    {question: "ما هو ناتج (x + y)²؟", options: ["x² + 2xy + y²", "x² + y²", "x² - y²"], answer: 0, category: "🧮 رياضيات"},
+    {question: "كم عدد الأقطار في المربع؟", options: ["2", "1", "4"], answer: 0, category: "🧮 رياضيات"},
+    {question: "ما هو ناتج 25% من 400؟", options: ["100", "50", "150"], answer: 0, category: "🧮 رياضيات"},
+    {question: "كم قيمة sin 30؟", options: ["0.5", "0.866", "1"], answer: 0, category: "🧮 رياضيات"},
+    {question: "ما هو ناتج 7 × 8؟", options: ["56", "54", "58"], answer: 0, category: "🧮 رياضيات"},
+    {question: "كم عدد المئات في الألف؟", options: ["10", "100", "1000"], answer: 0, category: "🧮 رياضيات"},
+    {question: "ما هو ناتج 3⁴؟", options: ["81", "27", "64"], answer: 0, category: "🧮 رياضيات"},
+    {question: "كم قيمة cot 45؟", options: ["1", "0", "∞"], answer: 0, category: "🧮 رياضيات"},
+    {question: "ما هو ناتج 0.5 × 0.5؟", options: ["0.25", "0.5", "0.75"], answer: 0, category: "🧮 رياضيات"},
+    {question: "كم عدد الأضلاع في المثمن؟", options: ["8", "6", "10"], answer: 0, category: "🧮 رياضيات"},
+    {question: "ما هو ناتج √81؟", options: ["9", "8", "10"], answer: 0, category: "🧮 رياضيات"},
+    {question: "كم قيمة log 1000 للأساس 10؟", options: ["3", "10", "100"], answer: 0, category: "🧮 رياضيات"},
+    {question: "ما هو الفرق بين RAM و ROM؟", options: ["RAM متطايرة ROM غير متطايرة", "كلاهما متطاير", "كلاهما غير متطاير"], answer: 0, category: "💻 تكنولوجيا"},
+    {question: "ما معنى DNS؟", options: ["نظام أسماء النطاقات", "بروتوكول الإنترنت", "خادم البريد"], answer: 0, category: "💻 تكنولوجيا"},
+    {question: "كم بايت في الكيلوبايت؟", options: ["1024", "1000", "2048"], answer: 0, category: "💻 تكنولوجيا"},
+    {question: "ما هو الـ IP address؟", options: ["عنوان الجهاز في الشبكة", "بروتوكول الإنترنت", "اسم النطاق"], answer: 0, category: "💻 تكنولوجيا"},
+    {question: "ما الفرق بين HTTP و HTTPS؟", options: ["HTTPS مشفر", "HTTP أسرع", "لا فرق"], answer: 0, category: "💻 تكنولوجيا"},
+    {question: "ما معنى BIOS؟", options: ["نظام الإدخال والإخراج الأساسي", "نظام التشغيل", "ذاكرة الوصول العشوائي"], answer: 0, category: "💻 تكنولوجيا"},
+    {question: "كم عدد البتات في البايت؟", options: ["8", "16", "32"], answer: 0, category: "💻 تكنولوجيا"},
+    {question: "ما هو الـ Cache Memory؟", options: ["ذاكرة تخزين مؤقت", "ذاكرة رئيسية", "قرص صلب"], answer: 0, category: "💻 تكنولوجيا"},
+    {question: "ما معنى LAN؟", options: ["شبكة محلية", "شبكة واسعة", "شبكة افتراضية"], answer: 0, category: "💻 تكنولوجيا"},
+    {question: "ما هو الـ Firewall؟", options: ["جدار ناري", "برنامج مضاد فيروسات", "نظام تشغيل"], answer: 0, category: "💻 تكنولوجيا"},
+    {question: "كم عدد أنوية المعالج i7؟", options: ["4-8", "2-4", "8-12"], answer: 0, category: "💻 تكنولوجيا"},
+    {question: "ما معنى SSD؟", options: ["قرص صلب إلكتروني", "قرص صلب ميكانيكي", "ذاكرة عشوائية"], answer: 0, category: "💻 تكنولوجيا"},
+    {question: "ما هو الـ VPN؟", options: ["شبكة خاصة افتراضية", "بروتوكول إنترنت", "خادم بروكسي"], answer: 0, category: "💻 تكنولوجيا"},
+    {question: "ما الفرق بين 32-bit و 64-bit؟", options: ["حجم معالجة البيانات", "سرعة المعالج", "حجم الذاكرة"], answer: 0, category: "💻 تكنولوجيا"},
+    {question: "ما معنى GUI؟", options: ["واجهة المستخدم الرسومية", "لغة برمجة", "نظام تشغيل"], answer: 0, category: "💻 تكنologia"},
+    {question: "كم جيجاهرتز في معالج حديث؟", options: ["3-5", "1-2", "5-7"], answer: 0, category: "💻 تكنولوجيا"},
+    {question: "ما هو الـ Cloud Computing؟", options: ["الحوسبة السحابية", "الذكاء الاصطناعي", "إنترنت الأشياء"], answer: 0, category: "💻 تكنولوجيا"},
+    {question: "ما معنى USB؟", options: ["ناقل تسلسلي عام", "منفذ طابعة", "كابل شاشة"], answer: 0, category: "💻 تكنولوجيا"},
+    {question: "ما هو الـ Malware؟", options: ["برمجيات خبيثة", "برنامج حماية", "نظام تشغيل"], answer: 0, category: "💻 تكنولوجيا"},
+    {question: "كم مليون ترانزستور في معالج حديث؟", options: ["مليارات", "ملايين", "آلاف"], answer: 0, category: "💻 تكنولوجيا"},
+    {question: "ما معنى RAID؟", options: ["مصفوفة أقراص", "ذاكرة عشوائية", "معالج رسوميات"], answer: 0, category: "💻 تكنولوجيا"},
+    {question: "ما هو الـ Bluetooth؟", options: ["تقنية لاسلكية قصيرة المدى", "شبكة محلية", "إنترنت"], answer: 0, category: "💻 تكنولوجيا"},
+    {question: "ما معنى GHz؟", options: ["جيجاهرتز", "ميجاهرتز", "تيراهرتز"], answer: 0, category: "💻 تكنولوجيا"},
+    {question: "ما هو الـ Motherboard؟", options: ["اللوحة الأم", "بطاقة الرسوميات", "المعالج"], answer: 0, category: "💻 تكنولوجيا"},
+    {question: "ما الفرق بين HDD و SSD؟", options: ["HDD ميكانيكي SSD إلكتروني", "HDD أسرع", "كلاهما نفس الشيء"], answer: 0, category: "💻 تكنولوجيا"},
+    {question: "ما معنى GPU؟", options: ["وحدة معالجة الرسوميات", "وحدة المعالجة المركزية", "ذاكرة الوصول العشوائي"], answer: 0, category: "💻 تكنولوجيا"},
+    {question: "كم جيجابايت في التيرابايت؟", options: ["1024", "1000", "2048"], answer: 0, category: "💻 تكنولوجيا"},
+    {question: "ما هو الـ Algorithm؟", options: ["خوارزمية", "برنامج", "لغة برمجة"], answer: 0, category: "💻 تكنولوجيا"},
+    {question: "ما معنى AI؟", options: ["الذكاء الاصطناعي", "الواقع المعزز", "الواقع الافتراضي"], answer: 0, category: "💻 تكنولوجيا"},
+    {question: "ما هو الـ IoT؟", options: ["إنترنت الأشياء", "شبكة الأشياء", "تقنية الأشياء"], answer: 0, category: "💻 تكنولوجيا"},
+    {question: "ما هو الفرق بين let و var في JavaScript؟", options: ["let نطاق كتلة var نطاق دالة", "let أقدم", "لا فرق"], answer: 0, category: "🌐 برمجة ويب"},
+    {question: "ما معنى AJAX؟", options: ["جافا سكريبت غير متزامن", "لغة برمجة", "قاعدة بيانات"], answer: 0, category: "🌐 برمجة ويب"},
+    {question: "كم عدد مستويات عناوين HTML؟", options: ["6", "5", "4"], answer: 0, category: "🌐 برمجة ويب"},
+    {question: "ما هو الـ Framework؟", options: ["إطار عمل", "لغة", "مكتبة"], answer: 0, category: "🌐 برمجة ويب"},
+    {question: "ما الفرق بين == و === في JavaScript؟", options: ["== يقارن القيمة فقط === يقارن القيمة والنوع", "كلاهما نفس الشيء", "=== أسرع"], answer: 0, category: "🌐 برمجة ويب"},
+    {question: "ما معنى API؟", options: ["واجهة برمجة التطبيقات", "لغة برمجة", "بروتوكول إنترنت"], answer: 0, category: "🌐 برمجة ويب"},
+    {question: "كم عدد أنواع الـ CSS positioning؟", options: ["5", "4", "3"], answer: 0, category: "🌐 برمجة ويب"},
+    {question: "ما هو React؟", options: ["مكتبة JavaScript", "لغة برمجة", "قاعدة بيانات"], answer: 0, category: "🌐 برمجة ويب"},
+    {question: "ما الفرق بين null و undefined؟", options: ["null قيمة متعمدة undefined غير معرف", "كلاهما نفس", "null أسرع"], answer: 0, category: "🌐 برمجة ويب"},
+    {question: "ما معنى DOM؟", options: ["نموذج كائن المستند", "لغة برمجة", "نظام تشغيل"], answer: 0, category: "🌐 برمجة ويب"},
+    {question: "كم عدد أنواع الـ display في CSS؟", options: ["4", "3", "5"], answer: 0, category: "🌐 برمجة ويب"},
+    {question: "ما هو Node.js؟", options: ["JavaScript على الخادم", "متصفح", "لغة برمجة"], answer: 0, category: "🌐 برمجة ويب"},
+    {question: "ما الفرق بين localStorage و sessionStorage؟", options: ["localStorage دائم sessionStorage مؤقت", "كلاهما نفس", "sessionStorage أكبر"], answer: 0, category: "🌐 برمجة ويب"},
+    {question: "ما معنى JSON؟", options: ["صيغة تبادل بيانات", "لغة برمجة", "قاعدة بيانات"], answer: 0, category: "🌐 برمجة ويب"},
+    {question: "كم عدد أنواع الـ selectors في CSS؟", options: ["5", "4", "6"], answer: 0, category: "🌐 برمجة ويب"},
+    {question: "ما هو Vue.js؟", options: ["إطار عمل JavaScript", "لغة برمجة", "قاعدة بيانات"], answer: 0, category: "🌐 برمجة ويب"},
+    {question: "ما الفرق بين GET و POST؟", options: ["GET يعرض البيانات POST يخفيها", "GET أسرع", "POST أسهل"], answer: 0, category: "🌐 برمجة ويب"},
+    {question: "ما معنى SPA؟", options: ["تطبيق صفحة واحدة", "لغة برمجة", "خادم ويب"], answer: 0, category: "🌐 برمجة ويب"},
+    {question: "كم عدد أنواع الـ flexbox direction؟", options: ["4", "3", "2"], answer: 0, category: "🌐 برمجة ويب"},
+    {question: "ما هو TypeScript؟", options: ["توسيع لجافا سكريبت", "لغة جديدة", "قاعدة بيانات"], answer: 0, category: "🌐 برمجة ويب"},
+    {question: "ما الفرق بين Promise و Callback؟", options: ["Promise أفضل للتعامل مع غير المتزامن", "Callback أسرع", "كلاهما نفس"], answer: 0, category: "🌐 برمجة ويب"},
+    {question: "ما معنى PWA؟", options: ["تطبيق ويب تقدمي", "لغة برمجة", "نظام تشغيل"], answer: 0, category: "🌐 برمجة ويب"},
+    {question: "كم عدد أنواع الـ grid في CSS؟", options: ["2", "3", "4"], answer: 0, category: "🌐 برمجة ويب"},
+    {question: "ما هو Angular؟", options: ["إطار عمل JavaScript", "مكتبة", "لغة"], answer: 0, category: "🌐 برمجة ويب"},
+    {question: "ما الفرق بين const و let؟", options: ["const ثابت let متغير", "const أسرع", "لا فرق"], answer: 0, category: "🌐 برمجة ويب"},
+    {question: "ما معنى CDN؟", options: ["شبكة توصيل المحتوى", "قاعدة بيانات", "خادم ويب"], answer: 0, category: "🌐 برمجة ويب"},
+    {question: "كم عدد أنواع الـ animations في CSS؟", options: ["2", "3", "4"], answer: 0, category: "🌐 برمجة ويب"},
+    {question: "ما هو Bootstrap؟", options: ["إطار عمل CSS", "لغة برمجة", "مكتبة JavaScript"], answer: 0, category: "🌐 برمجة ويب"},
+    {question: "ما الفرق بين async و defer؟", options: ["async ينفذ فوراً defer ينفذ بالترتيب", "async أسرع", "لا فرق"], answer: 0, category: "🌐 برمجة ويب"},
+    {question: "ما معنى SEO؟", options: ["تحسين محركات البحث", "لغة برمجة", "بروتوكول إنترنت"], answer: 0, category: "🌐 برمجة ويب"},
+    {question: "من هو مؤسس المذهب الوجودي؟", options: ["سارتر", "كامو", "ميرلوبونتي"], answer: 0, category: "🤔 فلسفة"},
+    {question: "ما هي نظرية المثل عند أفلاطون؟", options: ["العالم الحقيقي عالم الأفكار", "العالم المادي", "العالم الحسي"], answer: 0, category: "🤔 فلسفة"},
+    {question: "من صاحب عبارة 'أنا أفكر إذن أنا موجود'؟", options: ["ديكارت", "كانط", "هيجل"], answer: 0, category: "🤔 فلسفة"},
+    {question: "ما هو العقد الاجتماعي عند روسو؟", options: ["اتفاق بين الناس والحكومة", "قانون الطبيعة", "نظام سياسي"], answer: 0, category: "🤔 فلسفة"},
+    {question: "من هو مؤسس الفلسفة المثالية الألمانية؟", options: ["هيجل", "كانط", "فيشته"], answer: 0, category: "🤔 فلسفة"},
+    {question: "ما هي نظرية المعرفة عند كانط؟", options: ["المعرفة تأتي من التجربة والعقل", "المعرفة فطرية", "المعرفة حسية"], answer: 0, category: "🤔 فلسفة"},
+    {question: "من صاحب كتاب 'جمهورية أفلاطون'؟", options: ["أفلاطون", "سقراط", "أرسطو"], answer: 0, category: "🤔 فلسفة"},
+    {question: "ما هي فلسفة نيتشه عن الإرادة؟", options: ["الإرادة إلى القوة", "الإرادة إلى الحياة", "الإرادة الحرة"], answer: 0, category: "🤔 فلسفة"},
+    {question: "من هو مؤسس المنطق الصوري؟", options: ["أرسطو", "أفلاطون", "سقراط"], answer: 0, category: "🤔 فلسفة"},
+    {question: "ما هي الظواهرية عند هوسرل؟", options: ["دراسة الظواهر كما تظهر للوعي", "دراسة الوجود", "دراسة المعرفة"], answer: 0, category: "🤔 فلسفة"},
+    {question: "من صاحب نظرية 'الوجود والعدم'؟", options: ["سارتر", "هايدجر", "ميرلوبونتي"], answer: 0, category: "🤔 فلسفة"},
+    {question: "ما هي الأخلاق عند سبينوزا؟", options: ["السعادة في معرفة الله", "اللذة", "الفضيلة"], answer: 0, category: "🤔 فلسفة"},
+    {question: "من هو مؤسس الفلسفة التحليلية؟", options: ["راسل", "فيتجنشتاين", "مور"], answer: 0, category: "🤔 فلسفة"},
+    {question: "ما هي نظرية المعرفة عند لوك؟", options: ["العقل صفحة بيضاء", "الأفكار فطرية", "المعرفة قبلية"], answer: 0, category: "🤔 فلسفة"},
+    {question: "من صاحب 'نقد العقل الخالص'؟", options: ["كانط", "هيجل", "شوبنهاور"], answer: 0, category: "🤔 فلسفة"},
+    {question: "ما هي فلسفة شوبنهاور؟", options: ["العالم كإرادة وتمثل", "العالم كفكرة", "العالم كإرادة"], answer: 0, category: "🤔 فلسفة"},
+    {question: "من هو مؤسس البراغماتية؟", options: ["جيمس", "ديوي", "بيرس"], answer: 2, category: "🤔 فلسفة"},
+    {question: "ما هي نظرية هايدجر عن الوجود؟", options: ["الوجود في العالم", "الوجود للآخر", "الوجود مع الآخر"], answer: 0, category: "🤔 فلسفة"},
+    {question: "من صاحب 'الوجود والزمان'؟", options: ["هايدجر", "سارتر", "ياسبرز"], answer: 0, category: "🤔 فلسفة"},
+    {question: "ما هي الفلسفة الرواقية؟", options: ["تحمل الأقدار بالصبر", "اللذة", "المعرفة"], answer: 0, category: "🤔 فلسفة"},
+    {question: "من هو مؤسس الأبيقورية؟", options: ["أبيقور", "أرسطو", "أفلاطون"], answer: 0, category: "🤔 فلسفة"},
+    {question: "ما هي نظرية هيوم عن السببية؟", options: ["السببية عادة ذهنية", "السببية ضرورية", "السببية منطقية"], answer: 0, category: "🤔 فلسفة"},
+    {question: "من صاحب 'في أصل التفاوت بين الناس'؟", options: ["روسو", "فولتير", "مونتسكيو"], answer: 0, category: "🤔 فلسفة"},
+    {question: "ما هي فلسفة فوكو عن السلطة؟", options: ["السلطة منتشرة في المجتمع", "السلطة مركزية", "السلطة سياسية"], answer: 0, category: "🤔 فلسفة"},
+    {question: "من هو مؤسس التفكيكية؟", options: ["دريدا", "فوكو", "دولوز"], answer: 0, category: "🤔 فلسفة"},
+    {question: "ما هي نظرية دولوز عن الاختلاف؟", options: ["الاختلاف أساس الوجود", "الاختلاف عَرَضي", "الاختلاف ثانوي"], answer: 0, category: "🤔 فلسفة"},
+    {question: "من صاحب 'الكوجيتو' الفلسفي؟", options: ["ديكارت", "كانط", "هيجل"], answer: 0, category: "🤔 فلسفة"},
+    {question: "ما هي الأخلاق عند كانط؟", options: ["الواجب الأخلاقي", "المنفعة", "السعادة"], answer: 0, category: "🤔 فلسفة"},
+    {question: "من هو مؤسس الفلسفة السياسية؟", options: ["ماكيافيلي", "هوبز", "لوك"], answer: 0, category: "🤔 فلسفة"},
+    {question: "ما هي نظرية هوبز عن الإنسان؟", options: ["الإنسان ذئب لأخيه الإنسان", "الإنسان طيب بطبعه", "الإنسان اجتماعي"], answer: 0, category: "🤔 فلسفة"},
+    {question: "إذا كان 3 + 4 = 12، 5 + 6 = 30، 7 + 8 = 56، فما 9 + 10 = ؟", options: ["90", "100", "110"], answer: 0, category: "🧠 اختبار ذكاء"},
+    {question: "ما الرقم التالي: 1, 4, 9, 16, 25, ...؟", options: ["36", "30", "42"], answer: 0, category: "🧠 اختبار ذكاء"},
+    {question: "إذا كان 5 × 5 = 25، 6 × 6 = 36، فما 8 × 8 = ؟", options: ["64", "56", "72"], answer: 0, category: "🧠 اختبار ذكاء"},
+    {question: "ما الرقم المفقود: 2, 6, 12, 20, ?, 42", options: ["30", "28", "32"], answer: 0, category: "🧠 اختبار ذكاء"},
+    {question: "إذا كان A = 1, B = 2, C = 3، فما قيمة LOVE؟", options: ["54", "48", "52"], answer: 0, category: "🧠 اختبار ذكاء"},
+    {question: "ما الرقم التالي: 3, 6, 11, 18, 27, ...؟", options: ["38", "36", "40"], answer: 0, category: "🧠 اختبار ذكاء"},
+    {question: "إذا كان 2 + 3 = 10، 4 + 5 = 36، 6 + 7 = 84، فما 8 + 9 = ؟", options: ["152", "144", "160"], answer: 0, category: "🧠 اختبار ذكاء"},
+    {question: "ما الرقم التالي: 1, 1, 2, 3, 5, 8, ...؟", options: ["13", "11", "15"], answer: 0, category: "🧠 اختبار ذكاء"},
+    {question: "إذا كان 12 × 12 = 144، 13 × 13 = 169، فما 15 × 15 = ؟", options: ["225", "215", "235"], answer: 0, category: "🧠 اختبار ذكاء"},
+    {question: "ما الرقم المفقود: 4, 9, 17, 29, 46, ?", options: ["69", "65", "72"], answer: 0, category: "🧠 اختبار ذكاء"},
+    {question: "إذا كان 5 + 3 = 28، 6 + 2 = 48، 7 + 4 = 77، فما 8 + 5 = ؟", options: ["128", "116", "132"], answer: 0, category: "🧠 اختبار ذكاء"},
+    {question: "ما الرقم التالي: 2, 5, 10, 17, 26, ...؟", options: ["37", "35", "40"], answer: 0, category: "🧠 اختبار ذكاء"},
+    {question: "إذا كان 3 × 4 = 12، 4 × 5 = 20، 5 × 6 = 30، فما 6 × 7 = ؟", options: ["42", "36", "48"], answer: 0, category: "🧠 اختبار ذكاء"},
+    {question: "ما الرقم المفقود: 1, 8, 27, 64, ?", options: ["125", "100", "144"], answer: 0, category: "🧠 اختبار ذكاء"},
+    {question: "إذا كان 9 × 8 = 72، 8 × 7 = 56، 7 × 6 = 42، فما 6 × 5 = ؟", options: ["30", "25", "35"], answer: 0, category: "🧠 اختبار ذكاء"},
+    {question: "ما الرقم التالي: 11, 13, 17, 19, 23, ...؟", options: ["29", "27", "31"], answer: 0, category: "🧠 اختبار ذكاء"},
+    {question: "إذا كان 4 + 4 = 32، 5 + 5 = 50، 6 + 6 = 72، فما 7 + 7 = ؟", options: ["98", "84", "102"], answer: 0, category: "🧠 اختبار ذكاء"},
+    {question: "ما الرقم المفقود: 2, 3, 5, 9, 17, ?", options: ["33", "31", "35"], answer: 0, category: "🧠 اختبار ذكاء"},
+    {question: "إذا كان 10 + 10 = 200، 20 + 20 = 800، 30 + 30 = 1800، فما 40 + 40 = ؟", options: ["3200", "3000", "3400"], answer: 0, category: "🧠 اختبار ذكاء"},
+    {question: "ما الرقم التالي: 1, 3, 6, 10, 15, ...؟", options: ["21", "20", "22"], answer: 0, category: "🧠 اختبار ذكاء"},
+    {question: "إذا كان 2 × 2 = 4، 3 × 3 = 9، 4 × 4 = 16، فما 10 × 10 = ؟", options: ["100", "90", "110"], answer: 0, category: "🧠 اختبار ذكاء"},
+    {question: "ما الرقم المفقود: 5, 7, 11, 13, 17, 19, ?", options: ["23", "21", "25"], answer: 0, category: "🧠 اختبار ذكاء"},
+    {question: "إذا كان 12 × 8 = 96، 13 × 7 = 91، 14 × 6 = 84، فما 15 × 5 = ؟", options: ["75", "70", "80"], answer: 0, category: "🧠 اختبار ذكاء"},
+    {question: "ما الرقم التالي: 100, 97, 91, 82, 70, ...؟", options: ["55", "53", "58"], answer: 0, category: "🧠 اختبار ذكاء"},
+    {question: "إذا كان 1 + 2 = 3، 2 + 4 = 6، 3 + 6 = 9، فما 4 + 8 = ؟", options: ["12", "10", "14"], answer: 0, category: "🧠 اختبار ذكاء"},
+    {question: "ما الرقم المفقود: 7, 14, 28, 56, ?", options: ["112", "98", "104"], answer: 0, category: "🧠 اختبار ذكاء"},
+    {question: "إذا كان 9 × 7 = 63، 8 × 6 = 48، 7 × 5 = 35، فما 6 × 4 = ؟", options: ["24", "20", "28"], answer: 0, category: "🧠 اختبار ذكاء"},
+    {question: "ما الرقم التالي: 2, 4, 8, 16, 32, ...؟", options: ["64", "48", "56"], answer: 0, category: "🧠 اختبار ذكاء"},
+    {question: "إذا كان 5 + 10 = 15، 10 + 20 = 30، 20 + 40 = 60، فما 40 + 80 = ؟", options: ["120", "100", "140"], answer: 0, category: "🧠 اختبار ذكاء"},
+    {question: "ما الرقم المفقود: 3, 8, 15, 24, 35, ?", options: ["48", "46", "50"], answer: 0, category: "🧠 اختبار ذكاء"},
+    {question: "ما معنى التفسير بالمأثور؟", options: ["التفسير بالقرآن والسنة", "التفسير بالرأي", "التفسير باللغة"], answer: 0, category: "📚 علوم قرآن"},
+    {question: "كم عدد أنواع القراءات القرآنية المتواترة؟", options: ["10", "7", "14"], answer: 0, category: "📚 علوم قرآن"},
+    {question: "ما هي السورة التي تسمى السبع المثاني؟", options: ["الفاتحة", "البقرة", "الإخلاص"], answer: 0, category: "📚 علوم قرآن"},
+    {question: "من هو أول من جمع القرآن في مصحف واحد؟", options: ["أبو بكر الصديق", "عثمان بن عفان", "عمر بن الخطاب"], answer: 0, category: "📚 علوم قرآن"},
+    {question: "ما معنى الناسخ والمنسوخ في القرآن؟", options: ["إزالة حكم بآخر", "تأكيد الحكم", "تفسير الآية"], answer: 0, category: "📚 علوم قرآن"},
+    {question: "كم عدد السور المكية في القرآن؟", options: ["86", "82", "90"], answer: 0, category: "📚 علوم قرآن"},
+    {question: "ما هي أطول آية في القرآن؟", options: ["آية الدين", "آية الكرسي", "آخر البقرة"], answer: 0, category: "📚 علوم قرآن"},
+    {question: "من هو الصحابي الذي نزل القرآن بلغته؟", options: ["زيد بن ثابت", "أبي بن كعب", "عبدالله بن مسعود"], answer: 1, category: "📚 علوم قرآن"},
+    {question: "ما معنى المحكم والمتشابه؟", options: ["واضح المعنى وغامضه", "مكي ومدني", "متقدم ومتأخر"], answer: 0, category: "📚 علوم قرآن"},
+    {question: "كم عدد السور التي تبدأ بـ 'الم'؟", options: ["6", "5", "7"], answer: 0, category: "📚 علوم قرآن"},
+    {question: "ما هي السورة التي تسمى قلب القرآن؟", options: ["يس", "الواقعة", "الدخان"], answer: 0, category: "📚 علوم قرآن"},
+    {question: "من هو أول من كتب الوحي؟", options: ["زيد بن ثابت", "عثمان بن عفان", "علي بن أبي طالب"], answer: 2, category: "📚 علوم قرآن"},
+    {question: "ما معنى أحكام التجويد؟", options: ["قواعد تلاوة القرآن", "تفسير القرآن", "نحو القرآن"], answer: 0, category: "📚 علوم قرآن"},
+    {question: "كم عدد السجدات في القرآن؟", options: ["15", "14", "16"], answer: 0, category: "📚 علوم قرآن"},
+    {question: "ما هي السورة التي تسمى سنام القرآن؟", options: ["البقرة", "آل عمران", "النساء"], answer: 0, category: "📚 علوم قرآن"},
+    {question: "من هو صاحب تفسير الطبري؟", options: ["ابن جرير الطبري", "ابن كثير", "القرطبي"], answer: 0, category: "📚 علوم قرآن"},
+    {question: "ما معنى الوقف والابتداء؟", options: ["مواضع التوقف في التلاوة", "بداية السورة", "نهاية الآية"], answer: 0, category: "📚 علوم قرآن"},
+    {question: "كم عدد الآيات التي نزلت في مكة؟", options: ["4780", "4500", "5000"], answer: 0, category: "📚 علوم قرآن"},
+    {question: "ما هي السورة التي تسمى عروس القرآن؟", options: ["الرحمن", "يس", "الملك"], answer: 0, category: "📚 علوم قرآن"},
+    {question: "من هو صاحب تفسير الكشاف؟", options: ["الزمخشري", "الرازي", "البيضاوي"], answer: 0, category: "📚 علوم قرآن"},
+    {question: "ما معنى القراءات السبع؟", options: ["سبع طرق لقراءة القرآن", "سبع سور", "سبع آيات"], answer: 0, category: "📚 علوم قرآن"},
+    {question: "كم عدد الحروف المقطعة في القرآن؟", options: ["14", "13", "15"], answer: 0, category: "📚 علوم قرآن"},
+    {question: "ما هي السورة التي تسمى سورة النساء الصغرى؟", options: ["الطلاق", "المجادلة", "التحريم"], answer: 1, category: "📚 علوم قرآن"},
+    {question: "من هو صاحب تفسير الجلالين؟", options: ["الجلال المحلي والجلال السيوطي", "ابن الجوزي", "الشوكاني"], answer: 0, category: "📚 علوم قرآن"},
+    {question: "ما معنى أسباب النزول؟", options: ["المناسبات التي نزل فيها القرآن", "تاريخ النزول", "مكان النزول"], answer: 0, category: "📚 علوم قرآن"},
+    {question: "كم عدد السور المدنية في القرآن؟", options: ["28", "30", "25"], answer: 0, category: "📚 علوم قرآن"},
+    {question: "ما هي السورة التي تسمى سورة التوبة؟", options: ["براءة", "التوبة", "الأنفال"], answer: 1, category: "📚 علوم قرآن"},
+    {question: "من هو صاحب تفسير في ظلال القرآن؟", options: ["سيد قطب", "محمد متولي الشعراوي", "محمد عبده"], answer: 0, category: "📚 علوم قرآن"},
+    {question: "ما معنى الرسم العثماني؟", options: ["طريقة كتابة القرآن في عهد عثمان", "تفسير القرآن", "تجويد القرآن"], answer: 0, category: "📚 علوم قرآن"},
+    {question: "كم عدد أجزاء القرآن؟", options: ["30", "20", "25"], answer: 0, category: "📚 علوم قرآن"}
+];
+
+let currentQuestions = [];
+let current = 0;
+let score = 0;
+let currentCategory = '';
+
+function goToPortal() {
+    if (confirm('هل تريد العودة لبوابة الموقع؟')) {
+        window.location.href = 'secschool.html';
+    }
+}
+
+function resetToHome() {
+    if (confirm('هل تريد العودة للصفحة الرئيسية؟ سيتم فقد التقدم الحالي.')) {
+        location.reload();
+    }
+}
+
+function loadCategory(category) {
+    document.getElementById('categoryScreen').style.display = 'none';
+    document.getElementById('quizPanel').style.display = 'block';
+    
+    const categoryMap = {
+        'islamic': '📖 إسلامي',
+        'quran': '📚 علوم قرآن',
+        'science': '🔬 علوم',
+        'geography': '🌍 جغرافيا',
+        'history': '📜 تاريخ',
+        'math': '🧮 رياضيات',
+        'tech': '💻 تكنولوجيا',
+        'webdev': '🌐 برمجة ويب',
+        'philosophy': '🤔 فلسفة',
+        'iq': '🧠 اختبار ذكاء'
+    };
+    
+    currentCategory = categoryMap[category];
+    currentQuestions = allQuestions.filter(q => q.category === currentCategory);
+    
+    document.getElementById('categoryNotice').innerHTML = 
+        `🏆 ${currentCategory} - ${currentQuestions.length} سؤال للمتفوقين 🏆`;
+    
+    current = 0;
+    score = 0;
+    showQuestion();
+}
+
+function showQuestion() {
+    const totalQuestions = currentQuestions.length;
+    
+    document.getElementById('questionNumber').innerHTML = 
+        `📌 السؤال ${current + 1} من ${totalQuestions}`;
+    document.getElementById('currentCategory').innerHTML = currentCategory;
+    document.getElementById('questionText').innerText = currentQuestions[current].question;
+    
+    for (let i = 0; i < 3; i++) {
+        const btn = document.getElementById('option' + i);
+        btn.innerText = currentQuestions[current].options[i];
+        btn.disabled = false;
+        btn.className = 'option-btn';
+    }
+    
+    document.getElementById('feedback').innerHTML = '';
+    document.getElementById('nextBtn').style.display = 'none';
+    document.getElementById('restartBtn').style.display = 'none';
+    
+    const progress = ((current + 1) / totalQuestions) * 100;
+    document.getElementById('progressFill').style.width = progress + '%';
+    document.getElementById('score').innerHTML = `⭐ النتيجة: ${score} / ${totalQuestions}`;
+}
+
+function checkAnswer(selected) {
+    const totalQuestions = currentQuestions.length;
+    const correct = currentQuestions[current].answer;
+    const correctAnswerText = currentQuestions[current].options[correct];
+
+    for (let i = 0; i < 3; i++) {
+        document.getElementById('option' + i).disabled = true;
+    }
+
+    if (selected === correct) {
+        document.getElementById('option' + selected).className = 'option-btn correct';
+        document.getElementById('feedback').innerHTML = '✅ إجابة صحيحة! أحسنت!';
+        score++;
+    } else {
+        document.getElementById('option' + selected).className = 'option-btn wrong';
+        document.getElementById('option' + correct).className = 'option-btn correct';
+        document.getElementById('feedback').innerHTML = 
+            `❌ إجابة خاطئة!<br>الإجابة الصحيحة: ${correctAnswerText}`;
+    }
+
+    document.getElementById('score').innerHTML = `⭐ النتيجة: ${score} / ${totalQuestions}`;
+
+    // ✅ التصحيح الأهم: التأكد من ظهور زر التالي
+    if (current < totalQuestions - 1) {
+        document.getElementById('nextBtn').style.display = 'inline-block';
+    } else {
+        document.getElementById('nextBtn').style.display = 'none';
+        document.getElementById('restartBtn').style.display = 'inline-block';
+        
+        let message = '';
+        if (score === totalQuestions) message = '🎉 ممتاز! درجة كاملة! أنت عبقري!';
+        else if (score >= totalQuestions * 0.85) message = '🎊 رائع! أداء متميز!';
+        else if (score >= totalQuestions * 0.7) message = '👍 جيد جداً!';
+        else if (score >= totalQuestions * 0.5) message = '👌 جيد! يمكنك التحسن';
+        else message = '💪 حاول مرة أخرى!';
+        
+        document.getElementById('feedback').innerHTML += `<br><br>${message}`;
+    }
+}
+
+function nextQuestion() {
+    // ✅ تأكد من أن current يزيد بشكل صحيح
+    if (current < currentQuestions.length - 1) {
+        current++;
+        showQuestion();
+    }
+}
+
+function restartCategory() {
+    current = 0;
+    score = 0;
+    showQuestion();
+    document.getElementById('restartBtn').style.display = 'none';
+}
+
+// ✅ تأكد من إخفاء لوحة الاختبار في البداية
+document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('quizPanel').style.display = 'none';
+});
+</script>
+
+</body>
+</html>

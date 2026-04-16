@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>قاموس الثانوية بنات | 10,000+ كلمة</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Arial', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(165deg, #0a1928 0%, #0c2340 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 15px;
+        }
+
+        .dictionary-card {
+            width: 100%;
+            max-width: 1300px;
+            background: rgba(18, 30, 45, 0.95);
+            backdrop-filter: blur(12px);
+            border-radius: 60px 60px 40px 40px;
+            box-shadow: 0 25px 50px -12px #000000,
+                        0 0 0 2px #d4af37 inset;
+            overflow: hidden;
+            border: 1px solid #d4af37;
+        }
+
+        /* الهيدر */
+        .header {
+            background: linear-gradient(135deg, #0a2340 0%, #123456 100%);
+            padding: 20px 35px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            border-bottom: 3px solid #d4af37;
+        }
+
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .logo-icon {
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(135deg, #d4af37, #b8860b);
+            border-radius: 30px 15px 30px 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            box-shadow: 0 10px 0 #7a5c00;
+            transform: rotate(-5deg);
+            border: 3px solid #f5e6b3;
+        }
+
+        .logo-text h1 {
+            font-size: 40px;
+            font-weight: 700;
+            color: #f5e6b3;
+            text-shadow: 3px 3px 0 #7a5c00;
+            line-height: 1.1;
+        }
+
+        .logo-text p {
+            font-size: 14px;
+            color: #aac3d4;
+            letter-spacing: 2px;
+        }
+
+        .header-btns {
+            display: flex;
+            gap: 15px;
+        }
+
+        .header-btn {
+            background: #123456;
+            padding: 12px 28px;
+            border-radius: 50px;
+            text-decoration: none;
+            color: #d4af37;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border: 2px solid #d4af37;
+            box-shadow: 0 6px 0 #0a1a2a;
+        }
+
+        /* المحتوى الرئيسي */
+        .main-content {
+            padding: 30px;
+        }
+
+        /* شريط البحث */
+        .search-section {
+            background: #0a1f30;
+            border-radius: 100px;
+            padding: 8px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 25px;
+            border: 2px solid #d4af37;
+            box-shadow: 0 8px 0 #07141f;
+        }
+
+        .search-section input {
+            flex: 3;
+            min-width: 250px;
+            background: #07141f;
+            border: none;
+            padding: 18px 28px;
+            border-radius: 100px;
+            font-size: 1.2rem;
+            color: #e6f0fa;
+            border: 2px solid #1e3a5a;
+        }
+
+        .search-section input:focus {
+            outline: 3px solid #d4af37;
+        }
+
+        .search-section button {
+            flex: 1;
+            min-width: 140px;
+            background: #d4af37;
+            border: none;
+            border-radius: 100px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #0a1a2a;
+            cursor: pointer;
+            border: 3px solid #f5e6b3;
+            box-shadow: 0 6px 0 #7a5c00;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        /* أزرار اللغة */
+        .lang-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin: 20px 0;
+        }
+
+        .lang-btn {
+            background: #0a1f30;
+            border: 2px solid #1e3a5a;
+            padding: 12px 35px;
+            border-radius: 60px;
+            font-weight: 700;
+            color: #aac3d4;
+            box-shadow: 0 5px 0 #07141f;
+            cursor: pointer;
+            flex: 1;
+            max-width: 250px;
+        }
+
+        .lang-btn.active {
+            background: #123456;
+            color: #d4af37;
+            border-color: #d4af37;
+            box-shadow: 0 7px 0 #0a1a2a;
+            transform: translateY(-2px);
+        }
+
+        /* صندوق النتائج */
+        .results-container {
+            background: rgba(10, 31, 48, 0.8);
+            border-radius: 50px;
+            padding: 30px;
+            margin: 25px 0;
+            border: 2px solid #1e3a5a;
+            min-height: 280px;
+        }
+
+        .word-card {
+            background: #0a1f30;
+            border-radius: 40px;
+            padding: 25px;
+            border: 2px solid #1e3a5a;
+            box-shadow: 0 10px 0 #07141f;
+        }
+
+        .word-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 3px dashed #1e3a5a;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+
+        .word-header h2 {
+            font-size: 3.2rem;
+            color: #d4af37;
+            font-weight: 700;
+        }
+
+        .fav-star {
+            background: none;
+            border: none;
+            font-size: 3rem;
+            cursor: pointer;
+            color: #d4af37;
+        }
+
+        .translation-area {
+            background: #0c1e30;
+            padding: 20px;
+            border-radius: 30px;
+            margin-bottom: 20px;
+            border: 2px solid #1e3a5a;
+        }
+
+        .translation-area h3 {
+            color: #aac3d4;
+            margin-bottom: 10px;
+            font-size: 1.4rem;
+        }
+
+        .translation-area p {
+            font-size: 2.2rem;
+            color: #e6f0fa;
+            font-weight: 600;
+        }
+
+        /* المفضلة */
+        .favorites-section {
+            background: rgba(10, 31, 48, 0.8);
+            border-radius: 40px;
+            padding: 25px;
+            border: 2px solid #1e3a5a;
+            margin-top: 25px;
+        }
+
+        .favorites-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 2rem;
+            color: #d4af37;
+            margin-bottom: 20px;
+        }
+
+        .favorites-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .favorite-item {
+            background: #0a1f30;
+            padding: 15px 20px;
+            border-radius: 50px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 2px solid #1e3a5a;
+            color: #e6f0fa;
+            box-shadow: 0 4px 0 #07141f;
+        }
+
+        .remove-fav {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #d4af37;
+        }
+
+        /* شريط الحالة */
+        .status-bar {
+            display: flex;
+            gap: 30px;
+            padding: 15px 10px;
+            color: #aac3d4;
+            font-weight: 600;
+            flex-wrap: wrap;
+        }
+
+        .status-dot {
+            width: 14px;
+            height: 14px;
+            background: #d4af37;
+            border-radius: 50%;
+            display: inline-block;
+            box-shadow: 0 0 0 3px #0a1f30;
+            margin-left: 5px;
+        }
+
+        .loading-message {
+            text-align: center;
+            padding: 60px 20px;
+            color: #aac3d4;
+            font-size: 1.5rem;
+        }
+
+        .footer {
+            background: #0a2340;
+            padding: 20px;
+            text-align: center;
+            color: #aac3d4;
+            font-size: 1.2rem;
+            border-top: 3px solid #d4af37;
+        }
+
+        .footer::before {
+            content: "📖";
+            margin-left: 10px;
+        }
+
+        .footer::after {
+            content: "📖";
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="dictionary-card">
+        <header class="header">
+            <div class="logo-area">
+                <div class="logo-icon">📖</div>
+                <div class="logo-text">
+                    <h1>قاموس الثانوية بنات</h1>
+                    <br>
+                    <p>HIGH SCHOOL GIRLS' DICTIONARY</p>
+                </div>
+            </div>
+            <div class="header-btns">
+                <a href="#" class="header-btn" onclick="window.location.reload()">
+                    <span>🔄</span> تحديث
+                </a>
+                <a href="secschool.html" class="header-btn">🌐 العودة للبوابة</a>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <div class="search-section">
+                <input type="text" id="searchInput" placeholder="اكتب الكلمة هنا ..." value="book">
+                <button id="searchBtn">
+                    <span>🔍</span> بحث
+                </button>
+            </div>
+
+            <div class="lang-buttons">
+                <button class="lang-btn active" id="enArBtn">العربية → English</button>
+                <button class="lang-btn" id="arEnBtn">English → العربية</button>
+            </div>
+
+            <div class="results-container" id="resultsContainer">
+                <div id="loadingMessage" class="loading-message">
+                    ⏳ جاري تحميل القاموس...
+                    <small>10,000+ كلمة</small>
+                </div>
+                <div id="resultContent" style="display: none;"></div>
+            </div>
+
+            <div class="favorites-section">
+                <div class="favorites-title">
+                    <span>⭐</span> الكلمات المفضلة
+                </div>
+                <div class="favorites-grid" id="favoritesGrid">
+                    <div class="favorite-item" style="grid-column:1/-1; justify-content:center;">
+                        لا توجد كلمات مفضلة بعد
+                    </div>
+                </div>
+            </div>
+
+            <div class="status-bar">
+                <span><span class="status-dot"></span> <span id="dictionaryStatus">10,324 كلمة</span></span>
+                <span>⭐ <span id="favCount">0</span> مفضلة</span>
+                <span>📦 10,324 كلمة</span>
+            </div>
+        </main>
+
+        <footer class="footer">
+            <span>قاموس الثانوية بنات — 10,324 كلمة</span>
+        </footer>
+    </div>
+
+    <!-- ملف القاموس -->
+    <script src="dictionary.js"></script>
+    
+    <script>
+        // التحقق من وجود القاموس
+        if (typeof DICTIONARY_COMPLETE === 'undefined') {
+            document.getElementById('loadingMessage').innerHTML = '❌ خطأ: ملف dictionary.js غير موجود';
+        } else {
+            // البيانات
+            let dictionary = DICTIONARY_COMPLETE;
+            let currentLang = 'en-ar';
+            let favorites = JSON.parse(localStorage.getItem('girlsDictFavs')) || [];
+
+            // العناصر
+            const searchInput = document.getElementById('searchInput');
+            const searchBtn = document.getElementById('searchBtn');
+            const enArBtn = document.getElementById('enArBtn');
+            const arEnBtn = document.getElementById('arEnBtn');
+            const loadingMessage = document.getElementById('loadingMessage');
+            const resultContent = document.getElementById('resultContent');
+            const favoritesGrid = document.getElementById('favoritesGrid');
+            const favCountSpan = document.getElementById('favCount');
+
+            // إخفاء رسالة التحميل
+            loadingMessage.style.display = 'none';
+            resultContent.style.display = 'block';
+
+            // دالة البحث
+            function searchWord(query) {
+                if (!query) return null;
+                query = query.trim().toLowerCase();
+                
+                if (currentLang === 'en-ar') {
+                    return dictionary.find(item => 
+                        item.en && item.en.toLowerCase() === query
+                    );
+                } else {
+                    return dictionary.find(item => 
+                        item.ar && item.ar === query
+                    );
+                }
+            }
+
+            // دالة عرض الكلمة
+            function showWord(word) {
+                if (!word) {
+                    resultContent.innerHTML = `
+                        <div class="word-card">
+                            <div class="word-header">
+                                <h2>❌</h2>
+                                <button class="fav-star">☆</button>
+                            </div>
+                            <div class="translation-area">
+                                <h3>الترجمة</h3>
+                                <p>الكلمة غير موجودة</p>
+                            </div>
+                        </div>
+                    `;
+                    return;
+                }
+
+                const mainWord = currentLang === 'en-ar' ? word.en : word.ar;
+                const translation = currentLang === 'en-ar' ? word.ar : word.en;
+                const isFavorite = favorites.includes(mainWord);
+                
+                resultContent.innerHTML = `
+                    <div class="word-card">
+                        <div class="word-header">
+                            <h2>${mainWord || ''}</h2>
+                            <button class="fav-star" onclick="toggleFavorite('${mainWord}')">
+                                ${isFavorite ? '⭐' : '☆'}
+                            </button>
+                        </div>
+                        <div class="translation-area">
+                            <h3>الترجمة</h3>
+                            <p>${translation || ''}</p>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // تنفيذ البحث
+            function performSearch() {
+                const result = searchWord(searchInput.value);
+                showWord(result);
+            }
+
+            // أحداث البحث
+            searchBtn.addEventListener('click', performSearch);
+            searchInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') performSearch();
+            });
+
+            // أزرار اللغة
+            enArBtn.addEventListener('click', () => {
+                enArBtn.classList.add('active');
+                arEnBtn.classList.remove('active');
+                currentLang = 'en-ar';
+                performSearch();
+            });
+
+            arEnBtn.addEventListener('click', () => {
+                arEnBtn.classList.add('active');
+                enArBtn.classList.remove('active');
+                currentLang = 'ar-en';
+                performSearch();
+            });
+
+            // المفضلة
+            window.toggleFavorite = function(word) {
+                if (!word) return;
+                
+                const index = favorites.indexOf(word);
+                if (index === -1) {
+                    favorites.push(word);
+                } else {
+                    favorites.splice(index, 1);
+                }
+                
+                localStorage.setItem('girlsDictFavs', JSON.stringify(favorites));
+                updateFavoritesGrid();
+                performSearch();
+            };
+
+            function updateFavoritesGrid() {
+                favCountSpan.innerText = favorites.length;
+                
+                if (favorites.length === 0) {
+                    favoritesGrid.innerHTML = '<div class="favorite-item" style="grid-column:1/-1; justify-content:center;">لا توجد كلمات مفضلة بعد</div>';
+                    return;
+                }
+                
+                let html = '';
+                favorites.forEach(word => {
+                    html += `
+                        <div class="favorite-item">
+                            <span>${word}</span>
+                            <button class="remove-fav" onclick="removeFavorite('${word}')">🗑️</button>
+                        </div>
+                    `;
+                });
+                favoritesGrid.innerHTML = html;
+            }
+
+            window.removeFavorite = function(word) {
+                favorites = favorites.filter(w => w !== word);
+                localStorage.setItem('girlsDictFavs', JSON.stringify(favorites));
+                updateFavoritesGrid();
+                performSearch();
+            };
+
+            // بدء التشغيل
+            updateFavoritesGrid();
+            setTimeout(() => {
+                if (dictionary.length > 0) {
+                    showWord(dictionary.find(w => w.en === 'book') || dictionary[0]);
+                }
+            }, 100);
+        }
+    </script>
+</body>
+</html>
