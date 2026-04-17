@@ -12,24 +12,44 @@
         #hidden-container {
             position: absolute; top: 50%; left: 50%;
             transform: translate(-50%, -50%);
-            width: 10cm; height: 10cm; z-index: 10;
+            width: min(10cm, 90vw); height: min(10cm, 90vw);
+            z-index: 10;
             cursor: pointer; display: flex; align-items: center; justify-content: center;
             touch-action: manipulation;
+            border-radius: 12px;
         }
 
         #hidden-image {
             width: 100%; height: 100%; object-fit: cover; opacity: 0;
-            transition: opacity 0.8s ease;
-            mask-image: radial-gradient(circle 120px at var(--x) var(--y), black 0%, transparent 100%);
-            -webkit-mask-image: radial-gradient(circle 120px at var(--x) var(--y), black 0%, transparent 100%);
+            transition: opacity 0.3s ease;
+            border-radius: 12px;
         }
-
-        #hidden-container:hover #hidden-image { opacity: 1; }
         
-        @media (max-width: 768px) {
-            #hidden-container {
-                width: 8cm;
-                height: 8cm;
+        /* تأثير الكشاف المتكيف مع حجم الشاشة */
+        #hidden-container:hover #hidden-image,
+        #hidden-container:active #hidden-image {
+            opacity: 1;
+        }
+        
+        /* ضبط حجم الكشاف حسب الشاشة */
+        @media (min-width: 1024px) {
+            #hidden-image {
+                mask-image: radial-gradient(circle 150px at var(--x) var(--y), black 0%, transparent 100%);
+                -webkit-mask-image: radial-gradient(circle 150px at var(--x) var(--y), black 0%, transparent 100%);
+            }
+        }
+        
+        @media (max-width: 1023px) and (min-width: 768px) {
+            #hidden-image {
+                mask-image: radial-gradient(circle 100px at var(--x) var(--y), black 0%, transparent 100%);
+                -webkit-mask-image: radial-gradient(circle 100px at var(--x) var(--y), black 0%, transparent 100%);
+            }
+        }
+        
+        @media (max-width: 767px) {
+            #hidden-image {
+                mask-image: radial-gradient(circle 70px at var(--x) var(--y), black 0%, transparent 100%);
+                -webkit-mask-image: radial-gradient(circle 70px at var(--x) var(--y), black 0%, transparent 100%);
             }
         }
     </style>
@@ -42,19 +62,18 @@
 <audio id="rainAmbient" src="media/rain.wav" loop preload="auto"></audio>
 <audio id="musicHover" src="media/music.wav" loop preload="auto"></audio>
 
-<div id="hidden-container" 
-     onmouseenter="handleMouseEnter()" 
-     onmouseleave="handleMouseLeave()">
+<div id="hidden-container">
     <img src="media/ahmed.jpg" id="hidden-image" alt="Hidden">
 </div>
 
 <script>
-// --- محرك الصوت الذكي ---
+// --- محرك الصوت الذكي مع دعم أندرويد ---
 const rainTrack = document.getElementById("rainAmbient");
 const musicTrack = document.getElementById("musicHover");
 let rainManuallyPaused = false;
 let isHovering = false;
 let audioInitialized = false;
+let rainInterval = null;
 
 // تشغيل الصوت بعد أول تفاعل من المستخدم (لأجهزة أندرويد)
 function initAudioOnFirstInteraction() {
@@ -81,6 +100,7 @@ function handleMouseEnter() {
     isHovering = true;
     rainTrack.pause();
     if (audioInitialized) {
+        musicTrack.currentTime = 0;
         musicTrack.play().catch(e => console.log("Music play failed:", e));
         musicTrack.volume = 1.0;
     }
@@ -95,13 +115,19 @@ function handleMouseLeave() {
     }
 }
 
-// --- دعم اللمس المزدوج لأجهزة أندرويد ---
+// --- دعم اللمس المزدوج لأجهزة أندرويد مع تحسينات ---
 const hiddenContainer = document.getElementById('hidden-container');
 let lastTap = 0;
 let touchTimeout;
+let isTouching = false;
 
+// دعم اللمس المزدوج
 hiddenContainer.addEventListener('touchstart', (e) => {
     e.preventDefault();
+    
+    // تفعيل الصوت عند أول لمسة
+    initAudioOnFirstInteraction();
+    
     const currentTime = new Date().getTime();
     const tapLength = currentTime - lastTap;
     
@@ -112,8 +138,6 @@ hiddenContainer.addEventListener('touchstart', (e) => {
         window.location.href = 'ahmed.html';
         e.stopPropagation();
     } else {
-        // لمسة واحدة - بدء الصوت
-        initAudioOnFirstInteraction();
         lastTap = currentTime;
         
         // إعادة تعيين العداد بعد 500ms
@@ -129,29 +153,60 @@ hiddenContainer.addEventListener('dblclick', (e) => {
     e.stopPropagation();
 });
 
-// النقر العادي على الجسم لتفعيل الصوت
-document.body.addEventListener('click', initAudioOnFirstInteraction);
+// أحداث hover للماوس
+hiddenContainer.addEventListener('mouseenter', handleMouseEnter);
+hiddenContainer.addEventListener('mouseleave', handleMouseLeave);
 
-// --- محرك المطر الواقعي (الطبقي) مع زيادة السرعة 10% ---
+// النقر العادي على الجسم لتفعيل الصوت (لأجهزة أندرويد)
+document.body.addEventListener('click', initAudioOnFirstInteraction);
+document.body.addEventListener('touchstart', initAudioOnFirstInteraction, { once: true });
+
+// --- محرك المطر الواقعي المتكيف مع الشاشة ---
 const c = document.getElementById("c");
 const ctx = c.getContext("2d");
 
+let raindrops = [];
+let animationId = null;
+let lastResizeTime = 0;
+
+// دالة ضبط حجم الشاشة مع تحسين الأداء
 function resize() {
     c.width = window.innerWidth;
     c.height = window.innerHeight;
+    
+    // إعادة إنشاء المطر بشكل متكيف مع الشاشة الجديدة
+    createRain();
 }
-window.addEventListener('resize', resize);
+window.addEventListener('resize', () => {
+    // تأخير بسيط لتحسين الأداء عند تغيير الاتجاه
+    clearTimeout(window.resizeTimeout);
+    window.resizeTimeout = setTimeout(resize, 100);
+});
 resize();
 
-let raindrops = [];
-const layers = [
-    { count: 400, speedMin: 13, speedMax: 17, lengthMin: 10, lengthMax: 15, opacity: 0.15, width: 1 }, // بعيد
-    { count: 150, speedMin: 18, speedMax: 24, lengthMin: 20, lengthMax: 30, opacity: 0.3, width: 1.5 }, // متوسط
-    { count: 50,  speedMin: 28, speedMax: 35, lengthMin: 35, lengthMax: 50, opacity: 0.5, width: 2.5 }  // قريب
-];
+// تكوين طبقات المطر بشكل متكيف مع دقة الشاشة
+function getAdaptiveLayers() {
+    const screenArea = c.width * c.height;
+    const isMobile = c.width < 768;
+    const isTablet = c.width >= 768 && c.width < 1024;
+    
+    // تعديل عدد القطرات حسب حجم الشاشة للحفاظ على الأداء
+    let multiplier = 1;
+    if (isMobile) multiplier = 0.7;
+    else if (isTablet) multiplier = 0.85;
+    else multiplier = 1;
+    
+    return [
+        { count: Math.floor(400 * multiplier), speedMin: 13, speedMax: 17, lengthMin: 10, lengthMax: 15, opacity: 0.15, width: 1 },
+        { count: Math.floor(150 * multiplier), speedMin: 18, speedMax: 24, lengthMin: 20, lengthMax: 30, opacity: 0.3, width: 1.5 },
+        { count: Math.floor(50 * multiplier),  speedMin: 28, speedMax: 35, lengthMin: 35, lengthMax: 50, opacity: 0.5, width: 2.5 }
+    ];
+}
 
 function createRain() {
     raindrops = [];
+    const layers = getAdaptiveLayers();
+    
     layers.forEach(layer => {
         for (let i = 0; i < layer.count; i++) {
             raindrops.push({
@@ -165,9 +220,10 @@ function createRain() {
         }
     });
 }
-createRain();
 
 function draw() {
+    if (!c || !ctx) return;
+    
     // Motion Blur ناعم جداً للواقعية
     ctx.fillStyle = "rgba(0, 0, 0, 0.22)";
     ctx.fillRect(0, 0, c.width, c.height);
@@ -191,24 +247,28 @@ function draw() {
             p.x = Math.random() * c.width;
         }
     }
-    requestAnimationFrame(draw);
+    animationId = requestAnimationFrame(draw);
 }
 
-// تحريك الكشاف (دعم اللمس والفأرة)
+// تحريك الكشاف (دعم اللمس والفأرة مع التحسين)
 const img = document.getElementById('hidden-image');
 
 function updateSpotlight(e) {
     const rect = hiddenContainer.getBoundingClientRect();
     let clientX, clientY;
     
-    if (e.touches) {
+    if (e.touches && e.touches.length > 0) {
         // حدث لمس
         clientX = e.touches[0].clientX;
         clientY = e.touches[0].clientY;
-    } else {
+        // إظهار الصورة عند اللمس
+        img.style.opacity = '1';
+    } else if (e.clientX !== undefined) {
         // حدث فأرة
         clientX = e.clientX;
         clientY = e.clientY;
+    } else {
+        return;
     }
     
     const x = clientX - rect.left;
@@ -220,16 +280,35 @@ function updateSpotlight(e) {
     }
 }
 
+function hideSpotlightOnTouchEnd() {
+    // إخفاء الصورة بعد انتهاء اللمس إذا لم يكن هناك hover
+    setTimeout(() => {
+        if (!isTouching && !hiddenContainer.matches(':hover')) {
+            img.style.opacity = '0';
+        }
+    }, 300);
+}
+
 hiddenContainer.addEventListener('mousemove', updateSpotlight);
 hiddenContainer.addEventListener('touchmove', updateSpotlight);
 hiddenContainer.addEventListener('touchstart', updateSpotlight);
+hiddenContainer.addEventListener('touchend', hideSpotlightOnTouchEnd);
+hiddenContainer.addEventListener('touchcancel', hideSpotlightOnTouchEnd);
 
 // تحسين الأداء لمنع التمرير أثناء اللمس على الحاوية
 hiddenContainer.addEventListener('touchmove', (e) => {
     e.preventDefault();
 }, { passive: false });
 
+// بدء الرسم
 draw();
+
+// تنظيف عند إغلاق الصفحة
+window.addEventListener('beforeunload', () => {
+    if (animationId) {
+        cancelAnimationFrame(animationId);
+    }
+});
 </script>
 </body>
 </html>
