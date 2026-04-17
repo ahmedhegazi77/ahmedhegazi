@@ -347,6 +347,32 @@
             z-index: 100;
         }
 
+        /* ===== تعديل لعرض بطاقتين متجاورتين في الموبايل ===== */
+        @media (max-width: 768px) {
+            .circles-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 12px;
+                padding: 12px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .circles-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 10px;
+                padding: 10px;
+            }
+        }
+
+        /* للشاشات الصغيرة جداً تبقى بطاقتين ولكن تصغير بسيط */
+        @media (max-width: 360px) {
+            .circles-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 8px;
+                padding: 8px;
+            }
+        }
+
         /* الدائرة الفضية */
         .silver-circle {
             position: relative;
@@ -458,12 +484,6 @@
 
         /* ===== تحسينات للموبايل ===== */
         @media (max-width: 480px) {
-            .circles-grid {
-                grid-template-columns: repeat(2, 1fr);
-                gap: 12px;
-                padding: 12px;
-            }
-
             .search-box {
                 flex-direction: column;
                 gap: 10px;
@@ -480,12 +500,6 @@
 
             .search-box button {
                 width: 100%;
-            }
-        }
-
-        @media (max-width: 360px) {
-            .circles-grid {
-                grid-template-columns: 1fr;
             }
         }
 
@@ -727,10 +741,13 @@ function searchGoogle() {
 }
 
 // دعم زر البحث باللمس
-document.querySelector('.search-box button').addEventListener('touchstart', function(e) {
-    e.preventDefault();
-    searchGoogle();
-});
+const searchBtn = document.querySelector('.search-box button');
+if (searchBtn) {
+    searchBtn.addEventListener('touchstart', function(e) {
+        e.preventDefault();
+        searchGoogle();
+    });
+}
 
 // ===== جزيئات ذهبية مع حركة الماوس واللمس =====
 document.addEventListener('mousemove', function(e) {
