@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
     <title>الثانوية بنات</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
     <style>
@@ -10,6 +10,7 @@
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
         }
 
         body {
@@ -156,6 +157,7 @@
             border: 4px solid white;
             box-shadow: 0 0 50px #ffd700, 0 0 100px #ffaa00, inset 0 0 20px white;
             animation: musicGoldenPulse 2s infinite;
+            touch-action: manipulation;
         }
 
         @keyframes musicGoldenPulse {
@@ -168,6 +170,7 @@
             color: white;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
             animation: iconSpin 5s infinite linear;
+            pointer-events: none;
         }
 
         @keyframes iconSpin {
@@ -189,6 +192,7 @@
             transition: all 0.3s ease;
             cursor: pointer;
             backdrop-filter: blur(5px);
+            touch-action: manipulation;
         }
 
         .home-button a {
@@ -222,6 +226,20 @@
             .home-button a {
                 font-size: 16px;
                 gap: 6px;
+            }
+            
+            .eye {
+                width: 45px;
+                height: 45px;
+            }
+
+            .music-golden {
+                width: 55px;
+                height: 55px;
+            }
+
+            .music-golden i {
+                font-size: 28px;
             }
         }
 
@@ -282,6 +300,7 @@
             color: white;
             font-family: 'Cairo', sans-serif;
             min-width: 0;
+            outline: none;
         }
 
         .search-box input::placeholder {
@@ -302,6 +321,7 @@
             border: 2px solid #ffd700;
             white-space: nowrap;
             box-shadow: 0 0 20px #ffd700;
+            touch-action: manipulation;
         }
 
         .search-box button:hover {
@@ -309,6 +329,10 @@
             color: #000;
             transform: scale(1.05);
             box-shadow: 0 0 40px #ffd700;
+        }
+
+        .search-box button:active {
+            transform: scale(0.95);
         }
 
         /* ===== شبكة الدوائر الفضية ===== */
@@ -346,6 +370,7 @@
             padding: 15px 10px;
             text-align: center;
             cursor: pointer;
+            touch-action: manipulation;
         }
 
         /* التأثير الذهبي الوهاج عند التحويم */
@@ -375,6 +400,7 @@
             font-size: clamp(24px, 6vw, 32px);
             margin-bottom: 8px;
             filter: drop-shadow(0 2px 5px rgba(0,0,0,0.2));
+            pointer-events: none;
         }
 
         /* التأثير المتوهج الذهبي */
@@ -436,20 +462,6 @@
                 grid-template-columns: repeat(2, 1fr);
                 gap: 12px;
                 padding: 12px;
-            }
-
-            .eye {
-                width: 45px;
-                height: 45px;
-            }
-
-            .music-golden {
-                width: 55px;
-                height: 55px;
-            }
-
-            .music-golden i {
-                font-size: 28px;
             }
 
             .search-box {
@@ -526,7 +538,7 @@
 </div>
 
 <!-- موسيقى خلفية -->
-<audio id="bgMusic" loop>
+<audio id="bgMusic" loop preload="auto">
     <source src="music.wav" type="audio/mpeg">
 </audio>
 
@@ -574,20 +586,20 @@ const links = [
     { icon: "❓", text: "مسابقات", url: "q.html" },
 ];
 
-// ===== العين تتبع الماوس =====
+// ===== العين تتبع الماوس (مع دعم اللمس) =====
 const leftPupil = document.getElementById('leftPupil');
 const rightPupil = document.getElementById('rightPupil');
 const pupils = [leftPupil, rightPupil];
 
-document.addEventListener('mousemove', function(e) {
+function updatePupilsPosition(clientX, clientY) {
     pupils.forEach(pupil => {
         const eye = pupil.closest('.eye');
         const eyeRect = eye.getBoundingClientRect();
         const eyeCenterX = eyeRect.left + eyeRect.width / 2;
         const eyeCenterY = eyeRect.top + eyeRect.height / 2;
         
-        const deltaX = e.clientX - eyeCenterX;
-        const deltaY = e.clientY - eyeCenterY;
+        const deltaX = clientX - eyeCenterX;
+        const deltaY = clientY - eyeCenterY;
         
         const angle = Math.atan2(deltaY, deltaX);
         const distance = Math.min(12, Math.sqrt(deltaX * deltaX + deltaY * deltaY) / 15);
@@ -597,14 +609,26 @@ document.addEventListener('mousemove', function(e) {
         
         pupil.style.transform = `translate(calc(-50% + ${moveX}px), calc(-50% + ${moveY}px))`;
     });
+}
+
+document.addEventListener('mousemove', function(e) {
+    updatePupilsPosition(e.clientX, e.clientY);
 });
 
-// ===== نظام الموسيقى =====
+// دعم اللمس للعينين
+document.addEventListener('touchmove', function(e) {
+    if (e.touches.length > 0) {
+        updatePupilsPosition(e.touches[0].clientX, e.touches[0].clientY);
+    }
+});
+
+// ===== نظام الموسيقى (مع دعم أندرويد) =====
 let music = document.getElementById('bgMusic');
 let musicBtn = document.getElementById('musicBtn');
 let musicIcon = document.getElementById('musicIcon');
 let isPlaying = false;
 
+// محاولة تشغيل الموسيقى تلقائياً (قد لا تعمل على أندرويد بدون تفاعل)
 music.play().catch(() => {
     isPlaying = false;
     musicIcon.textContent = '🔇';
@@ -615,7 +639,7 @@ musicBtn.addEventListener('click', function() {
         music.pause();
         musicIcon.textContent = '🔇';
     } else {
-        music.play();
+        music.play().catch(e => console.log("Audio play failed:", e));
         musicIcon.textContent = '🔊';
     }
     isPlaying = !isPlaying;
@@ -627,7 +651,13 @@ musicBtn.addEventListener('click', function() {
     }, 200);
 });
 
-// ===== إنشاء الدوائر الفضية =====
+// دعم اللمس لزر الموسيقى
+musicBtn.addEventListener('touchstart', function(e) {
+    e.preventDefault();
+    this.click();
+});
+
+// ===== إنشاء الدوائر الفضية (مع دعم اللمس) =====
 function createCircles() {
     const grid = document.getElementById('circlesGrid');
     links.forEach((linkData, index) => {
@@ -641,23 +671,35 @@ function createCircles() {
             <div>${linkData.text}</div>
         `;
         
-        // تأثير النقر
-        circle.addEventListener('click', function(e) {
+        // تأثير النقر (للفأرة واللمس)
+        function handleClick(e) {
             e.preventDefault();
             
             this.classList.add('click-effect');
             
             // جزيئات ذهبية
+            let clientX, clientY;
+            if (e.touches) {
+                clientX = e.touches[0].clientX;
+                clientY = e.touches[0].clientY;
+            } else {
+                clientX = e.clientX;
+                clientY = e.clientY;
+            }
+            
             for (let i = 0; i < 8; i++) {
                 setTimeout(() => {
-                    createLightParticle(e.clientX, e.clientY);
+                    createLightParticle(clientX, clientY);
                 }, i * 30);
             }
             
             setTimeout(() => {
                 window.location.href = this.href;
             }, 300);
-        });
+        }
+        
+        circle.addEventListener('click', handleClick);
+        circle.addEventListener('touchstart', handleClick);
         
         grid.appendChild(circle);
     });
@@ -676,7 +718,7 @@ function createLightParticle(x, y) {
     }, 1500);
 }
 
-// ===== دالة البحث =====
+// ===== دالة البحث (مع دعم اللمس) =====
 function searchGoogle() {
     const query = document.getElementById('searchInput').value;
     if (query.trim()) {
@@ -684,15 +726,34 @@ function searchGoogle() {
     }
 }
 
-// ===== جزيئات ذهبية مع حركة الماوس =====
+// دعم زر البحث باللمس
+document.querySelector('.search-box button').addEventListener('touchstart', function(e) {
+    e.preventDefault();
+    searchGoogle();
+});
+
+// ===== جزيئات ذهبية مع حركة الماوس واللمس =====
 document.addEventListener('mousemove', function(e) {
-    if (Math.random() > 0.9) {
+    if (Math.random() > 0.95) {
         createLightParticle(e.clientX, e.clientY);
+    }
+});
+
+document.addEventListener('touchmove', function(e) {
+    if (Math.random() > 0.95 && e.touches.length > 0) {
+        createLightParticle(e.touches[0].clientX, e.touches[0].clientY);
     }
 });
 
 // ===== تهيئة الصفحة =====
 createCircles();
+
+// منع التمرير الخلفي عند لمس العناصر التفاعلية
+document.querySelectorAll('.silver-circle, .music-golden, .home-button, .search-box button').forEach(el => {
+    el.addEventListener('touchstart', (e) => {
+        e.stopPropagation();
+    }, { passive: false });
+});
 
 // ===== رسالة ترحيب =====
 console.log('%c✨ سبحان اللـه و بحمده ✨', 'color: #ffd700; font-size: 16px; font-weight: bold;');
