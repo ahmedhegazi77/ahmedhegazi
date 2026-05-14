@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نظام البطاقات - طباعة + صور + PDF</title>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #eef2f5;
+            padding: 20px;
+        }
+
+        /* لوحة التحكم */
+        .control-panel {
+            background: white;
+            padding: 20px 25px;
+            border-radius: 20px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-items: flex-end;
+        }
+
+        .ctrl {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .ctrl label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #1e4663;
+        }
+
+        input, button, .file-label {
+            padding: 10px 18px;
+            border-radius: 30px;
+            border: 1px solid #cbdde6;
+            font-size: 14px;
+            font-family: inherit;
+        }
+
+        button {
+            background: #1f6e8c;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.2s;
+        }
+
+        button:hover {
+            background: #0e4b63;
+            transform: scale(0.97);
+        }
+
+        .btn-danger {
+            background: #c0392b;
+        }
+        .btn-danger:hover {
+            background: #a93226;
+        }
+        .btn-success {
+            background: #27ae60;
+        }
+        .btn-success:hover {
+            background: #229954;
+        }
+        .btn-warning {
+            background: #e67e22;
+        }
+        .btn-warning:hover {
+            background: #d35400;
+        }
+
+        .file-label {
+            background: #2c553c;
+            color: white;
+            display: inline-block;
+            text-align: center;
+            cursor: pointer;
+        }
+
+        .file-label:hover {
+            background: #1d3e2b;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .status {
+            background: #e3f0f5;
+            padding: 10px 18px;
+            border-radius: 40px;
+            font-size: 13px;
+            color: #005f73;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        /* منطقة المعاينة */
+        .preview-area {
+            background: white;
+            border-radius: 24px;
+            padding: 25px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        }
+
+        /* صفحة الطباعة */
+        .print-page {
+            margin-bottom: 35px;
+            break-after: page;
+            page-break-after: always;
+            background: white;
+        }
+
+        /* شبكة البطاقات 3 أعمدة */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        /* البطاقة - القيم عمودياً في المنتصف */
+        .card {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 20px;
+            padding: 20px 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+            break-inside: avoid;
+            page-break-inside: avoid;
+            min-height: 180px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        /* كل قيمة - حجم الخط قابل للتعديل */
+        .card-value {
+            text-align: center;
+            padding: 12px 8px;
+            font-size: 12px;
+            color: #1a2c3e;
+            border-bottom: 1px solid #edf2f7;
+            word-break: break-word;
+            line-height: 1.4;
+        }
+
+        .card-value:last-child {
+            border-bottom: none;
+        }
+
+        /* رأس الصفحة */
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 20px;
+            padding: 8px 12px;
+            background: #f8fafc;
+            border-radius: 50px;
+        }
+
+        .exam-title {
+            font-weight: bold;
+            font-size: 14px;
+            color: #1f6e8c;
+        }
+
+        .page-num {
+            font-size: 12px;
+            color: #5a6e7c;
+        }
+
+        /* تحكم حجم الخط */
+        .font-size-control {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: #f0f4f8;
+            padding: 5px 15px;
+            border-radius: 40px;
+        }
+        .font-size-control input {
+            width: 80px;
+            padding: 5px 10px;
+        }
+
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+                margin: 0;
+            }
+            .control-panel {
+                display: none;
+            }
+            .preview-area {
+                padding: 0;
+                margin: 0;
+                box-shadow: none;
+            }
+            .print-page {
+                break-after: page;
+                margin: 0;
+                padding: 15px;
+            }
+            .card {
+                border: 1px solid #ccc;
+            }
+        }
+
+        .empty-message {
+            text-align: center;
+            padding: 60px;
+            color: #6f8faa;
+        }
+
+        /* مؤشر التحميل */
+        .loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            color: white;
+            font-size: 20px;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .loading.hidden {
+            display: none;
+        }
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+
+<div id="loading" class="loading hidden">
+    <div class="spinner"></div>
+    <div>جاري المعالجة...</div>
+</div>
+
+<div class="control-panel">
+    <div class="ctrl">
+        <label>📂 ملف Excel (بدون عناوين)</label>
+        <label class="file-label" for="excelFile">📁 اختيار ملف</label>
+        <input type="file" id="excelFile" accept=".xlsx, .xls">
+    </div>
+    <div class="ctrl">
+        <label>📝 اسم الامتحان</label>
+        <input type="text" id="examName" placeholder="مثال: امتحان منتصف العام" value="امتحان الشهادة">
+    </div>
+    <div class="ctrl">
+        <label>🔢 بطاقات لكل صفحة</label>
+        <input type="number" id="cardsPerPage" value="30" step="1" min="1" max="99">
+        <small style="font-size: 10px;">(افتراضي 30 = 3x10)</small>
+    </div>
+    <div class="ctrl font-size-control">
+        <label>🔤 حجم الخط (px)</label>
+        <input type="number" id="fontSize" value="12" step="1" min="8" max="30">
+        <button id="applyFontBtn" style="padding: 5px 12px;">تطبيق</button>
+    </div>
+    <div class="ctrl">
+        <label>&nbsp;</label>
+        <button id="previewGenerateBtn">📄 معاينة البطاقات</button>
+    </div>
+    <div class="ctrl">
+        <label>&nbsp;</label>
+        <button id="printBrowserBtn" class="btn-warning">🖨️ طباعة (متصفح)</button>
+    </div>
+    <div class="ctrl">
+        <label>&nbsp;</label>
+        <button id="saveImagesBtn" class="btn-success">📸 حفظ كصور (كل صفحة)</button>
+    </div>
+    <div class="ctrl">
+        <label>&nbsp;</label>
+        <button id="saveAllImagesZipBtn" class="btn-danger">📁 حفظ كل الصفحات كـ ZIP</button>
+    </div>
+    <div id="statusMsg" class="status">✨ انتظر رفع ملف Excel</div>
+</div>
+
+<div id="previewContainer" class="preview-area">
+    <div class="empty-message">📁 قم برفع ملف Excel لرؤية البطاقات (كل صف يتحول إلى بطاقة، القيم تحت بعضها في المنتصف)</div>
+</div>
+
+<script>
+    // --- المتغيرات العامة ---
+    let rawRecords = [];          // مصفوفة من الصفوف (كل صف: مصفوفة قيم)
+    let lastGeneratedHTML = "";   // آخر HTML مُنتَج للمعاينة
+    let totalPagesCount = 0;
+    let currentFontSize = 12;
+
+    // --- عناصر DOM ---
+    const fileInput = document.getElementById('excelFile');
+    const examNameField = document.getElementById('examName');
+    const cardsPerPageField = document.getElementById('cardsPerPage');
+    const fontSizeInput = document.getElementById('fontSize');
+    const applyFontBtn = document.getElementById('applyFontBtn');
+    const previewBtn = document.getElementById('previewGenerateBtn');
+    const printBrowserBtn = document.getElementById('printBrowserBtn');
+    const saveImagesBtn = document.getElementById('saveImagesBtn');
+    const saveAllImagesZipBtn = document.getElementById('saveAllImagesZipBtn');
+    const statusSpan = document.getElementById('statusMsg');
+    const previewContainer = document.getElementById('previewContainer');
+    const loadingDiv = document.getElementById('loading');
+
+    // --- قراءة ملف Excel بدون رؤوس ---
+    function loadExcelWithoutHeaders(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const sheetName = workbook.SheetNames[0];
+                    const sheet = workbook.Sheets[sheetName];
+                    const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "" });
+                    
+                    const validRows = rows.filter(row => {
+                        if (!row || row.length === 0) return false;
+                        return row.some(cell => cell !== undefined && cell !== null && cell.toString().trim() !== "");
+                    });
+                    
+                    if (validRows.length === 0) reject("الملف لا يحتوي على بيانات حقيقية");
+                    else resolve(validRows);
+                } catch(err) {
+                    reject("خطأ في تحليل الملف: " + err.message);
+                }
+            };
+            reader.onerror = () => reject("فشل قراءة الملف");
+            reader.readAsArrayBuffer(file);
+        });
+    }
+
+    // --- تطبيق حجم الخط على كل البطاقات ---
+    function applyFontSizeToCards(size) {
+        const allValues = document.querySelectorAll('.card-value');
+        allValues.forEach(el => {
+            el.style.fontSize = size + 'px';
+        });
+        currentFontSize = size;
+        localStorage.setItem('cardFontSize', size);
+    }
+
+    // --- بناء بطاقة واحدة ---
+    function buildSimpleCard(recordValues, globalIndex) {
+        let valuesHtml = "";
+        for (let i = 0; i < recordValues.length; i++) {
+            let val = (recordValues[i] !== undefined && recordValues[i] !== null) ? recordValues[i].toString() : "";
+            if (val.trim() === "") val = "—";
+            valuesHtml += `<div class="card-value">${escapeHtml(val)}</div>`;
+        }
+        if (recordValues.length === 0) {
+            valuesHtml = `<div class="card-value">(بدون بيانات)</div>`;
+        }
+        return `<div class="card">${valuesHtml}</div>`;
+    }
+
+    function escapeHtml(str) {
+        if (!str) return "";
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
+
+    // --- إنشاء كل الصفحات ---
+    function generateAllPages(records, cardsPerPage, examName) {
+        if (!records || records.length === 0) {
+            return { html: `<div class="empty-message">⚠️ لا توجد سجلات لعرضها</div>`, totalPages: 0 };
+        }
+        
+        const pageSize = cardsPerPage > 0 ? cardsPerPage : 30;
+        const totalRecords = records.length;
+        const totalPages = Math.ceil(totalRecords / pageSize);
+        let fullHtml = "";
+        
+        for (let pageIdx = 0; pageIdx < totalPages; pageIdx++) {
+            const startIdx = pageIdx * pageSize;
+            const endIdx = Math.min(startIdx + pageSize, totalRecords);
+            const pageRecords = records.slice(startIdx, endIdx);
+            
+            let cardsHtml = "";
+            for (let i = 0; i < pageRecords.length; i++) {
+                const globalRecordNumber = startIdx + i + 1;
+                cardsHtml += buildSimpleCard(pageRecords[i], globalRecordNumber);
+            }
+            
+            fullHtml += `
+                <div class="print-page" id="page-${pageIdx + 1}">
+                    <div class="page-header">
+                        <span class="exam-title">📖 ${escapeHtml(examName)}</span>
+                        <span class="page-num">لجنة ${pageIdx + 1} / ${totalPages}</span>
+                    </div>
+                    <div class="cards-grid">
+                        ${cardsHtml}
+                    </div>
+                    <div style="text-align: center; font-size: 10px; color: #8ba0ae; margin-top: 12px;">
+                        ─── اللجنة ${pageIdx + 1} ───
+                    </div>
+                </div>
+            `;
+        }
+        
+        return { html: fullHtml, totalPages };
+    }
+
+    // --- تحديث المعاينة ---
+    async function refreshPreview() {
+        if (!rawRecords.length) {
+            previewContainer.innerHTML = `<div class="empty-message">📭 لا توجد بيانات مرفوعة. حمّل ملف Excel أولاً.</div>`;
+            statusSpan.innerHTML = "⚠️ لم يتم رفع أي ملف بعد";
+            lastGeneratedHTML = "";
+            totalPagesCount = 0;
+            return;
+        }
+        
+        let cardsPerPage = parseInt(cardsPerPageField.value, 10);
+        if (isNaN(cardsPerPage) || cardsPerPage < 1) cardsPerPage = 30;
+        
+        const examName = examNameField.value.trim();
+        const finalExamName = examName === "" ? "امتحان" : examName;
+        
+        const { html, totalPages } = generateAllPages(rawRecords, cardsPerPage, finalExamName);
+        if (!html) {
+            previewContainer.innerHTML = `<div class="empty-message">خطأ في توليد البطاقات</div>`;
+            return;
+        }
+        
+        lastGeneratedHTML = html;
+        totalPagesCount = totalPages;
+        previewContainer.innerHTML = html;
+        
+        // تطبيق حجم الخط المحفوظ
+        setTimeout(() => {
+            applyFontSizeToCards(currentFontSize);
+        }, 50);
+        
+        statusSpan.innerHTML = `✅ تمت المعاينة: ${rawRecords.length} بطاقة | ${totalPages} صفحة | الشبكة 3x${cardsPerPage/3} | حجم الخط ${currentFontSize}px`;
+    }
+
+    // --- تصدير صفحة واحدة كصورة ---
+    async function capturePageAsImage(pageElement, pageNumber) {
+        return new Promise(async (resolve) => {
+            try {
+                const canvas = await html2canvas(pageElement, {
+                    scale: 3,
+                    backgroundColor: '#ffffff',
+                    logging: false,
+                    useCORS: false
+                });
+                const image = canvas.toDataURL('image/png');
+                resolve(image);
+            } catch(err) {
+                console.error("خطأ في تصوير الصفحة", err);
+                resolve(null);
+            }
+        });
+    }
+
+    // --- حفظ صفحة واحدة كصورة ---
+    async function saveSinglePageAsImage() {
+        if (!lastGeneratedHTML || rawRecords.length === 0) {
+            statusSpan.innerHTML = "❌ لا توجد معاينة جاهزة. حمّل ملف ثم اضغط 'معاينة البطاقات'";
+            return;
+        }
+        
+        // طلب رقم الصفحة من المستخدم
+        const pageNum = prompt(`أدخل رقم الصفحة (1 - ${totalPagesCount})`, "1");
+        if (!pageNum) return;
+        
+        const pageIndex = parseInt(pageNum) - 1;
+        if (pageIndex < 0 || pageIndex >= totalPagesCount) {
+            statusSpan.innerHTML = "❌ رقم صفحة غير صحيح";
+            return;
+        }
+        
+        loadingDiv.classList.remove('hidden');
+        statusSpan.innerHTML = `⏳ جاري تصوير الصفحة ${pageIndex + 1}...`;
+        
+        // العثور على عنصر الصفحة
+        const pageElement = document.getElementById(`page-${pageIndex + 1}`);
+        if (!pageElement) {
+            loadingDiv.classList.add('hidden');
+            statusSpan.innerHTML = "❌ لم يتم العثور على الصفحة";
+            return;
+        }
+        
+        const imageData = await capturePageAsImage(pageElement, pageIndex + 1);
+        if (imageData) {
+            const link = document.createElement('a');
+            const examName = examNameField.value.trim() || 'امتحان';
+            link.download = `${examName}_صفحة_${pageIndex + 1}.png`;
+            link.href = imageData;
+            link.click();
+            statusSpan.innerHTML = `✅ تم حفظ الصفحة ${pageIndex + 1} كصورة`;
+        } else {
+            statusSpan.innerHTML = "❌ فشل في تصوير الصفحة";
+        }
+        
+        loadingDiv.classList.add('hidden');
+    }
+
+    // --- حفظ كل الصفحات كصور في ملف ZIP ---
+    async function saveAllPagesAsZip() {
+        if (!lastGeneratedHTML || rawRecords.length === 0) {
+            statusSpan.innerHTML = "❌ لا توجد معاينة جاهزة. حمّل ملف ثم اضغط 'معاينة البطاقات'";
+            return;
+        }
+        
+        loadingDiv.classList.remove('hidden');
+        statusSpan.innerHTML = `⏳ جاري تصوير ${totalPagesCount} صفحة... قد يستغرق وقتاً`;
+        
+        const zip = new JSZip();
+        const examName = examNameField.value.trim() || 'امتحان';
+        
+        for (let i = 1; i <= totalPagesCount; i++) {
+            statusSpan.innerHTML = `⏳ جاري تصوير الصفحة ${i} / ${totalPagesCount}...`;
+            const pageElement = document.getElementById(`page-${i}`);
+            if (pageElement) {
+                const imageData = await capturePageAsImage(pageElement, i);
+                if (imageData) {
+                    const base64Data = imageData.split(',')[1];
+                    zip.file(`${examName}_صفحة_${i}.png`, base64Data, { base64: true });
+                }
+            }
+        }
+        
+        statusSpan.innerHTML = `⏳ جاري إنشاء ملف ZIP...`;
+        const zipBlob = await zip.generateAsync({ type: 'blob' });
+        const link = document.createElement('a');
+        link.download = `${examName}_كل_الصفحات_${totalPagesCount}_صفحة.zip`;
+        link.href = URL.createObjectURL(zipBlob);
+        link.click();
+        URL.revokeObjectURL(link.href);
+        
+        loadingDiv.classList.add('hidden');
+        statusSpan.innerHTML = `✅ تم حفظ ${totalPagesCount} صفحة كصور في ملف ZIP`;
+    }
+
+    // --- طباعة عبر المتصفح (Chrome PDF) ---
+    function printViaBrowser() {
+        if (!lastGeneratedHTML || rawRecords.length === 0) {
+            statusSpan.innerHTML = "❌ لا توجد معاينة جاهزة. حمّل ملف ثم اضغط 'معاينة البطاقات'";
+            return;
+        }
+        
+        // إنشاء نافذة طباعة مؤقتة
+        const printWindow = window.open('', '_blank');
+        printWindow.document.write(`
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>طباعة البطاقات - ${examNameField.value || 'امتحان'}</title>
+                <meta charset="UTF-8">
+                <style>
+                    * { margin: 0; padding: 0; box-sizing: border-box; }
+                    body {
+                        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                        padding: 20px;
+                        background: white;
+                    }
+                    .cards-grid {
+                        display: grid;
+                        grid-template-columns: repeat(3, 1fr);
+                        gap: 20px;
+                    }
+                    .card {
+                        background: white;
+                        border: 1px solid #ccc;
+                        border-radius: 20px;
+                        padding: 20px 12px;
+                        break-inside: avoid;
+                        page-break-inside: avoid;
+                        min-height: 180px;
+                        display: flex;
+                        flex-direction: column;
+                        justify-content: center;
+                    }
+                    .card-value {
+                        text-align: center;
+                        padding: 12px 8px;
+                        font-size: ${currentFontSize}px;
+                        color: #1a2c3e;
+                        border-bottom: 1px solid #edf2f7;
+                    }
+                    .card-value:last-child { border-bottom: none; }
+                    .print-page {
+                        margin-bottom: 35px;
+                        break-after: page;
+                        page-break-after: always;
+                    }
+                    .page-header {
+                        display: flex;
+                        justify-content: space-between;
+                        margin-bottom: 20px;
+                        padding: 8px 12px;
+                        background: #f8fafc;
+                        border-radius: 50px;
+                    }
+                    .exam-title { font-weight: bold; font-size: 14px; color: #1f6e8c; }
+                    .page-num { font-size: 12px; color: #5a6e7c; }
+                    @media print {
+                        body { padding: 0; margin: 0; }
+                        .print-page { break-after: page; }
+                    }
+                </style>
+            </head>
+            <body>
+                ${lastGeneratedHTML}
+                <script>
+                    window.onload = function() {
+                        setTimeout(function() {
+                            window.print();
+                            setTimeout(function() { window.close(); }, 500);
+                        }, 200);
+                    };
+                <\/script>
+            </body>
+            </html>
+        `);
+        printWindow.document.close();
+        statusSpan.innerHTML = "🖨️ تم فتح نافذة الطباعة - استخدم Ctrl+P أو أمر الطباعة";
+    }
+
+    // --- رفع الملف ---
+    fileInput.addEventListener('change', async (event) => {
+        const file = event.target.files[0];
+        if (!file) {
+            statusSpan.innerHTML = "⚠️ لم يتم اختيار ملف";
+            return;
+        }
+        
+        loadingDiv.classList.remove('hidden');
+        statusSpan.innerHTML = "📖 جاري تحميل وقراءة ملف Excel ...";
+        
+        try {
+            const rows = await loadExcelWithoutHeaders(file);
+            if (rows && rows.length > 0) {
+                rawRecords = rows;
+                statusSpan.innerHTML = `✅ تم تحميل ${rawRecords.length} سجل. يمكنك معاينة البطاقات.`;
+                await refreshPreview();
+            } else {
+                rawRecords = [];
+                statusSpan.innerHTML = "⚠️ الملف لا يحتوي على بيانات صالحة";
+                previewContainer.innerHTML = `<div class="empty-message">الملف فارغ أو لا يحتوي على صفوف حقيقية</div>`;
+            }
+        } catch (err) {
+            console.error(err);
+            statusSpan.innerHTML = "❌ خطأ: " + err;
+            rawRecords = [];
+            previewContainer.innerHTML = `<div class="empty-message">فشل قراءة الملف: ${err}</div>`;
+        }
+        
+        loadingDiv.classList.add('hidden');
+    });
+    
+    // --- أزرار التحكم ---
+    previewBtn.addEventListener('click', () => {
+        if (rawRecords.length === 0) {
+            statusSpan.innerHTML = "❌ لا توجد بيانات مرفوعة، حمّل ملف Excel أولاً";
+            return;
+        }
+        refreshPreview();
+    });
+    
+    applyFontBtn.addEventListener('click', () => {
+        const newSize = parseInt(fontSizeInput.value, 10);
+        if (isNaN(newSize) || newSize < 8) {
+            statusSpan.innerHTML = "⚠️ أدخل حجم خط صالح (8-30)";
+            return;
+        }
+        applyFontSizeToCards(newSize);
+        statusSpan.innerHTML = `✅ تم تغيير حجم الخط إلى ${newSize}px`;
+    });
+    
+    printBrowserBtn.addEventListener('click', () => {
+        printViaBrowser();
+    });
+    
+    saveImagesBtn.addEventListener('click', () => {
+        saveSinglePageAsImage();
+    });
+    
+    saveAllImagesZipBtn.addEventListener('click', () => {
+        saveAllPagesAsZip();
+    });
+    
+    // استعادة حجم الخط المحفوظ
+    const savedFontSize = localStorage.getItem('cardFontSize');
+    if (savedFontSize) {
+        currentFontSize = parseInt(savedFontSize);
+        fontSizeInput.value = currentFontSize;
+    }
+    
+    // تعيين القيم الافتراضية
+    cardsPerPageField.value = 30;
+    examNameField.value = "امتحان منتصف العام";
+    statusSpan.innerHTML = "✅ النظام جاهز: ارفع ملف Excel بدون عناوين";
+</script>
+</body>
+</html>
